@@ -21,7 +21,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
-import static fi.fmi.avi.parser.Lexeme.Identity.VERTICAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
@@ -97,15 +96,14 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, WEATHER, msg, Metar.class);
         ObservedClouds obsClouds = msg.getClouds();
         if (obsClouds != null) {
-            if (obsClouds.getVerticalVisibility() != null && obsClouds.getVerticalVisibility().notMissing()) {
-                this.appendToken(retval, VERTICAL_VISIBILITY, msg, Metar.class);
+            if (obsClouds.getVerticalVisibility() != null) {
+                this.appendToken(retval, Identity.CLOUD, msg, Metar.class, "VV");
             } else if (obsClouds.isAmountAndHeightUnobservableByAutoSystem()) {
-                retval.append(this.factory.createLexeme("////", Identity.VERTICAL_VISIBILITY));
+                retval.append(this.factory.createLexeme("//////", Identity.CLOUD));
             } else {
                 this.appendCloudLayers(retval, msg, Metar.class, obsClouds.getLayers());
             }
         }
-        appendToken(retval, VERTICAL_VISIBILITY, msg, Metar.class);
         appendToken(retval, AIR_DEWPOINT_TEMPERATURE, msg, Metar.class);
         appendToken(retval, AIR_PRESSURE_QNH, msg, Metar.class);
         appendToken(retval, RECENT_WEATHER, msg, Metar.class);
@@ -119,8 +117,8 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
                 appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, Metar.class, trend);
                 appendToken(retval, WEATHER, msg, Metar.class, trend);
                 CloudForecast clouds = trend.getCloud();
-                if (clouds.getVerticalVisibility() != null && clouds.getVerticalVisibility().notMissing()) {
-                    this.appendToken(retval, VERTICAL_VISIBILITY, msg, Metar.class);
+                if (clouds.getVerticalVisibility() != null) {
+                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, "VV");
                 } else {
                     this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers());
                 }
