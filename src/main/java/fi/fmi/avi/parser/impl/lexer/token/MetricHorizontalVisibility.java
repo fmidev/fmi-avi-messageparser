@@ -64,13 +64,13 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
         token.setParsedValue(UNIT, "m");
         
         if (visibility == 9999) {
-            token.setParsedValue(VALUE, 10000d);
+            token.setParsedValue(VALUE, 10000);
             token.setParsedValue(RELATIONAL_OPERATOR, RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN);
         } else if (visibility == 0) {
-            token.setParsedValue(VALUE, 50d);
+            token.setParsedValue(VALUE, 50);
             token.setParsedValue(RELATIONAL_OPERATOR, RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN);
         } else {
-        	 token.setParsedValue(VALUE, new Double(visibility));
+        	 token.setParsedValue(VALUE, visibility);
         }
         if (direction != null) {
         	DirectionValue dv = DirectionValue.forCode(direction);
