@@ -30,13 +30,13 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
         if (!"//".equals(match.group(4))) {
             dewPointTemp = Integer.valueOf(match.group(4));
         }
-        ArrayList<Integer> values = new ArrayList<Integer>(2);
+        Integer[] values = new Integer[2];
         boolean missingValues = false;
         if (airTemp != null) {
             if (match.group(1) != null) {
                 airTemp = Integer.valueOf(airTemp.intValue() * -1);
             }
-            values.add(airTemp);
+            values[0] = airTemp;
         } else {
             missingValues = true;
         }
@@ -44,7 +44,7 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
             if (match.group(3) != null) {
                 dewPointTemp = Integer.valueOf(dewPointTemp.intValue() * -1);
             }
-            values.add(dewPointTemp);
+            values[1] = dewPointTemp;
         } else {
             missingValues = true;
         }
