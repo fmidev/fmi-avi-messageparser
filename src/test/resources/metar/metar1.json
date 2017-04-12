@@ -12,180 +12,106 @@
   ],
   "recentWeatherCodes": [],
   "airTemperature": {
-    "missingReason": "NOT_MISSING",
     "value": 14.0,
     "uom": "degC"
   },
   "dewpointTemperature": {
-    "missingReason": "NOT_MISSING",
     "value": 13.0,
     "uom": "degC"
   },
   "altimeterSettingQNH": {
-    "missingReason": "NOT_MISSING",
     "value": 1008.0,
     "uom": "hPa"
   },
   "surfaceWind": {
-    "missingReason": "NOT_MISSING",
     "variableDirection": false,
     "meanWindDirection": {
-      "missingReason": "NOT_MISSING",
       "value": 0.0,
       "uom": "deg"
     },
     "meanWindSpeed": {
-      "missingReason": "NOT_MISSING",
       "value": 0.0,
       "uom": "kt"
     },
     "windGust": {
-      "missingReason": "MISSING",
-      "value": 0.0,
-      "uom": null
-    },
-    "extremeClockwiseWindDirection": {
-      "missingReason": "MISSING",
-      "value": 0.0,
-      "uom": null
-    },
-    "extremeCounterClockwiseWindDirection": {
-      "missingReason": "MISSING",
       "value": 0.0,
       "uom": null
     }
   },
   "visibility": {
-    "missingReason": "NOT_MISSING",
-    "prevailingVisibilityOperator": "NOT_GIVEN",
     "prevailingVisibility": {
-      "missingReason": "NOT_MISSING",
       "value": 4500.0,
       "uom": "m"
-    },
-    "minimumVisibility": {
-      "missingReason": "MISSING",
-      "value": 0.0,
-      "uom": null
-    },
-    "minimumVisibilityDirection": {
-      "missingReason": "MISSING",
-      "value": 0.0,
-      "uom": null
     }
   },
   "runwayVisualRanges": [
     {
-      "missingReason": "NOT_MISSING",
       "runwayDirectionDesignator": "04R",
-      "meanRVROperator": "NOT_GIVEN",
       "pastTendency": "DOWNWARD",
       "meanRVR": {
-        "missingReason": "NOT_MISSING",
         "value": 500.0,
         "uom": "m"
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "runwayDirectionDesignator": "15",
-      "meanRVROperator": "NOT_GIVEN",
       "pastTendency": "DOWNWARD",
-      "meanRVR": {
-        "missingReason": "NOT_MISSING",
+      "varyingRVRMinimum": {
         "value": 600.0,
+        "uom": "m"
+      },
+      "varyingRVRMaximum": {
+        "value": 1500.0,
         "uom": "m"
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "runwayDirectionDesignator": "22L",
-      "meanRVROperator": "NOT_GIVEN",
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
-        "missingReason": "NOT_MISSING",
         "value": 275.0,
         "uom": "m"
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "runwayDirectionDesignator": "04L",
       "meanRVROperator": "ABOVE",
       "pastTendency": "DOWNWARD",
       "meanRVR": {
-        "missingReason": "NOT_MISSING",
         "value": 1500.0,
         "uom": "m"
       }
     }
   ],
   "clouds": {
-    "missingReason": "NOT_MISSING",
     "amountAndHeightUnobservableByAutoSystem": false,
-    "verticalVisibility": {
-      "missingReason": "MISSING",
-      "value": 0.0,
-      "uom": null
-    },
     "layers": [
       {
-        "missingReason": "NOT_MISSING",
         "amount": "FEW",
-        "cloudType": "NOT_GIVEN",
         "base": {
-          "missingReason": "NOT_MISSING",
           "value": 300,
           "uom": "ft"
         }
       },
       {
-        "missingReason": "NOT_MISSING",
         "amount": "SCT",
-        "cloudType": "NOT_GIVEN",
         "base": {
-          "missingReason": "NOT_MISSING",
           "value": 5000,
           "uom": "ft"
         }
       }
     ]
   },
-  "windShear": {
-    "missingReason": "MISSING",
-    "allRunways": false,
-    "runwayDirectionDesignators": null
-  },
-  "seaState": {
-    "missingReason": "MISSING",
-    "seaSurfaceState": null,
-    "seaSurfaceTemperature": null,
-    "significantWaveHeight": null
-  },
   "runwayStates": [],
   "trends": [
     {
-      "missingReason": "NOT_MISSING",
       "timeGroups": null,
       "ceilingAndVisibilityOk": false,
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [],
       "prevailingVisibility": {
-        "missingReason": "NOT_MISSING",
         "value": 2000.0,
         "uom": "m"
-      },
-      "surfaceWind": {
-        "missingReason": "MISSING",
-        "meanWindDirection": null,
-        "meanWindSpeed": null,
-        "windGust": null
-      },
-      "cloud": {
-        "missingReason": "MISSING",
-        "verticalVisibility": null,
-        "layers": null
       }
     }
   ]

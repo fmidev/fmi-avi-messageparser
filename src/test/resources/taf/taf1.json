@@ -15,60 +15,44 @@
   "previousReportValidityEndDayOfMonth": -1,
   "previousReportValidityEndHour": -1,
   "baseForecast": {
-    "missingReason": "NOT_MISSING",
     "ceilingAndVisibilityOk": false,
     "prevailingVisibilityOperator": "NOT_GIVEN",
     "forecastWeather": [
       "-RA"
     ],
     "prevailingVisibility": {
-      "missingReason": "NOT_MISSING",
       "value": 8000.0,
       "uom": "m"
     },
     "surfaceWind": {
-      "missingReason": "NOT_MISSING",
       "variableDirection": false,
       "meanWindDirection": {
-        "missingReason": "NOT_MISSING",
         "value": 140.0,
         "uom": "deg"
       },
       "meanWindSpeed": {
-        "missingReason": "NOT_MISSING",
         "value": 15.0,
         "uom": "kt"
       },
       "windGust": {
-        "missingReason": "NOT_MISSING",
         "value": 25.0,
         "uom": "kt"
       }
     },
     "cloud": {
-      "missingReason": "NOT_MISSING",
-      "verticalVisibility": {
-        "missingReason": "MISSING",
-        "value": 0.0,
-        "uom": null
-      },
       "layers": [
         {
-          "missingReason": "NOT_MISSING",
           "amount": "SCT",
           "cloudType": "NOT_GIVEN",
           "base": {
-            "missingReason": "NOT_MISSING",
             "value": 2000,
             "uom": "ft"
           }
         },
         {
-          "missingReason": "NOT_MISSING",
           "amount": "OVC",
           "cloudType": "NOT_GIVEN",
           "base": {
-            "missingReason": "NOT_MISSING",
             "value": 5000,
             "uom": "ft"
           }
@@ -79,7 +63,6 @@
   },
   "changeForecasts": [
     {
-      "missingReason": "NOT_MISSING",
       "ceilingAndVisibilityOk": false,
       "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [
@@ -92,43 +75,15 @@
       "validityEndDayOfMonth": 27,
       "validityEndHour": 17,
       "prevailingVisibility": {
-        "missingReason": "NOT_MISSING",
         "value": 5000.0,
         "uom": "m"
       },
-      "surfaceWind": {
-        "missingReason": "MISSING",
-        "variableDirection": false,
-        "meanWindDirection": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "meanWindSpeed": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "windGust": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        }
-      },
       "cloud": {
-        "missingReason": "NOT_MISSING",
-        "verticalVisibility": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
         "layers": [
           {
-            "missingReason": "NOT_MISSING",
             "amount": "BKN",
             "cloudType": "NOT_GIVEN",
             "base": {
-              "missingReason": "NOT_MISSING",
               "value": 700,
               "uom": "ft"
             }
@@ -137,7 +92,6 @@
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "ceilingAndVisibilityOk": false,
       "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [
@@ -150,41 +104,11 @@
       "validityEndDayOfMonth": 27,
       "validityEndHour": 20,
       "prevailingVisibility": {
-        "missingReason": "NOT_MISSING",
         "value": 4000.0,
         "uom": "m"
-      },
-      "surfaceWind": {
-        "missingReason": "MISSING",
-        "variableDirection": false,
-        "meanWindDirection": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "meanWindSpeed": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "windGust": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        }
-      },
-      "cloud": {
-        "missingReason": "MISSING",
-        "verticalVisibility": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "layers": []
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "ceilingAndVisibilityOk": false,
       "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [],
@@ -194,42 +118,19 @@
       "validityStartMinute": 0,
       "validityEndDayOfMonth": 27,
       "validityEndHour": 22,
-      "prevailingVisibility": {
-        "missingReason": "MISSING",
-        "value": 0.0,
-        "uom": null
-      },
       "surfaceWind": {
-        "missingReason": "NOT_MISSING",
         "variableDirection": false,
         "meanWindDirection": {
-          "missingReason": "NOT_MISSING",
           "value": 160.0,
           "uom": "deg"
         },
         "meanWindSpeed": {
-          "missingReason": "NOT_MISSING",
           "value": 12.0,
           "uom": "kt"
-        },
-        "windGust": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
         }
-      },
-      "cloud": {
-        "missingReason": "MISSING",
-        "verticalVisibility": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "layers": []
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "ceilingAndVisibilityOk": false,
       "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [
@@ -242,41 +143,11 @@
       "validityEndDayOfMonth": 27,
       "validityEndHour": 24,
       "prevailingVisibility": {
-        "missingReason": "NOT_MISSING",
         "value": 8000.0,
         "uom": "m"
-      },
-      "surfaceWind": {
-        "missingReason": "MISSING",
-        "variableDirection": false,
-        "meanWindDirection": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "meanWindSpeed": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "windGust": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        }
-      },
-      "cloud": {
-        "missingReason": "MISSING",
-        "verticalVisibility": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "layers": []
       }
     },
     {
-      "missingReason": "NOT_MISSING",
       "ceilingAndVisibilityOk": false,
       "prevailingVisibilityOperator": "NOT_GIVEN",
       "forecastWeather": [
@@ -289,43 +160,15 @@
       "validityEndDayOfMonth": 28,
       "validityEndHour": 6,
       "prevailingVisibility": {
-        "missingReason": "NOT_MISSING",
         "value": 3000.0,
         "uom": "m"
       },
-      "surfaceWind": {
-        "missingReason": "MISSING",
-        "variableDirection": false,
-        "meanWindDirection": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "meanWindSpeed": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
-        "windGust": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        }
-      },
       "cloud": {
-        "missingReason": "NOT_MISSING",
-        "verticalVisibility": {
-          "missingReason": "MISSING",
-          "value": 0.0,
-          "uom": null
-        },
         "layers": [
           {
-            "missingReason": "NOT_MISSING",
             "amount": "BKN",
             "cloudType": "NOT_GIVEN",
             "base": {
-              "missingReason": "NOT_MISSING",
               "value": 400,
               "uom": "ft"
             }
