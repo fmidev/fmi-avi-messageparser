@@ -75,7 +75,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
             if (gustValue > -1) {
                 token.setParsedValue(MAX_VALUE, Integer.valueOf(gustValue));
             }
-            token.setParsedValue(UNIT, unit);
+            token.setParsedValue(UNIT, unit.toLowerCase());
             token.identify(SURFACE_WIND);
         } else {
             token.identify(SURFACE_WIND, Lexeme.Status.SYNTAX_ERROR, "Wind direction or speed values invalid");
