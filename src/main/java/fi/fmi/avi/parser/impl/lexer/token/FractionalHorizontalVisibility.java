@@ -46,7 +46,7 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
             token.setParsedValue(VALUE, wholePart);
         }
         String unit = match.group(4).toLowerCase();
-        token.setParsedValue(UNIT, unit);
+        token.setParsedValue(UNIT, unit.toLowerCase());
         token.identify(HORIZONTAL_VISIBILITY);
     }
 }
