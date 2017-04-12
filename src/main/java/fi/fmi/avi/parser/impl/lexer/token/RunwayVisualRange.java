@@ -19,9 +19,9 @@ import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 /**
  * Created by rinne on 10/02/17.
  */
-public class RunwayVisibleRange extends RegexMatchingLexemeVisitor {
+public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
 
-    public RunwayVisibleRange(final Priority prio) {
+    public RunwayVisualRange(final Priority prio) {
         super("^R([0-9]{2}[LRC]?)/([MP])?([0-9]{4})(V([MP])?([0-9]{4}))?([UDN])?(FT)?$", prio);
     }
 
