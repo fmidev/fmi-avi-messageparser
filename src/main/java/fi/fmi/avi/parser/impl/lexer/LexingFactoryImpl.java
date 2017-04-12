@@ -373,10 +373,14 @@ public class LexingFactoryImpl implements LexingFactory {
 
         public <T> T getParsedValue(ParsedValueName name, Class<T> clz) {
             Object val = this.getParsedValue(name);
-            if (clz.isAssignableFrom(val.getClass())) {
-                return (T) val;
+            if (val != null){
+            	if (clz.isAssignableFrom(val.getClass())) {
+            		return (T) val;
+            	} else {
+            		throw new IllegalArgumentException("Cannot return value of type " + val.getClass() + " as " + clz);
+            	}
             } else {
-                throw new IllegalArgumentException("Cannot return value of type " + val.getClass() + " as " + clz);
+            	return null;
             }
         }
 
