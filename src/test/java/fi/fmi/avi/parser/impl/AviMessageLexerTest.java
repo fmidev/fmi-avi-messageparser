@@ -30,7 +30,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
-import static fi.fmi.avi.parser.Lexeme.Identity.VERTICAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 import static org.junit.Assert.assertEquals;
@@ -95,7 +94,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
         LexemeSequence result = lexer.lexMessage(metar4);
         assertTokenSequenceIdentityMatch(result, METAR_START, CORRECTION, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, VARIABLE_WIND_DIRECTION,
                 HORIZONTAL_VISIBILITY, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER,
-                VERTICAL_VISIBILITY, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR,
+                CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR,
                 HORIZONTAL_VISIBILITY, END_TOKEN);
     }
 
@@ -133,7 +132,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
     public void testMetar9() throws Exception {
         LexemeSequence result = lexer.lexMessage(metar9);
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, VERTICAL_VISIBILITY, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
+                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, FORECAST_CHANGE_INDICATOR, HORIZONTAL_VISIBILITY, END_TOKEN);
     }
 
@@ -141,7 +140,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
     public void testMetar10() throws Exception {
         LexemeSequence result = lexer.lexMessage(metar10);
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, VERTICAL_VISIBILITY, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
+                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, FORECAST_CHANGE_INDICATOR, HORIZONTAL_VISIBILITY, END_TOKEN);
     }
 
@@ -149,7 +148,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
     public void testMetar11() throws Exception {
         LexemeSequence result = lexer.lexMessage(metar11);
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, VERTICAL_VISIBILITY, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
+                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 SEA_STATE, FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, WEATHER, CLOUD, END_TOKEN);
     }
 
@@ -181,6 +180,13 @@ public class AviMessageLexerTest extends AviMessageTestBase {
         LexemeSequence result = lexer.lexMessage(metar15, ParsingHints.METAR);
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, AUTOMATED, SURFACE_WIND, VARIABLE_WIND_DIRECTION,
                 HORIZONTAL_VISIBILITY, CLOUD, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, END_TOKEN);
+    }
+    
+    @Test
+    public void testMetar16() throws Exception {
+        LexemeSequence result = lexer.lexMessage(metar16, ParsingHints.METAR);
+        assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, AUTOMATED, SURFACE_WIND, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE,
+                AIR_PRESSURE_QNH, END_TOKEN);
     }
 
     /**************
@@ -266,7 +272,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
         assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, CLOUD,
                 FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, CLOUD, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY,
                 WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR,
-                CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER, VERTICAL_VISIBILITY, END_TOKEN);
+                CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, END_TOKEN);
     }
 
     @Test
