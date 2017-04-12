@@ -2,6 +2,7 @@ package fi.fmi.avi.parser.impl.lexer.token;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.COUNTRY;
+import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -258,6 +259,7 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
             for (String s : codeToCountryMap.keySet()) {
                 if (token.getTACToken().startsWith(s)) {
                     token.setParsedValue(COUNTRY, codeToCountryMap.get(s));
+                    token.setParsedValue(VALUE,token.getTACToken());
                     token.identify(AERODROME_DESIGNATOR);
                     return;
                 }
