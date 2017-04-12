@@ -39,14 +39,13 @@ import fi.fmi.avi.parser.impl.lexer.token.NoSignificantWeather;
 import fi.fmi.avi.parser.impl.lexer.token.Remark;
 import fi.fmi.avi.parser.impl.lexer.token.RemarkStart;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState;
-import fi.fmi.avi.parser.impl.lexer.token.RunwayVisibleRange;
+import fi.fmi.avi.parser.impl.lexer.token.RunwayVisualRange;
 import fi.fmi.avi.parser.impl.lexer.token.SeaState;
 import fi.fmi.avi.parser.impl.lexer.token.SnowClosure;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.TAFStart;
 import fi.fmi.avi.parser.impl.lexer.token.ValidTime;
 import fi.fmi.avi.parser.impl.lexer.token.VariableSurfaceWind;
-import fi.fmi.avi.parser.impl.lexer.token.VerticalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
 import fi.fmi.avi.parser.impl.lexer.token.WindShear;
 
@@ -101,7 +100,7 @@ public class AviMessageParserConfig {
         l.teach(new ColorCode(Priority.LOW));
         l.teach(new CAVOK(Priority.LOW));
         l.teach(new Correction(Priority.LOW));
-        l.teach(new RunwayVisibleRange(Priority.HIGH));
+        l.teach(new RunwayVisualRange(Priority.HIGH));
         l.teach(new AirDewpointTemperature(Priority.LOW));
         l.teach(new AtmosphericPressureQNH(Priority.LOW));
         l.teach(new RunwayState(Priority.LOW));
@@ -110,7 +109,6 @@ public class AviMessageParserConfig {
         l.teach(new NoSignificantWeather(Priority.LOW));
         l.teach(new RemarkStart(Priority.LOW));
         l.teach(new Remark(Priority.NORMAL));
-        l.teach(new VerticalVisibility(Priority.LOW));
         l.teach(new WindShear(Priority.LOW));
         l.teach(new SeaState(Priority.LOW));
         return l;
@@ -135,7 +133,6 @@ public class AviMessageParserConfig {
         l.teach(new Amendment(Priority.LOW));
         l.teach(new Nil(Priority.LOW));
         l.teach(new Cancellation(Priority.LOW));
-        l.teach(new VerticalVisibility(Priority.LOW));
         l.teach(new CAVOK(Priority.LOW));
         l.teach(new NoSignificantWeather(Priority.LOW));
         l.teach(new ForecastMaxMinTemperature(Priority.LOW));
