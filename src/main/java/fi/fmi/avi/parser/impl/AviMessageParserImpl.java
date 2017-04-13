@@ -71,29 +71,20 @@ public class AviMessageParserImpl implements AviMessageParser {
         Metar retval = new MetarImpl();
 
         Identity[] stopAt = { AERODROME_DESIGNATOR };
-        if (findForwards(CORRECTION, lexed.getFirstLexeme(), stopAt) != null) {
-            retval.setStatus(MetarStatus.CORRECTION);
-        } else {
-        	retval.setStatus(MetarStatus.NORMAL);
-        }
+        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> retval.setStatus(MetarStatus.CORRECTION), () -> retval.setStatus(MetarStatus.NORMAL));
 
         stopAt = new Identity[] { ISSUE_TIME };
-        findForwards(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt, (match) -> {
-            if (match != null) {
-                retval.setAerodromeDesignator(match.getParsedValue(ParsedValueName.VALUE, String.class));
-            } else {
-                throw new ParsingException(Type.SYNTAX_ERROR, "Aerodrome designator not given");
-            }
-        });
+        findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
+                (match) -> retval.setAerodromeDesignator(match.getParsedValue(ParsedValueName.VALUE, String.class)), () -> {
+                    throw new ParsingException(Type.SYNTAX_ERROR, "Aerodrome designator not given");
+                });
 
         updateMetarIssueTime(retval, lexed);
         updateSurfaceWind(retval, lexed);
 
         stopAt = new Identity[] { HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR,
                 REMARKS_START };
-        if (findForwards(CAVOK, lexed.getFirstLexeme(), stopAt) != null) {
-            retval.setCeilingAndVisibilityOk(true);
-        }
+        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> retval.setCeilingAndVisibilityOk(true));
 
         updateHorizontalVisibility(retval, lexed);
         updateRVR(retval, lexed);
@@ -112,7 +103,7 @@ public class AviMessageParserImpl implements AviMessageParser {
 
     private static void updateMetarIssueTime(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { SURFACE_WIND };
-        if (findForwards(ISSUE_TIME, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(ISSUE_TIME, lexed.getFirstLexeme(), before, (match) -> {
             Integer day = match.getParsedValue(ParsedValueName.DAY1, Integer.class);
             Integer minute = match.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
             Integer hour = match.getParsedValue(ParsedValueName.HOUR1, Integer.class);
@@ -122,24 +113,22 @@ public class AviMessageParserImpl implements AviMessageParser {
                 msg.setIssueMinute(minute);
                 msg.setIssueTimeZone("UTC");
             }
-        }) == null) {
+        }, () -> {
             throw new ParsingException(Type.MISSING_DATA, "Missing at least some of the issue time components");
-        }
+        });
+
     }
 
     private static void updateSurfaceWind(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR,
                 REMARKS_START };
-        if (findForwards(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
             Object direction = match.getParsedValue(ParsedValueName.DIRECTION, Integer.class);
             Integer meanSpeed = match.getParsedValue(ParsedValueName.DIRECTION, Integer.class);
             Integer gust = match.getParsedValue(ParsedValueName.DIRECTION, Integer.class);
             String unit = match.getParsedValue(ParsedValueName.UNIT, String.class);
 
-            ObservedSurfaceWind wind = msg.getSurfaceWind();
-            if (wind == null) {
-                wind = new ObservedSurfaceWindImpl();
-            }
+            final ObservedSurfaceWind wind = new ObservedSurfaceWindImpl();
 
             if (direction == SurfaceWind.WindDirection.VARIABLE) {
                 wind.setVariableDirection(true);
@@ -159,10 +148,9 @@ public class AviMessageParserImpl implements AviMessageParser {
                 wind.setWindGust(new NumericMeasureImpl(gust, unit));
             }
 
-            match = findForwards(VARIABLE_WIND_DIRECTION, match, before);
-            if (match != null) {
-                Integer maxDirection = match.getParsedValue(ParsedValueName.MAX_DIRECTION, Integer.class);
-                Integer minDirection = match.getParsedValue(ParsedValueName.MIN_DIRECTION, Integer.class);
+            findNext(VARIABLE_WIND_DIRECTION, match, before, (match2) -> {
+                Integer maxDirection = match2.getParsedValue(ParsedValueName.MAX_DIRECTION, Integer.class);
+                Integer minDirection = match2.getParsedValue(ParsedValueName.MIN_DIRECTION, Integer.class);
 
                 if (minDirection != null) {
                     wind.setExtremeCounterClockwiseWindDirection(new NumericMeasureImpl(minDirection, "deg"));
@@ -170,16 +158,17 @@ public class AviMessageParserImpl implements AviMessageParser {
                 if (maxDirection != null) {
                     wind.setExtremeClockwiseWindDirection(new NumericMeasureImpl(maxDirection, "deg"));
                 }
-            }
+            });
             msg.setSurfaceWind(wind);
-        }) == null) {
-            //TODO: cases where a missing surface wind is acceptable, otherwise throw exception
-        }
+        }, () -> {
+            //TODO: cases where it's ok to be missing the surface wind
+            throw new ParsingException(Type.SYNTAX_ERROR, "Missing surface wind information");
+        });
     }
 
     private static void updateHorizontalVisibility(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        if (findForwards(HORIZONTAL_VISIBILITY, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(HORIZONTAL_VISIBILITY, lexed.getFirstLexeme(), before, (match) -> {
             MetricHorizontalVisibility.DirectionValue direction = match.getParsedValue(ParsedValueName.DIRECTION,
                     MetricHorizontalVisibility.DirectionValue.class);
             String unit = match.getParsedValue(ParsedValueName.UNIT, String.class);
@@ -200,14 +189,14 @@ public class AviMessageParserImpl implements AviMessageParser {
                 }
             }
             msg.setVisibility(vis);
-        }) == null) {
-            //TODO: cases where a missing visibility is acceptable, otherwise throw exception
-        }
+        }, () -> {
+            throw new ParsingException(Type.SYNTAX_ERROR, "Missing horizontal visibility information");
+        });
     }
 
     private static void updateRVR(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findForwards(RUNWAY_VISUAL_RANGE, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(RUNWAY_VISUAL_RANGE, lexed.getFirstLexeme(), before, (match) -> {
             List<RunwayVisualRange> rvrs = new ArrayList<>();
             while (match != null) {
                 String runway = match.getParsedValue(ParsedValueName.RUNWAY, String.class);
@@ -255,7 +244,7 @@ public class AviMessageParserImpl implements AviMessageParser {
                     rvr.setPastTendency(VisualRangeTendency.NO_CHANGE);
                 }
                 rvrs.add(rvr);
-                match = findForwards(RUNWAY_VISUAL_RANGE, match, before);
+                match = findNext(RUNWAY_VISUAL_RANGE, match, before);
             }
             msg.setRunwayVisualRanges(rvrs);
         });
@@ -264,7 +253,7 @@ public class AviMessageParserImpl implements AviMessageParser {
     private static void updateWeather(final Metar msg, final LexemeSequence lexed, final boolean isRecent) throws ParsingException {
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         final Identity toMatch = isRecent ? RECENT_WEATHER : WEATHER;
-        findForwards(toMatch, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(toMatch, lexed.getFirstLexeme(), before, (match) -> {
             List<String> weather = new ArrayList<>();
             while (match != null) {
                 @SuppressWarnings("unchecked")
@@ -275,7 +264,7 @@ public class AviMessageParserImpl implements AviMessageParser {
                         weather.add(code.getCode());
                     }
                 }
-                match = findForwards(toMatch, match, before);
+                match = findNext(toMatch, match, before);
             }
             if (weather != null) {
                 if (isRecent) {
@@ -289,7 +278,7 @@ public class AviMessageParserImpl implements AviMessageParser {
 
     private static void updateClouds(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findForwards(CLOUD, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(CLOUD, lexed.getFirstLexeme(), before, (match) -> {
             ObservedClouds clouds = new ObservedCloudsImpl();
             List<fi.fmi.avi.data.CloudLayer> layers = new ArrayList<>();
 
@@ -341,7 +330,7 @@ public class AviMessageParserImpl implements AviMessageParser {
                     throw new ParsingException(Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken());
                 }
 
-                match = findForwards(CLOUD, match, before);
+                match = findNext(CLOUD, match, before);
             }
             if (layers != null && clouds != null) {
                 clouds.setLayers(layers);
@@ -353,7 +342,7 @@ public class AviMessageParserImpl implements AviMessageParser {
 
     private static void updateTemperatures(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        if (findForwards(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
             String unit = match.getParsedValue(ParsedValueName.UNIT, String.class);
             Integer[] values = match.getParsedValue(ParsedValueName.VALUE, Integer[].class);
             if (values[0] != null) {
@@ -366,14 +355,15 @@ public class AviMessageParserImpl implements AviMessageParser {
             } else {
                 throw new ParsingException(Type.MISSING_DATA, "Missing dewpoint temperature value");
             }
-        }) == null) {
+        }, () -> {
             throw new ParsingException(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values");
-        }
+        });
+
     }
 
     private static void updateQNH(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Identity[] before = { RECENT_WEATHER, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        if (findForwards(AIR_PRESSURE_QNH, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(AIR_PRESSURE_QNH, lexed.getFirstLexeme(), before, (match) -> {
             PressureMeasurementUnit unit = match.getParsedValue(ParsedValueName.UNIT, PressureMeasurementUnit.class);
             Integer value = match.getParsedValue(ParsedValueName.VALUE, Integer.class);
             if (value != null) {
@@ -387,9 +377,9 @@ public class AviMessageParserImpl implements AviMessageParser {
             } else {
                 throw new ParsingException(Type.MISSING_DATA, "Missing air pressure value");
             }
-        }) == null) {
+        }, () -> {
             throw new ParsingException(Type.SYNTAX_ERROR, "QNH missing");
-        }
+        });
     }
 
     private static void updateWindShear(final Metar msg, final LexemeSequence lexed) throws ParsingException {
@@ -408,14 +398,20 @@ public class AviMessageParserImpl implements AviMessageParser {
         //TODO
     }
 
-    private static Lexeme findForwards(final Identity needle, final Lexeme from, final Identity[] stopAt) throws ParsingException {
-        return findForwards(needle, from, stopAt, null);
+    private static Lexeme findNext(final Identity needle, final Lexeme from, final Identity[] stopAt) throws ParsingException {
+        return findNext(needle, from, stopAt, null, null);
     }
 
-    private static Lexeme findForwards(final Identity needle, final Lexeme from, final Identity[] stopAt, final LexemeParsingConsumer lambda)
+    private static Lexeme findNext(final Identity needle, final Lexeme from, final Identity[] stopAt, final LexemeParsingConsumer found)
+            throws ParsingException {
+        return findNext(needle, from, stopAt, found, null);
+    }
+
+    private static Lexeme findNext(final Identity needle, final Lexeme from, final Identity[] stopAt, final LexemeParsingConsumer found,
+            final LexemeParsingNotifyer notFound)
             throws ParsingException {
         Lexeme retval = null;
-    	Lexeme current = from.getNext();
+        Lexeme current = from.getNext();
         if (current != null) {
             boolean stop = false;
             Identity currentId;
@@ -436,8 +432,14 @@ public class AviMessageParserImpl implements AviMessageParser {
                 current = current.getNext();
             }
         }
-        if (lambda != null && retval != null) {
-            lambda.consume(retval);
+        if (retval != null) {
+            if (found != null) {
+                found.consume(retval);
+            }
+        } else {
+            if (notFound != null) {
+                notFound.ping();
+            }
         }
         return retval;
     }
@@ -489,5 +491,8 @@ public class AviMessageParserImpl implements AviMessageParser {
         void consume(final Lexeme lexeme) throws ParsingException;
     }
 
-
+    @FunctionalInterface
+    private interface LexemeParsingNotifyer {
+        void ping() throws ParsingException;
+    }
 }
