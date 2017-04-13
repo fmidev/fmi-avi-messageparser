@@ -1,8 +1,8 @@
 package fi.fmi.avi.parser.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -60,6 +60,7 @@ public class AviMessageTestBase {
     protected static final String metar14 = "METAR EFOU 181750Z AUTO 18007KT 9999 OVC010 02/01 Q1015 R/SNOCLO=";
     protected static final String metar15 = "EFKK 091050Z AUTO 01009KT 340V040 9999 FEW012 BKN046 ///// Q////=";
     protected static final String metar16 = "METAR EFTU 011350Z AUTO VRB02KT 9999 ////// 22/12 Q1008=";
+    protected static final String metar17 = "METAR KORD 201004Z 05008KT 1 1/2SM -DZ BR OVC006 03/03 04/54 A2964=";
 
     protected static final String taf1 =
             "EFVA 271137Z 2712/2812 14015G25KT 8000 -RA SCT020 OVC050 " + "BECMG 2715/2717 5000 -RA BKN007 " + "PROB40 2715/2720 4000 RASN "

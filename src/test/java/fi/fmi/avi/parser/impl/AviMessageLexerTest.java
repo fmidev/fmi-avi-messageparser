@@ -189,6 +189,13 @@ public class AviMessageLexerTest extends AviMessageTestBase {
                 AIR_PRESSURE_QNH, END_TOKEN);
     }
 
+    @Test
+    public void testMetar17() throws Exception {
+        LexemeSequence result = lexer.lexMessage(metar17);
+        assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, WEATHER, CLOUD,
+                AIR_DEWPOINT_TEMPERATURE, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, END_TOKEN);
+    }
+
     /**************
      * TAF tests
      **************/
