@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
@@ -106,6 +107,15 @@ public class LexingFactoryImpl implements LexingFactory {
         }
 
         @Override
+        public Lexeme getLastLexeme() {
+            if (this.lexemes.size() > 0) {
+                return this.lexemes.getLast();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
         public Iterator<Lexeme> getLexemes() {
             return new RecognitionBasedLexemeIterator(this.getFirstLexeme(), null) {
                 private final int changeCountAtStart = LexemeSequenceImpl.this.changeCount;
@@ -157,6 +167,17 @@ public class LexingFactoryImpl implements LexingFactory {
             LexemeImpl oldFirst = this.lexemes.removeFirst();
             this.changeCount++;
             this.addAsFirst(replacement);
+            int indexAdjustment = 0;
+            if (oldFirst.isSynthetic() && !replacement.isSynthetic()) {
+                //add the full length
+                this.adjustIndexes(1, replacement.getTACToken().length() + 1);
+            } else if (!oldFirst.isSynthetic() && replacement.isSynthetic()) {
+                //cut the full length
+                this.adjustIndexes(1, -(oldFirst.getTACToken().length() + 1));
+            } else if (!oldFirst.isSynthetic() && !replacement.isSynthetic()) {
+                //adjust by the length difference
+                this.adjustIndexes(1, replacement.getTACToken().length() - oldFirst.getTACToken().length());
+            }
             return oldFirst;
         }
 
@@ -183,7 +204,11 @@ public class LexingFactoryImpl implements LexingFactory {
                 toAdd.setPrevious(null);
                 this.lexemes.addFirst(toAdd);
                 this.changeCount++;
-                this.updateFirst();
+                this.updateLinksToFirst();
+                if (!toAdd.isSynthetic()) {
+                    //Assume a single white space token separator:
+                    this.adjustIndexes(1, toAdd.getTACToken().length() + 1);
+                }
             }
         }
 
@@ -209,8 +234,12 @@ public class LexingFactoryImpl implements LexingFactory {
             this.changeCount++;
             if (removed != null) {
                 this.lexemes.getFirst().setPrevious(null);
-                this.updateFirst();
+                this.updateLinksToFirst();
+                if (!removed.isSynthetic()) {
+                    this.adjustIndexes(0, -(removed.getTACToken().length() + 1));
+                }
             }
+
             return removed;
         }
 
@@ -223,12 +252,23 @@ public class LexingFactoryImpl implements LexingFactory {
             return removed;
         }
 
-        private void updateFirst() {
+        private void updateLinksToFirst() {
             LexemeImpl first = this.lexemes.getFirst();
             for (LexemeImpl l : this.lexemes) {
                 l.setFirst(first);
             }
         }
+
+        private void adjustIndexes(int fromIndex, int by) {
+            ListIterator<LexemeImpl> it = this.lexemes.listIterator(fromIndex);
+            LexemeImpl li;
+            while (it.hasNext()) {
+                li = it.next();
+                li.setStartIndex(li.getStartIndex() + by);
+                li.setEndIndex(li.getEndIndex() + by);
+            }
+        }
+
 
         private void constructFromTAC() {
             if (this.originalTac != null && this.originalTac.length() > 0) {
@@ -239,27 +279,48 @@ public class LexingFactoryImpl implements LexingFactory {
                 Iterable<String> tokens = byWhiteSpace.split(originalTac);
                 String lastToken = null;
                 String lastLastToken = null;
+                int start = 0;
+                LexemeImpl l;
                 for (String s : tokens) {
+                    start = originalTac.indexOf(s, start);
                     if (s.endsWith("=")) {
-                        LexemeImpl l = new LexemeImpl(s.substring(0, s.length() - 1));
+                        l = new LexemeImpl(s.substring(0, s.length() - 1));
+                        l.setStartIndex(start);
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.addAsLast(l);
-                        this.addAsLast(new LexemeImpl("=", Lexeme.Identity.END_TOKEN));
+                        l = new LexemeImpl("=", Lexeme.Identity.END_TOKEN);
+                        l.setStartIndex(start + s.length() - 1);
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.addAsLast(l);
                     } else if (lastToken != null && horVisFractionNumberPart2Pattern.matcher(s).matches() && horVisFractionNumberPart1Pattern.matcher(lastToken)
                             .matches()) {
                         // cases like "1 1/8SM", combine the two tokens:
-                        this.replaceLastWith(new LexemeImpl(lastToken + " " + s));
+                        l = new LexemeImpl(lastToken + " " + s);
+                        l.setStartIndex(this.getLastLexeme().getStartIndex());
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.replaceLastWith(l);
                     } else if ("WS".equals(lastLastToken) && "ALL".equals(lastToken) && windShearRunwayPattern.matcher(s).matches()) {
                         // "WS ALL RWY" case: concat all three parts as the last token:
                         this.removeLast(); // ALL
-                        this.replaceLastWith(new LexemeImpl("WS ALL RWY"));
+                        l = new LexemeImpl("WS ALL RWY");
+                        l.setStartIndex(this.getLastLexeme().getStartIndex());
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.replaceLastWith(l);
                     } else if ("WS".equals(lastToken) && windShearRunwayPattern.matcher(s).matches()) {
                         // "WS RWY22L" case, concat the two parts as the last token:
-                        this.replaceLastWith(new LexemeImpl("WS " + s));
+                        l = new LexemeImpl("WS " + s);
+                        l.setStartIndex(this.getLastLexeme().getStartIndex());
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.replaceLastWith(l);
                     } else {
-                        this.addAsLast(new LexemeImpl(s));
+                        l = new LexemeImpl(s);
+                        l.setStartIndex(start);
+                        l.setEndIndex(start + l.getTACToken().length() - 1);
+                        this.addAsLast(l);
                     }
                     lastLastToken = lastToken;
                     lastToken = s;
+                    start += s.length();
                 }
                 this.changeCount++;
             }
@@ -307,6 +368,8 @@ public class LexingFactoryImpl implements LexingFactory {
         private String lexerMessage;
         private boolean isSynthetic;
         private Map<ParsedValueName, Object> parsedValues;
+        private int startIndex = -1;
+        private int endIndex = -1;
 
         //Lexing navigation:
         private Lexeme first;
@@ -324,8 +387,10 @@ public class LexingFactoryImpl implements LexingFactory {
             this.lexerMessage = lexeme.getLexerMessage();
             this.isSynthetic = lexeme.isSynthetic();
             this.parsedValues = lexeme.getParsedValues();
-
+            this.startIndex = lexeme.getStartIndex();
+            this.endIndex = lexeme.getEndIndex();
         }
+
         LexemeImpl(final String token) {
             this(token, null, Status.UNRECOGNIZED);
         }
@@ -364,6 +429,16 @@ public class LexingFactoryImpl implements LexingFactory {
         @Override
         public String getLexerMessage() {
             return this.lexerMessage;
+        }
+
+        @Override
+        public int getStartIndex() {
+            return this.startIndex;
+        }
+
+        @Override
+        public int getEndIndex() {
+            return this.endIndex;
         }
 
         @Override
@@ -473,6 +548,14 @@ public class LexingFactoryImpl implements LexingFactory {
         @Override
         public void setLexerMessage(final String msg) {
             this.lexerMessage = msg;
+        }
+
+        void setStartIndex(final int index) {
+            this.startIndex = index;
+        }
+
+        void setEndIndex(final int index) {
+            this.endIndex = index;
         }
 
         @Override
