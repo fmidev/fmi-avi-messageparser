@@ -2,7 +2,6 @@ package fi.fmi.avi.parser.impl.lexer.token;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.parser.Lexeme;
@@ -44,7 +43,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
     }
 
     public SeaState(final Priority prio) {
-        super("^W(M?)([0-9]{2}|//)/S([0-9]|/)$", prio);
+        super("^W(M?)([0-9]{2}|//)/(S([0-9]|/)|H([0-9]{2}))$", prio);
     }
 
     @Override
@@ -56,10 +55,26 @@ public class SeaState extends RegexMatchingLexemeVisitor {
         if (seaSurfaceTemperature != null && match.group(1) != null) {
             seaSurfaceTemperature = Integer.valueOf(seaSurfaceTemperature.intValue() * -1);
         }
-        SeaSurfaceState state = SeaSurfaceState.forCode(match.group(3).charAt(0));
-        ArrayList<Object> values = new ArrayList<Object>(2);
-        values.add(seaSurfaceTemperature);
-        values.add(state);
+        SeaSurfaceState state = null;
+        if (match.group(4) != null) {
+            state = SeaSurfaceState.forCode(match.group(4).charAt(0));
+        }
+        Integer waveHeight = null;
+        if (match.group(5) != null) {
+            waveHeight = Integer.valueOf(match.group(5));
+        }
+        Object[] values = new Object[3];
+        if (seaSurfaceTemperature != null) {
+            values[0] = seaSurfaceTemperature;
+            token.setParsedValue(Lexeme.ParsedValueName.UNIT, "degC");
+        }
+        if (state != null) {
+            values[1] = state;
+        }
+        if (waveHeight != null) {
+            values[2] = waveHeight.intValue() * 0.1;
+            token.setParsedValue(Lexeme.ParsedValueName.UNIT2, "m");
+        }
         token.setParsedValue(Lexeme.ParsedValueName.VALUE, values);
         token.identify(SEA_STATE);
     }
