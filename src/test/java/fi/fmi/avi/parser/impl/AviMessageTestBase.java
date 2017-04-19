@@ -1,8 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -105,32 +103,19 @@ public class AviMessageTestBase {
         assertObservedSurfaceWindEquals(expected.getSurfaceWind(), actual.getSurfaceWind());
         assertHorizontalVisibilityEquals(expected.getVisibility(), actual.getVisibility());
         assertRunwayVisualRangesEquals(expected.getRunwayVisualRanges(), actual.getRunwayVisualRanges());
-        if (expected.getPresentWeatherCodes() != null && expected.getPresentWeatherCodes().size() > 0) {
-        	assertNotNull("presentWeatherCodes missing", actual.getPresentWeatherCodes());
-        }
-        if (actual.getPresentWeatherCodes() != null) {
-        	assertEquals("presentWeatherCodes size", expected.getPresentWeatherCodes().size(), actual.getPresentWeatherCodes().size());
-        }
-        for (int i = 0; i < expected.getPresentWeatherCodes().size(); i++) {
-            assertEquals("presentWeatherCode", expected.getPresentWeatherCodes().get(i), actual.getPresentWeatherCodes().get(i));
-        }
+        assertStringListEquals("presentWeather", expected.getPresentWeatherCodes(), actual.getPresentWeatherCodes());
+        
         assertObservedCloudsEquals(expected.getClouds(), actual.getClouds());
         assertNumericalMeasureEquals("airTemperature", expected.getAirTemperature(), actual.getAirTemperature());
         assertNumericalMeasureEquals("dewPointTemperature", expected.getDewpointTemperature(), actual.getDewpointTemperature());
         assertNumericalMeasureEquals("altimeterSettingQNH", expected.getAltimeterSettingQNH(), actual.getAltimeterSettingQNH());
-        if (expected.getRecentWeatherCodes() != null && expected.getRecentWeatherCodes().size() > 0) {
-        	assertNotNull("recentWeatherCodes missing", actual.getRecentWeatherCodes());
-        }
-        if (actual.getRecentWeatherCodes() != null) {
-        	assertEquals("recentWeatherCodes size", expected.getRecentWeatherCodes().size(), actual.getRecentWeatherCodes().size());
-        }
-        for (int i = 0; i < expected.getRecentWeatherCodes().size(); i++) {
-            assertEquals("recentWeatherCode", expected.getRecentWeatherCodes().get(i), actual.getRecentWeatherCodes().get(i));
-        }
+        assertStringListEquals("recentWeatherCodes", expected.getRecentWeatherCodes(), actual.getRecentWeatherCodes());
         assertWindShearEquals(expected.getWindShear(), actual.getWindShear());
         assertSeaStateEquals(expected.getSeaState(), actual.getSeaState());
         assertRunwayStatesEquals(expected.getRunwayStates(), actual.getRunwayStates());
         assertTrendForecastsEquals(expected.getTrends(), actual.getTrends());
+        assertStringListEquals("remarks", expected.getRemarks(), actual.getRemarks());
+        
     }
 
     protected static void assertTAFEquals(TAF expected, TAF actual) {
@@ -221,12 +206,8 @@ public class AviMessageTestBase {
     	}
     	assertNotNull("windShear is missing", actual);
         assertEquals("windShear/allRunways", expected.isAllRunways(), actual.isAllRunways());
-        assertEquals("windShear/runwayDirectionDesignators size", expected.getRunwayDirectionDesignators().size(),
-                actual.getRunwayDirectionDesignators().size());
-        for (int i = 0; i < expected.getRunwayDirectionDesignators().size(); i++) {
-            assertEquals("windShear/runwayDirectionDesignator", expected.getRunwayDirectionDesignators().get(i),
-                    actual.getRunwayDirectionDesignators().get(i));
-        }
+        assertStringListEquals("windShear/runwayDirectionDesignators", expected.getRunwayDirectionDesignators(), actual.getRunwayDirectionDesignators());
+       
     }
 
     private static void assertSeaStateEquals(SeaState expected, SeaState actual) {
@@ -301,11 +282,8 @@ public class AviMessageTestBase {
             actFctWind = actTrend.getSurfaceWind();
             assertTrendForecastWindEquals("trend/surfaceWind", expFctWind, actFctWind);
 
-            assertEquals("trend/forecastWeather size", expTrend.getForecastWeather().size(), actTrend.getForecastWeather().size());
-            for (int j = 0; j < expTrend.getForecastWeather().size(); j++) {
-                assertEquals("trend/forecastWeather", expTrend.getForecastWeather().get(j), actTrend.getForecastWeather().get(j));
-            }
-
+            assertStringListEquals("trend/forecastWeather", expTrend.getForecastWeather(), actTrend.getForecastWeather());
+            
             expFctCloud = expTrend.getCloud();
             actFctCloud = actTrend.getCloud();
             assertCloudForecastEquals("trend/cloud", expFctCloud, actFctCloud);
@@ -350,10 +328,7 @@ public class AviMessageTestBase {
 
         assertTrendForecastWindEquals(message + "/surfaceWind", expected.getSurfaceWind(), actual.getSurfaceWind());
         assertEquals(message + "/surfaceWind variable", expected.getSurfaceWind().isVariableDirection(), actual.getSurfaceWind().isVariableDirection());
-        assertEquals(message + "/forecastWeather size", expected.getForecastWeather().size(), actual.getForecastWeather().size());
-        for (int i = 0; i < expected.getForecastWeather().size(); i++) {
-            assertEquals(message + "/forecastWeather", expected.getForecastWeather().get(i), actual.getForecastWeather().get(i));
-        }
+        assertStringListEquals(message + "/forecastWeather", expected.getForecastWeather(), actual.getForecastWeather());
         assertCloudForecastEquals(message + "/cloud", expected.getCloud(), actual.getCloud());
     }
 
@@ -392,10 +367,23 @@ public class AviMessageTestBase {
         for (int i = 0; i < expected.size(); i++) {
             expLayer = expected.get(i);
             actLayer = actual.get(i);
-           assertNotNull(message, actLayer);
+            assertNotNull(message, actLayer);
             assertEquals(message + "/amount", expLayer.getAmount(), actLayer.getAmount());
             assertNumericalMeasureEquals(message + "/base", expLayer.getBase(), actLayer.getBase());
             assertEquals(message + "/cloudType", expLayer.getCloudType(), actLayer.getCloudType());
+        }
+    }
+    private static void assertStringListEquals(String message, List<String> expected, List<String> actual) {
+    	if (expected != null && !expected.isEmpty()) {
+        	assertNotNull(message + "missing", actual);
+        } else if (expected == null || expected.isEmpty()) {
+        	assertTrue(message + " should be missing", actual == null || actual.isEmpty());
+        }
+        if (actual != null) {
+        	assertEquals(message + " size", expected.size(), actual.size());
+        	for (int i = 0; i < expected.size(); i++) {
+                assertEquals(message + " at index " + i, expected.get(i), actual.get(i));
+            }
         }
     }
 

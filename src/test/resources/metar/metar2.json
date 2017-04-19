@@ -1,0 +1,57 @@
+{
+  "automatedStation": false,
+  "status": "NORMAL",
+  "issueDayOfMonth": 20,
+  "issueHour": 10,
+  "issueMinute": 4,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "KORD",
+  "ceilingAndVisibilityOk": false,
+  "presentWeatherCodes": [
+    "-DZ", "BR"
+  ],
+  "airTemperature": {
+    "value": 3.0,
+    "uom": "degC"
+  },
+  "dewpointTemperature": {
+    "value": 3.0,
+    "uom": "degC"
+  },
+  "altimeterSettingQNH": {
+    "value": 2964.0,
+    "uom": "in Hg"
+  },
+  "surfaceWind": {
+    "variableDirection": false,
+    "meanWindDirection": {
+      "value": 50.0,
+      "uom": "deg"
+    },
+    "meanWindSpeed": {
+      "value": 8.0,
+      "uom": "kt"
+    }
+  },
+  "visibility": {
+    "prevailingVisibility": {
+      "value": 1.5,
+      "uom": "sm"
+    }
+  },
+  "clouds": {
+    "amountAndHeightUnobservableByAutoSystem": false,
+    "layers": [
+      {
+        "amount": "OVC",
+        "base": {
+          "value": 600,
+          "uom": "ft"
+        }
+      }
+    ]
+  },
+  "remarks": [
+  	"AO2", "DZB04", "P0000", "T00330028"
+  ]
+}

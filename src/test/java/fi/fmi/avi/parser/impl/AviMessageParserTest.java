@@ -33,6 +33,11 @@ public class AviMessageParserTest extends AviMessageTestBase {
     public void testMetar1() throws Exception {
         assertMetarEquals(readFromJSON("metar/metar1.json", MetarImpl.class), parser.parseMessage(lexer.lexMessage(metar1), Metar.class));
     }
+    
+    @Test
+    public void testMetar2() throws Exception {
+        assertMetarEquals(readFromJSON("metar/metar2.json", MetarImpl.class), parser.parseMessage(lexer.lexMessage(metar2), Metar.class));
+    }
 
     @Test
     public void testTaf1() throws Exception {
