@@ -70,7 +70,7 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
             token.setParsedValue(VALUE, 50);
             token.setParsedValue(RELATIONAL_OPERATOR, RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN);
         } else {
-        	 token.setParsedValue(VALUE, visibility);
+        	 token.setParsedValue(VALUE, new Double(visibility));
         }
         if (direction != null) {
         	DirectionValue dv = DirectionValue.forCode(direction);
