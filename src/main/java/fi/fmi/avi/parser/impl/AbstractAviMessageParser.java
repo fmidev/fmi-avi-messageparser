@@ -8,6 +8,10 @@ import fi.fmi.avi.parser.ParsingException;
  */
 public abstract class AbstractAviMessageParser {
 
+	protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from) {
+       return findNext(needle, from, null);
+    }
+	
     protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from, final Lexeme.Identity[] stopAt) {
         try {
             return findNext(needle, from, stopAt, null, null);
