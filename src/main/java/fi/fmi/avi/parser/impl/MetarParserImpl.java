@@ -1,24 +1,7 @@
 package fi.fmi.avi.parser.impl;
 
 import static fi.fmi.avi.parser.Lexeme.Identity;
-import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
-import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
-import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
-import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
-import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
-import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
-import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
-import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
-import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
-import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
-import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
-import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
-import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
-import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
-import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
+import static fi.fmi.avi.parser.Lexeme.Identity.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -113,6 +96,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         updateSeaState(retval, lexed);
         updateRunwayStates(retval, lexed);
         updateTrends(retval, lexed);
+        updateRemarks(retval, lexed);
 
         return retval;
     }
@@ -190,7 +174,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             MetricHorizontalVisibility.DirectionValue direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
                     MetricHorizontalVisibility.DirectionValue.class);
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
-            Integer value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Integer.class);
+            Double value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
             RecognizingAviMessageTokenLexer.RelationalOperator operator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
                     RecognizingAviMessageTokenLexer.RelationalOperator.class);
 
@@ -276,7 +260,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         if (match != null) {
             List<String> weather = new ArrayList<>();
             appendWeatherCodes(match, weather, before);
-            if (weather != null) {
+            if (!weather.isEmpty()) {
                 msg.setPresentWeatherCodes(weather);
             }
         }
@@ -410,7 +394,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         if (match != null) {
             List<String> weather = new ArrayList<>();
             appendWeatherCodes(match, weather, before);
-            if (weather != null) {
+            if (!weather.isEmpty()) {
                 msg.setRecentWeatherCodes(weather);
             }
         }
@@ -493,15 +477,30 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
     private static void updateRunwayStates(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Lexeme.Identity[] before = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RUNWAY_STATE, lexed.getFirstLexeme(), before, (match) -> {
-
+        	//TODO
         });
     }
 
     private static void updateTrends(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Lexeme.Identity[] before = { REMARKS_START };
         findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (match) -> {
-
+        	//TODO
         });
     }
+    
+    private static void updateRemarks(final Metar msg, final LexemeSequence lexed) throws ParsingException {
+        findNext(Identity.REMARKS_START, lexed.getFirstLexeme(), null, (match) -> {
+        	List<String> remarks = new ArrayList<>();
+        	match = findNext(REMARK, match);
+        	while (match != null) {
+        		remarks.add(match.getTACToken());
+        		match = findNext(REMARK, match);
+        	}
+        	if (!remarks.isEmpty()) {
+        		msg.setRemarks(remarks);
+        	}
+        });
+    }
+    
 
 }
