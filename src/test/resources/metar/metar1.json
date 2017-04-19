@@ -10,7 +10,6 @@
   "presentWeatherCodes": [
     "BR"
   ],
-  "recentWeatherCodes": [],
   "airTemperature": {
     "value": 14.0,
     "uom": "degC"
@@ -32,10 +31,6 @@
     "meanWindSpeed": {
       "value": 0.0,
       "uom": "kt"
-    },
-    "windGust": {
-      "value": 0.0,
-      "uom": null
     }
   },
   "visibility": {
@@ -102,13 +97,11 @@
       }
     ]
   },
-  "runwayStates": [],
   "trends": [
     {
       "timeGroups": null,
       "ceilingAndVisibilityOk": false,
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "forecastWeather": [],
       "prevailingVisibility": {
         "value": 2000.0,
         "uom": "m"
