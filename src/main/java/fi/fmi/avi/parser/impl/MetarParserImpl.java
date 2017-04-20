@@ -6,17 +6,22 @@ import static fi.fmi.avi.parser.Lexeme.Identity.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.fmi.avi.data.AviationCodeListUser;
+import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeIntensity;
+import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeKind;
 import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
+import fi.fmi.avi.data.impl.WeatherImpl;
 import fi.fmi.avi.data.metar.HorizontalVisibility;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.ObservedClouds;
 import fi.fmi.avi.data.metar.ObservedSurfaceWind;
+import fi.fmi.avi.data.metar.RunwayState;
 import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.SeaState;
 import fi.fmi.avi.data.metar.WindShear;
@@ -24,10 +29,13 @@ import fi.fmi.avi.data.metar.impl.HorizontalVisibilityImpl;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.data.metar.impl.ObservedCloudsImpl;
 import fi.fmi.avi.data.metar.impl.ObservedSurfaceWindImpl;
+import fi.fmi.avi.data.metar.impl.RunwayStateImpl;
 import fi.fmi.avi.data.metar.impl.RunwayVisualRangeImpl;
 import fi.fmi.avi.data.metar.impl.SeaStateImpl;
 import fi.fmi.avi.data.metar.impl.WindShearImpl;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.Lexeme.ParsedValueName;
+import fi.fmi.avi.parser.ParsingException.Type;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingException;
 import fi.fmi.avi.parser.ParsingHints;
@@ -35,6 +43,11 @@ import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.token.AtmosphericPressureQNH;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
+import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateContamination;
+import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateDeposit;
+import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportSpecialValue;
+import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportType;
+import fi.fmi.avi.parser.impl.lexer.token.Weather.WeatherCodePart;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
@@ -49,56 +62,59 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             REMARKS_START };
 
     public Metar parseMessage(final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
-
-        boolean[] oneFound = new boolean[zeroOrOneAllowed.length];
-        Iterator<Lexeme> it = lexed.getRecognizedLexemes();
-        while (it.hasNext()) {
-            Lexeme l = it.next();
-            for (int i = 0; i < zeroOrOneAllowed.length; i++) {
-                if (zeroOrOneAllowed[i] == l.getIdentity()) {
-                    if (!oneFound[i]) {
-                        oneFound[i] = true;
-                    } else {
-                        throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "More that one of " + l.getIdentity() + " in METAR");
-                    }
-                }
-            }
-        }
-        Metar retval = new MetarImpl();
-
-        Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
-                RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> retval.setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
-                () -> retval.setStatus(AviationCodeListUser.MetarStatus.NORMAL));
-
-        stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
-                WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                (match) -> retval.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                    throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Aerodrome designator not given");
-                });
-
-        updateMetarIssueTime(retval, lexed);
-        updateSurfaceWind(retval, lexed);
-
-        stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
-                SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> retval.setCeilingAndVisibilityOk(true));
-
-        updateHorizontalVisibility(retval, lexed);
-        updateRVR(retval, lexed);
-        updatePresentWeather(retval, lexed);
-        updateClouds(retval, lexed);
-        updateTemperatures(retval, lexed);
-        updateQNH(retval, lexed);
-        updateRecentWeather(retval, lexed);
-        updateWindShear(retval, lexed);
-        updateSeaState(retval, lexed);
-        updateRunwayStates(retval, lexed);
-        updateTrends(retval, lexed);
-        updateRemarks(retval, lexed);
-
-        return retval;
+    	try {
+	        boolean[] oneFound = new boolean[zeroOrOneAllowed.length];
+	        Iterator<Lexeme> it = lexed.getRecognizedLexemes();
+	        while (it.hasNext()) {
+	            Lexeme l = it.next();
+	            for (int i = 0; i < zeroOrOneAllowed.length; i++) {
+	                if (zeroOrOneAllowed[i] == l.getIdentity()) {
+	                    if (!oneFound[i]) {
+	                        oneFound[i] = true;
+	                    } else {
+	                        throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "More than one of " + l.getIdentity() + " in " + lexed.getTAC());
+	                    }
+	                }
+	            }
+	        }
+	        
+	        final Metar retval = new MetarImpl();
+	        Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
+	                RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+	        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> retval.setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
+	                () -> retval.setStatus(AviationCodeListUser.MetarStatus.NORMAL));
+	
+	        stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
+	                WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+	        findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
+	                (match) -> retval.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+	                    throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Aerodrome designator not given in " +lexed.getTAC());
+	                });
+	
+	        updateMetarIssueTime(retval, lexed);
+	        updateSurfaceWind(retval, lexed);
+	
+	        stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
+	                SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+	        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> retval.setCeilingAndVisibilityOk(true));
+	
+	        updateHorizontalVisibility(retval, lexed);
+	        updateRVR(retval, lexed);
+	        updatePresentWeather(retval, lexed);
+	        updateClouds(retval, lexed);
+	        updateTemperatures(retval, lexed);
+	        updateQNH(retval, lexed);
+	        updateRecentWeather(retval, lexed);
+	        updateWindShear(retval, lexed);
+	        updateSeaState(retval, lexed);
+	        updateRunwayStates(retval, lexed);
+	        updateTrends(retval, lexed);
+	        updateRemarks(retval, lexed);
+	        return retval;
+    	} catch (ParsingException pex) {
+    		maybeThrow(pex, hints);
+    	}
+        return null;
     }
 
     private static void updateMetarIssueTime(final Metar msg, final LexemeSequence lexed) throws ParsingException {
@@ -115,7 +131,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 msg.setIssueTimeZone("UTC");
             }
         }, () -> {
-            throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing at least some of the issue time components");
+            throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing at least some of the issue time components in " +lexed.getTAC());
         });
 
     }
@@ -125,8 +141,8 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
             Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Integer.class);
-            Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Integer.class);
-            Integer gust = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Integer.class);
+            Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
+            Integer gust = match.getParsedValue(Lexeme.ParsedValueName.MAX_VALUE, Integer.class);
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
             final ObservedSurfaceWind wind = new ObservedSurfaceWindImpl();
@@ -136,13 +152,13 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             } else if (direction != null && direction instanceof Integer) {
                 wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
             } else {
-                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Direction missing for surface wind");
+                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Direction missing for surface wind:" +match.getTACToken());
             }
 
             if (meanSpeed != null) {
                 wind.setMeanWindSpeed(new NumericMeasureImpl(meanSpeed, unit));
             } else {
-                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Mean speed missing for surface wind");
+                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Mean speed missing for surface wind:" + match.getTACToken());
             }
 
             if (gust != null) {
@@ -163,7 +179,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             msg.setSurfaceWind(wind);
         }, () -> {
             //TODO: cases where it's ok to be missing the surface wind
-            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing surface wind information");
+            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing surface wind information in " + lexed.getTAC());
         });
     }
 
@@ -192,7 +208,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             }
             msg.setVisibility(vis);
         }, () -> {
-            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing horizontal visibility information");
+            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing horizontal visibility information in " + lexed.getTAC());
         });
     }
 
@@ -222,15 +238,19 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 RunwayVisualRange rvr = new RunwayVisualRangeImpl();
                 rvr.setRunwayDirectionDesignator(runway);
                 if (maxValue != null) {
-                    //Varying format, more than/less than operators ignored, as IWXXM 1.0 does not have a place for them:
-                    if (minValueOperator != null) {
-                        LOG.warn("Ignoring relational operator for the minimum of the varying RVR " + minValueOperator);
+                	rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
+                    if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
+                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                    } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == minValueOperator) {
+                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
                     }
-                    if (maxValueOperator != null) {
-                        LOG.warn("Ignoring relational operator for the maximum of the varying RVR " + maxValueOperator);
-                    }
-                    rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
+                    
                     rvr.setVaryingRVRMaximum(new NumericMeasureImpl(maxValue, unit));
+                    if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == maxValueOperator) {
+                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                    } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == maxValueOperator) {
+                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
+                    }                    
                 } else {
                     rvr.setMeanRVR(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
@@ -258,25 +278,45 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 REMARKS_START };
         Lexeme match = findNext(WEATHER, lexed.getFirstLexeme(), before);
         if (match != null) {
-            List<String> weather = new ArrayList<>();
+            List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
             appendWeatherCodes(match, weather, before);
             if (!weather.isEmpty()) {
-                msg.setPresentWeatherCodes(weather);
+                msg.setPresentWeather(weather);
             }
         }
     }
 
-    private static void appendWeatherCodes(final Lexeme source, List<String> target, Identity[] before) {
+    private static void appendWeatherCodes(final Lexeme source, List<fi.fmi.avi.data.Weather> target, Identity[] before) throws ParsingException {
         Lexeme l = source;
         while (l != null) {
             @SuppressWarnings("unchecked")
-            List<Weather.WeatherCodePart> codes = l.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
-            if (codes != null) {
-                for (Weather.WeatherCodePart code : codes) {
-                    target.add(code.getCode());
+            List<Weather.WeatherCodePart> codeParts = l.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
+            if (codeParts != null) {
+            	fi.fmi.avi.data.Weather weather = new WeatherImpl();
+                for (Weather.WeatherCodePart code : codeParts) {
+                 switch (code) {
+					case HIGH_INTENSITY:
+						weather.setIntensity(WeatherCodeIntensity.HIGH);
+						break;
+					case IN_VICINITY:
+						weather.setInVicinity(true);
+						break;
+					case LOW_INTENSITY:
+						weather.setIntensity(WeatherCodeIntensity.LOW);
+						break;
+					default:
+						WeatherCodeKind kind = WeatherCodeKind.forCode(code.getCode());
+						if (kind != null) {
+							weather.setKind(kind);
+						} else {
+							throw new ParsingException(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + l.getTACToken());
+						}
+						break;
+                 	} 
                 }
+                target.add(weather);
             }
-            l = findNext(WEATHER, source, before);
+            l = findNext(WEATHER, l, before);
         }
     }
 
@@ -317,6 +357,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                             case SKY_OBSCURED:
                             case NO_SIG_CLOUDS:
                             case NO_LOW_CLOUDS:
+                            case SKY_CLEAR:
                                 //NOOP
                         }
                         if (CloudLayer.CloudType.TOWERING_CUMULUS == type) {
@@ -353,15 +394,15 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             if (values[0] != null) {
                 msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
             } else {
-                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air temperature value");
+                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air temperature value in " + match.getTACToken());
             }
             if (values[1] != null) {
                 msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
             } else {
-                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing dewpoint temperature value");
+                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing dewpoint temperature value in " + match.getTACToken());
             }
         }, () -> {
-            throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values");
+            throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + lexed.getTAC());
         });
 
     }
@@ -378,13 +419,15 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                     unitStr = "hPa";
                 } else if (unit == AtmosphericPressureQNH.PressureMeasurementUnit.INCHES_OF_MERCURY) {
                     unitStr = "in Hg";
+                } else {
+                	throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Unknown unit for air pressure: " + unitStr + " in " + match.getTACToken());
                 }
                 msg.setAltimeterSettingQNH(new NumericMeasureImpl(value, unitStr));
             } else {
-                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air pressure value");
+                throw new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air pressure value: " + match.getTACToken());
             }
         }, () -> {
-            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "QNH missing");
+            throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "QNH missing in " + lexed.getTAC());
         });
     }
 
@@ -392,10 +435,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         Identity[] before = { WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         Lexeme match = findNext(RECENT_WEATHER, lexed.getFirstLexeme(), before);
         if (match != null) {
-            List<String> weather = new ArrayList<>();
+            List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
             appendWeatherCodes(match, weather, before);
             if (!weather.isEmpty()) {
-                msg.setRecentWeatherCodes(weather);
+                msg.setRecentWeather(weather);
             }
         }
     }
@@ -408,8 +451,14 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             while (match != null) {
                 String rw = match.getParsedValue(Lexeme.ParsedValueName.RUNWAY, String.class);
                 if ("ALL".equals(rw)) {
+                	if (!runways.isEmpty()) {
+                		throw new ParsingException(Type.SYNTAX_ERROR, "Wind shear reported both to all runways and at least one specific runway: " + match.getTACToken());
+                	}
                     ws.setAllRunways(true);
                 } else if (rw != null) {
+                	if (ws.isAllRunways()) {
+                		throw new ParsingException(Type.SYNTAX_ERROR, "Wind shear reported both to all runways and at least one specific runway:" + match.getTACToken());
+                	}
                     runways.add(rw);
                 }
                 match = findNext(WIND_SHEAR, match, before);
@@ -467,9 +516,12 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         break;
                 }
             }
-            if (values[3] instanceof Integer) {
+            if (values[2] instanceof Integer) {
+            	if (values[1] != null) {
+            		throw new ParsingException(Type.SYNTAX_ERROR, "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken());
+            	}
                 String heightUnit = match.getParsedValue(Lexeme.ParsedValueName.UNIT2, String.class);
-                ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[3], heightUnit));
+                ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[2], heightUnit));
             }
         });
     }
@@ -477,7 +529,126 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
     private static void updateRunwayStates(final Metar msg, final LexemeSequence lexed) throws ParsingException {
         Lexeme.Identity[] before = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RUNWAY_STATE, lexed.getFirstLexeme(), before, (match) -> {
-        	//TODO
+        	List<RunwayState> states = new ArrayList<>();
+        	while (match != null){
+        		RunwayStateImpl rws = new RunwayStateImpl();
+	        	@SuppressWarnings("unchecked")
+				Map<RunwayStateReportType, Object> values = match.getParsedValue(ParsedValueName.VALUE, Map.class);
+	        	Boolean repetition = (Boolean)values.get(RunwayStateReportType.REPETITION);
+	        	Boolean allRunways = (Boolean)values.get(RunwayStateReportType.ALL_RUNWAYS);
+	        	String runway = match.getParsedValue(ParsedValueName.RUNWAY, String.class);
+	        	RunwayStateDeposit deposit = (RunwayStateDeposit)values.get(RunwayStateReportType.DEPOSITS);
+	        	RunwayStateContamination contamination = (RunwayStateContamination)values.get(RunwayStateReportType.CONTAMINATION);
+	        	Integer depthOfDeposit = (Integer)values.get(RunwayStateReportType.DEPTH_OF_DEPOSIT);
+	        	String unitOfDeposit = (String)values.get(RunwayStateReportType.UNIT_OF_DEPOSIT);
+	        	RunwayStateReportSpecialValue depthModifier = (RunwayStateReportSpecialValue)values.get(RunwayStateReportType.DEPTH_MODIFIER);
+	        	Boolean cleared = (Boolean)values.get(RunwayStateReportType.CLEARED);
+	        	
+	        	if (repetition != null && repetition) {
+	        		rws.setRepetition(true);
+	        	} else if (allRunways != null && allRunways) {
+	        		rws.setAllRunways(true);
+	        	} else if (runway != null) {
+	        		rws.setRunwayDirectionDesignator(runway);
+	        	} else {
+	        		throw new ParsingException(Type.MISSING_DATA, "No runway specified for runway state report: "+ match.getTACToken());
+	        	}
+	        	if (deposit != null) {
+		        	switch(deposit) {
+					case CLEAR_AND_DRY:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.CLEAR_AND_DRY);
+						break;
+					case COMPACTED_OR_ROLLED_SNOW:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.COMPACT_OR_ROLLED_SNOW);
+						break;
+					case DAMP:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DAMP);
+						break;
+					case DRY_SNOW:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DRY_SNOW);
+						break;
+					case FROZEN_RUTS_OR_RIDGES:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.FROZEN_RUTS_OR_RIDGES);
+						break;
+					case ICE:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.ICE);
+						break;
+					case NOT_REPORTED:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.MISSING_OR_NOT_REPORTED);
+						break;
+					case RIME_OR_FROST_COVERED:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.RIME_AND_FROST_COVERED);
+						break;
+					case SLUSH:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.SLUSH);
+						break;
+					case WET:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_WITH_WATER_PATCHES);
+						break;
+					case WET_SNOW:
+						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_SNOW);
+						break;
+		        	}
+	        	}
+	        	
+	        	if (contamination != null) {
+	        		switch(contamination) {
+	        		case LESS_OR_EQUAL_TO_10PCT:
+						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_LESS_THAN_10);
+						break;
+					case FROM_11_TO_25PCT:
+						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_11_25);
+						break;
+					case FROM_26_TO_50PCT:
+						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_26_50);
+						break;
+					case FROM_51_TO_100PCT:
+						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_51_100);
+						break;
+					case NOT_REPORTED:
+						rws.setContamination(AviationCodeListUser.RunwayContamination.MISSING_OR_NOT_REPORTED);
+						break;
+	        		}
+	        	}
+	        	
+	        	if (depthOfDeposit != null) {
+	        		if (deposit == null) {
+	        			throw new ParsingException(Type.SYNTAX_ERROR, "Missing deposit kind but depth given for runway state: "+ match.getTACToken());
+	        		}
+	        		rws.setDepthOfDeposit(new NumericMeasureImpl(depthOfDeposit, unitOfDeposit));
+	        	}
+	        	
+	        	if (depthModifier != null) {
+	        		if (depthOfDeposit == null) {
+	        			throw new ParsingException(Type.SYNTAX_ERROR, "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken());
+	        		}
+	        		switch(depthModifier) {
+	        		case LESS_THAN_OR_EQUAL:
+	        			rws.setDepthOperator(AviationCodeListUser.RelationalOperator.BELOW);
+	        			break;
+	        		case MEASUREMENT_UNRELIABLE:
+	        		case NOT_MEASURABLE:
+	        			throw new ParsingException(Type.SYNTAX_ERROR, "Illegal modifier for depth of deposit for runway state:" + match.getTACToken());
+	        		case MORE_THAN_OR_EQUAL:
+	        			rws.setDepthOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+	        			break;
+	        		case RUNWAY_NOT_OPERATIONAL:
+	        			rws.setRunwayNotOperational(true);
+	        			break;
+	        		}
+	        	}
+	        	if (cleared != null && cleared) {
+	        		if (deposit != null || contamination != null || depthOfDeposit != null) {
+	        			throw new ParsingException(Type.SYNTAX_ERROR, "Runway state cannot be both cleared and contain deposit or contamination info: "+ match.getTACToken());
+	        		}
+	        		rws.setCleared(true);
+	        	}
+	        	states.add(rws);
+	        	match = findNext(RUNWAY_STATE, match, before);
+        	}
+        	if (!states.isEmpty()) {
+        		msg.setRunwayStates(states);
+        	}
         });
     }
 
@@ -500,6 +671,32 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         		msg.setRemarks(remarks);
         	}
         });
+    }
+    
+    private static void maybeThrow(ParsingException ex, ParsingHints hints) throws ParsingException {
+    	Object mode = hints.get(ParsingHints.KEY_PARSING_MODE);
+    	switch(ex.getType()) {
+		case LOGICAL_ERROR:
+			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_LOGICAL_ERRORS.equals(mode)){
+				throw ex;
+			}
+			break;
+		case SYNTAX_ERROR:
+			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_SYNTAX_ERRORS.equals(mode)){
+				throw ex;
+			}
+			break;
+		case MISSING_DATA:
+			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_MISSING.equals(mode)){
+				throw ex;
+			}
+			break;
+		case OTHER:
+			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode)){
+				throw ex;
+			}
+			break;
+    	}
     }
     
 
