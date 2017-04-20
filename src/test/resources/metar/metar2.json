@@ -7,8 +7,16 @@
   "issueTimeZone": "UTC",
   "aerodromeDesignator": "KORD",
   "ceilingAndVisibilityOk": false,
-  "presentWeatherCodes": [
-    "-DZ", "BR"
+  "presentWeather": [
+  	{
+  		"kind": "DRIZZLE",
+  		"intensity": "LOW",
+  		"inVicinity": false
+  	},
+  	{
+  		"kind": "MIST",
+  		"inVicinity": false
+  	}
   ],
   "airTemperature": {
     "value": 3.0,

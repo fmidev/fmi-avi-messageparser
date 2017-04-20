@@ -7,8 +7,11 @@
   "issueTimeZone": "UTC",
   "aerodromeDesignator": "EFHK",
   "ceilingAndVisibilityOk": false,
-  "presentWeatherCodes": [
-    "BR"
+  "presentWeather": [
+  	{
+  		"kind": "MIST",
+  		"inVicinity": false
+  	}
   ],
   "airTemperature": {
     "value": 14.0,
