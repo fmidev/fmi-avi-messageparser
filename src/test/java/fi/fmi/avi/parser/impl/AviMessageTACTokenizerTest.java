@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +31,13 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
     private AviMessageTACTokenizer tokenizer;
 
     @Test
+    @Ignore
     public void testMetar1() throws Exception {
         assertTokenSequenceMatch(metar1, "metar/metar1.json", MetarImpl.class);
     }
 
     @Test
+    @Ignore
     public void testTAF1() throws Exception {
         assertTokenSequenceMatch(taf1, "taf/taf1.json", TAFImpl.class);
     }

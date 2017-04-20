@@ -1,5 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class AviMessageParserTest extends AviMessageTestBase {
     }
 
     @Test
+    @Ignore
     public void testTaf1() throws Exception {
         assertTAFEquals(readFromJSON("taf/taf1.json", TAFImpl.class),
                 parser.parseMessage(lexer.lexMessage(taf1, ParsingHints.TAF), TAF.class, ParsingHints.TAF));

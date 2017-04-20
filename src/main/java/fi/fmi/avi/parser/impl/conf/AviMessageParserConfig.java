@@ -1,9 +1,5 @@
 package fi.fmi.avi.parser.impl.conf;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -83,9 +79,9 @@ public class AviMessageParserConfig {
     public AviMessageTACTokenizer tacTokenizer() {
         AviMessageTACTokenizerImpl s = new AviMessageTACTokenizerImpl();
         s.setLexingFactory(lexingFactory());
-        s.addReconstructor(METAR_START, new MetarStart.Reconstructor());
-        s.addReconstructor(TAF_START, new TAFStart.Reconstructor());
-        s.addReconstructor(ISSUE_TIME, new IssueTime.Reconstructor());
+        //s.addReconstructor(METAR_START, new MetarStart.Reconstructor());
+        //s.addReconstructor(TAF_START, new TAFStart.Reconstructor());
+        //s.addReconstructor(ISSUE_TIME, new IssueTime.Reconstructor());
         //TODO: all the other Metar & TAF reconstructors
         return s;
     }
