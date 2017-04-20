@@ -337,7 +337,8 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
-        assertTrue(message + "/value close enough", Math.abs(expected.getValue() - actual.getValue()) < FLOAT_EQUIVALENCE_THRESHOLD);
+    	double diff = Math.abs(expected.getValue() - actual.getValue());
+        assertTrue(message + "/value is close enough, difference: " + diff, diff < FLOAT_EQUIVALENCE_THRESHOLD);
         assertEquals(message + "/uom", expected.getUom(), actual.getUom());
     }
 
