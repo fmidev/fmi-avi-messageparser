@@ -351,6 +351,9 @@ public class AviMessageTestBase {
     }
 
     private static void assertTrendForecastWindEquals(String message, TrendForecastSurfaceWind expected, TrendForecastSurfaceWind actual) {
+        if (expected == null && actual == null) {
+            return;
+        }
         assertNumericalMeasureEquals(message + "/meanWindDirection", expected.getMeanWindDirection(), actual.getMeanWindDirection());
         assertNumericalMeasureEquals(message + "/meanWindSpeed", expected.getMeanWindSpeed(), actual.getMeanWindSpeed());
         assertNumericalMeasureEquals(message + "/windGust", expected.getWindGust(), actual.getWindGust());
