@@ -1,16 +1,13 @@
 {
-  "automatedStation": false,
   "status": "NORMAL",
   "issueDayOfMonth": 1,
   "issueHour": 24,
   "issueMinute": 0,
   "issueTimeZone": "UTC",
   "aerodromeDesignator": "EFHK",
-  "ceilingAndVisibilityOk": false,
   "presentWeather": [
   	{
-  		"kind": "MIST",
-  		"inVicinity": false
+      "kind": "MIST"
   	}
   ],
   "airTemperature": {
@@ -26,7 +23,6 @@
     "uom": "hPa"
   },
   "surfaceWind": {
-    "variableDirection": false,
     "meanWindDirection": {
       "value": 0.0,
       "uom": "deg"
@@ -82,7 +78,6 @@
     }
   ],
   "clouds": {
-    "amountAndHeightUnobservableByAutoSystem": false,
     "layers": [
       {
         "amount": "FEW",
@@ -102,8 +97,6 @@
   },
   "trends": [
     {
-      "timeGroups": null,
-      "ceilingAndVisibilityOk": false,
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
       "prevailingVisibility": {
         "value": 2000.0,

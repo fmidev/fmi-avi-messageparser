@@ -1,21 +1,17 @@
 {
-  "automatedStation": false,
   "status": "NORMAL",
   "issueDayOfMonth": 20,
   "issueHour": 10,
   "issueMinute": 4,
   "issueTimeZone": "UTC",
   "aerodromeDesignator": "KORD",
-  "ceilingAndVisibilityOk": false,
   "presentWeather": [
   	{
   		"kind": "DRIZZLE",
-  		"intensity": "LOW",
-  		"inVicinity": false
+      "intensity": "LOW"
   	},
   	{
-  		"kind": "MIST",
-  		"inVicinity": false
+      "kind": "MIST"
   	}
   ],
   "airTemperature": {
@@ -31,7 +27,6 @@
     "uom": "in Hg"
   },
   "surfaceWind": {
-    "variableDirection": false,
     "meanWindDirection": {
       "value": 50.0,
       "uom": "deg"
@@ -48,7 +43,6 @@
     }
   },
   "clouds": {
-    "amountAndHeightUnobservableByAutoSystem": false,
     "layers": [
       {
         "amount": "OVC",
