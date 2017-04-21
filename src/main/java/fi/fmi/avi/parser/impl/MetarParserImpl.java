@@ -7,9 +7,11 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
+import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
@@ -32,6 +34,9 @@ import org.slf4j.LoggerFactory;
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeIntensity;
 import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeKind;
+import fi.fmi.avi.data.CloudForecast;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.impl.WeatherImpl;
@@ -43,6 +48,7 @@ import fi.fmi.avi.data.metar.RunwayState;
 import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.SeaState;
 import fi.fmi.avi.data.metar.TrendForecast;
+import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
 import fi.fmi.avi.data.metar.TrendTimeGroups;
 import fi.fmi.avi.data.metar.WindShear;
 import fi.fmi.avi.data.metar.impl.HorizontalVisibilityImpl;
@@ -53,6 +59,7 @@ import fi.fmi.avi.data.metar.impl.RunwayStateImpl;
 import fi.fmi.avi.data.metar.impl.RunwayVisualRangeImpl;
 import fi.fmi.avi.data.metar.impl.SeaStateImpl;
 import fi.fmi.avi.data.metar.impl.TrendForecastImpl;
+import fi.fmi.avi.data.metar.impl.TrendForecastSurfaceWindImpl;
 import fi.fmi.avi.data.metar.impl.TrendTimeGroupsImpl;
 import fi.fmi.avi.data.metar.impl.WindShearImpl;
 import fi.fmi.avi.parser.Lexeme;
@@ -216,7 +223,6 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             Double value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
             RecognizingAviMessageTokenLexer.RelationalOperator operator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
                     RecognizingAviMessageTokenLexer.RelationalOperator.class);
-
             HorizontalVisibility vis = new HorizontalVisibilityImpl();
             if (direction != null) {
                 vis.setMinimumVisibility(new NumericMeasureImpl(value, unit));
@@ -316,36 +322,44 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         Lexeme l = source;
         List<ParsingIssue> issues = new ArrayList<>();
         while (l != null) {
-            @SuppressWarnings("unchecked")
-            List<Weather.WeatherCodePart> codeParts = l.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
-            if (codeParts != null) {
-            	fi.fmi.avi.data.Weather weather = new WeatherImpl();
-                for (Weather.WeatherCodePart code : codeParts) {
-                 switch (code) {
-					case HIGH_INTENSITY:
-						weather.setIntensity(WeatherCodeIntensity.HIGH);
-						break;
-					case IN_VICINITY:
-						weather.setInVicinity(true);
-						break;
-					case LOW_INTENSITY:
-						weather.setIntensity(WeatherCodeIntensity.LOW);
-						break;
-					default:
-						WeatherCodeKind kind = WeatherCodeKind.forCode(code.getCode());
-						if (kind != null) {
-							weather.setKind(kind);
-						} else {
-                            issues.add(new ParsingIssue(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + l.getTACToken()));
-                        }
-						break;
-                 	} 
-                }
+            fi.fmi.avi.data.Weather weather = getWeather(l, issues);
+            if (weather != null) {
                 target.add(weather);
             }
             l = findNext(WEATHER, l, before);
         }
         return issues;
+    }
+
+    private static fi.fmi.avi.data.Weather getWeather(final Lexeme match, final List<ParsingIssue> issues) {
+        fi.fmi.avi.data.Weather retval = null;
+        List<Weather.WeatherCodePart> codeParts = match.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
+        if (codeParts != null) {
+            retval = new WeatherImpl();
+            for (Weather.WeatherCodePart code : codeParts) {
+                switch (code) {
+                    case HIGH_INTENSITY:
+                        retval.setIntensity(WeatherCodeIntensity.HIGH);
+                        break;
+                    case IN_VICINITY:
+                        retval.setInVicinity(true);
+                        break;
+                    case LOW_INTENSITY:
+                        retval.setIntensity(WeatherCodeIntensity.LOW);
+                        break;
+                    default: {
+                        WeatherCodeKind kind = WeatherCodeKind.forCode(code.getCode());
+                        if (kind != null) {
+                            retval.setKind(kind);
+                        } else {
+                            issues.add(new ParsingIssue(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + match.getTACToken()));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return retval;
     }
 
     private static void updateClouds(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
@@ -358,48 +372,26 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
             while (match != null) {
                 CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
-                CloudLayer.CloudType type = match.getParsedValue(Lexeme.ParsedValueName.TYPE, CloudLayer.CloudType.class);
                 Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
                 String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
                 if (CloudLayer.SpecialValue.AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM == value) {
                     clouds.setAmountAndHeightUnobservableByAutoSystem(true);
                 } else if (value instanceof Integer) {
-                    Integer height = (Integer) value;
                     if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {
+                        int height = ((Integer) value).intValue();
+                        if ("hft".equals(unit)) {
+                            height = height * 100;
+                            unit = "ft";
+                        }
                         clouds.setVerticalVisibility(new NumericMeasureImpl(height, unit));
                     } else {
-                        fi.fmi.avi.data.CloudLayer layer = new CloudLayerImpl();
-                        switch (cover) {
-                            case FEW:
-                                layer.setAmount(AviationCodeListUser.CloudAmount.FEW);
-                                break;
-                            case SCATTERED:
-                                layer.setAmount(AviationCodeListUser.CloudAmount.SCT);
-                                break;
-                            case BROKEN:
-                                layer.setAmount(AviationCodeListUser.CloudAmount.BKN);
-                                break;
-                            case OVERCAST:
-                                layer.setAmount(AviationCodeListUser.CloudAmount.OVC);
-                                break;
-                            case SKY_OBSCURED:
-                            case NO_SIG_CLOUDS:
-                            case NO_LOW_CLOUDS:
-                            case SKY_CLEAR:
-                                //NOOP
-                        }
-                        if (CloudLayer.CloudType.TOWERING_CUMULUS == type) {
-                            layer.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.TCU);
-                        } else if (CloudLayer.CloudType.CUMULONIMBUS == type) {
-                            layer.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.CB);
-                        }
-                        if ("hft".equals(unit)) {
-                            layer.setBase(new NumericMeasureImpl(height * 100, "ft"));
+                        fi.fmi.avi.data.CloudLayer layer = getCloudLayer(match);
+                        if (layer != null) {
+                            layers.add(layer);
                         } else {
-                            layer.setBase(new NumericMeasureImpl(height, unit));
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Could not parse token " + match.getTACToken() + " as cloud layer"));
                         }
-                        layers.add(layer);
                     }
                 } else {
                     result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()));
@@ -709,113 +701,222 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
     private static void updateTrends(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
         final Metar msg = result.getParsedMessage();
-        Lexeme.Identity[] before = { REMARKS_START };
+        Lexeme.Identity[] before = { REMARKS_START, END_TOKEN };
+        final List<TrendForecast> trends = new ArrayList<>();
+        //Handle NOSIG:
+        findNext(NO_SIGNIFICANT_WEATHER, lexed.getFirstLexeme(), before, (nosigToken) -> {
+            TrendForecast fct = new TrendForecastImpl();
+            fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
+            trends.add(fct);
+        });
         findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (changeFct) -> {
-            List<TrendForecast> trends = new ArrayList<>();
             //loop over change forecasts:
-            Lexeme.Identity[] stopWithingGroup = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            Lexeme.Identity[] stopWithingGroup = { FORECAST_CHANGE_INDICATOR, REMARKS_START, END_TOKEN };
             while (changeFct != null) {
                 TrendForecast fct = new TrendForecastImpl();
-                Lexeme token = findNext(changeFct, stopWithingGroup);
-                //loop over group tokens:
-                while (token != null) {
-                    TrendTimeGroups timeGroups = new TrendTimeGroupsImpl();
-                    switch (token.getIdentity()) {
-                        case CHANGE_FORECAST_TIME_GROUP: {
-                            ForecastChangeIndicator.ForecastChangeIndicatorType type = token.getParsedValue(ParsedValueName.TYPE,
-                                    ForecastChangeIndicator.ForecastChangeIndicatorType.class);
-                            switch (type) {
-                                case AT: {
-                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
-                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
-                                    if (fromHour != null) {
-                                        timeGroups.setFromHour(fromHour);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend AT group " + token.getTACToken()));
-                                    }
-                                    if (fromMinute != null) {
-                                        timeGroups.setFromMinute(fromMinute);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend AT group " + token.getTACToken()));
-                                    }
-                                    timeGroups.setSingleInstance(true);
-                                    break;
-                                }
-                                case FROM: {
-                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
-                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
-                                    if (fromHour != null) {
-                                        timeGroups.setFromHour(fromHour);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend FM group " + token.getTACToken()));
-                                    }
-                                    if (fromMinute != null) {
-                                        timeGroups.setFromMinute(fromMinute);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend FM group " + token.getTACToken()));
-                                    }
-                                    break;
-                                }
-                                case UNTIL: {
-                                    Integer toHour = token.getParsedValue(ParsedValueName.HOUR2, Integer.class);
-                                    Integer toMinute = token.getParsedValue(ParsedValueName.MINUTE2, Integer.class);
-                                    if (toHour != null) {
-                                        timeGroups.setToHour(toHour);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend TL group " + token.getTACToken()));
-                                    }
-                                    if (toMinute != null) {
-                                        timeGroups.setFromMinute(toMinute);
-                                    } else {
-                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend TL group " + token.getTACToken()));
-                                    }
-                                    break;
-                                }
-                                case BECOMING:
-                                    fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.BECOMING);
-                                    break;
-                                case TEMPORARY_FLUCTUATIONS:
-                                    fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.TEMPORARY_FLUCTUATIONS);
-                                    break;
-                                case WITH_30_PCT_PROBABILITY:
-                                case WITH_40_PCT_PROBABILITY:
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "PROB groups not allowed in METAR " + token.getTACToken()));
-                                default:
-                                    break;
-                            }
-
-                            break;
+                TrendTimeGroups timeGroups = new TrendTimeGroupsImpl();
+                ForecastChangeIndicator.ForecastChangeIndicatorType type = changeFct.getParsedValue(ParsedValueName.TYPE,
+                        ForecastChangeIndicator.ForecastChangeIndicatorType.class);
+                switch (type) {
+                    case AT: {
+                        Integer fromHour = changeFct.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                        Integer fromMinute = changeFct.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                        if (fromHour != null) {
+                            timeGroups.setFromHour(fromHour);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend AT group " + changeFct.getTACToken()));
                         }
+                        if (fromMinute != null) {
+                            timeGroups.setFromMinute(fromMinute);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend AT group " + changeFct.getTACToken()));
+                        }
+                        timeGroups.setSingleInstance(true);
+                        break;
+                    }
+                    case FROM: {
+                        Integer fromHour = changeFct.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                        Integer fromMinute = changeFct.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                        if (fromHour != null) {
+                            timeGroups.setFromHour(fromHour);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend FM group " + changeFct.getTACToken()));
+                        }
+                        if (fromMinute != null) {
+                            timeGroups.setFromMinute(fromMinute);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend FM group " + changeFct.getTACToken()));
+                        }
+                        break;
+                    }
+                    case UNTIL: {
+                        Integer toHour = changeFct.getParsedValue(ParsedValueName.HOUR2, Integer.class);
+                        Integer toMinute = changeFct.getParsedValue(ParsedValueName.MINUTE2, Integer.class);
+                        if (toHour != null) {
+                            timeGroups.setToHour(toHour);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend TL group " + changeFct.getTACToken()));
+                        }
+                        if (toMinute != null) {
+                            timeGroups.setFromMinute(toMinute);
+                        } else {
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend TL group " + changeFct.getTACToken()));
+                        }
+                        break;
+                    }
+                    case BECOMING:
+                        fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.BECOMING);
+                        break;
+                    case TEMPORARY_FLUCTUATIONS:
+                        fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.TEMPORARY_FLUCTUATIONS);
+                        break;
+                    case WITH_30_PCT_PROBABILITY:
+                    case WITH_40_PCT_PROBABILITY:
+                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "PROB30/40 groups not allowed in METAR"));
+                    default:
+                        break;
+                }
+
+                Lexeme token = findNext(changeFct, stopWithingGroup);
+                //loop over change group tokens:
+                CloudForecast cloud = null;
+                List<fi.fmi.avi.data.CloudLayer> cloudLayers = null;
+                NumericMeasure prevailingVisibility = null;
+                AviationCodeListUser.RelationalOperator visibilityOperator = null;
+                TrendForecastSurfaceWind wind = null;
+                List<fi.fmi.avi.data.Weather> forecastWeather = null;
+                while (token != null) {
+                    switch (token.getIdentity()) {
                         case CAVOK:
                             fct.setCeilingAndVisibilityOk(true);
                             break;
-                        case NO_SIGNIFICANT_WEATHER:
-                            fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
+                        case CLOUD: {
+                            if (cloud == null) {
+                                cloud = new CloudForecastImpl();
+                            }
+                            Object value = token.getParsedValue(Lexeme.ParsedValueName.VALUE);
+                            String unit = token.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+                            CloudLayer.CloudCover cover = token.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
+                            if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED == cover) {
+                                int height = ((Integer) value).intValue();
+                                if ("hft".equals(unit)) {
+                                    height = height * 100;
+                                    unit = "ft";
+                                }
+                                cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
+                            } else {
+                                fi.fmi.avi.data.CloudLayer layer = getCloudLayer(token);
+                                if (layer != null) {
+                                    if (cloudLayers == null) {
+                                        cloudLayers = new ArrayList<>();
+                                    }
+                                    cloudLayers.add(layer);
+                                } else {
+                                    //Error
+                                }
+                            }
                             break;
-                        case CLOUD:
-                            //TODO
+                        }
+                        case HORIZONTAL_VISIBILITY: {
+                            if (prevailingVisibility == null) {
+                                MetricHorizontalVisibility.DirectionValue direction = token.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
+                                        MetricHorizontalVisibility.DirectionValue.class);
+                                String unit = token.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+                                Double value = token.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
+                                RecognizingAviMessageTokenLexer.RelationalOperator operator = token.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
+                                        RecognizingAviMessageTokenLexer.RelationalOperator.class);
+                                prevailingVisibility = new NumericMeasureImpl(value, unit);
+                                if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == operator) {
+                                    visibilityOperator = AviationCodeListUser.RelationalOperator.BELOW;
+                                } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == operator) {
+                                    visibilityOperator = AviationCodeListUser.RelationalOperator.ABOVE;
+                                }
+                            } else {
+                                result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                        "More than one visibility token within a trend change group: " + token.getTACToken()));
+                            }
                             break;
-                        case HORIZONTAL_VISIBILITY:
-                            //TODO
+                        }
+                        case SURFACE_WIND: {
+                            if (wind == null) {
+                                wind = new TrendForecastSurfaceWindImpl();
+                                Object direction = token.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Integer.class);
+                                Integer meanSpeed = token.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
+                                Integer gust = token.getParsedValue(Lexeme.ParsedValueName.MAX_VALUE, Integer.class);
+                                String unit = token.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+
+                                if (direction == SurfaceWind.WindDirection.VARIABLE) {
+                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Wind cannot be variable in trend: " + token.getTACToken()));
+                                } else if (direction != null && direction instanceof Integer) {
+                                    wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
+                                } else {
+                                    result.addIssue(
+                                            new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Direction missing for surface wind:" + token.getTACToken()));
+                                }
+
+                                if (meanSpeed != null) {
+                                    wind.setMeanWindSpeed(new NumericMeasureImpl(meanSpeed, unit));
+                                } else {
+                                    result.addIssue(
+                                            new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Mean speed missing for surface wind:" + token.getTACToken()));
+                                }
+
+                                if (gust != null) {
+                                    wind.setWindGust(new NumericMeasureImpl(gust, unit));
+                                }
+                            } else {
+                                result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "More than one wind token within a trend change group"));
+                            }
                             break;
-                        case SURFACE_WIND:
-                            //TODO
+                        }
+                        case WEATHER: {
+                            if (forecastWeather == null) {
+                                forecastWeather = new ArrayList<>();
+                            }
+                            List<ParsingIssue> issues = new ArrayList<>(1);
+                            fi.fmi.avi.data.Weather weather = getWeather(token, issues);
+                            if (weather != null) {
+                                forecastWeather.add(weather);
+                            }
+                            if (!issues.isEmpty()) {
+                                result.addIssue(issues);
+                            }
                             break;
-                        case WEATHER:
-                            //TODO
-                            break;
+                        }
+
                         default:
+                            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Illegal token " + token.getTACToken() + " within the change forecast group"));
                             break;
                     }
                     token = findNext(token, stopWithingGroup);
                 }
+                if (cloudLayers != null && !cloudLayers.isEmpty()) {
+                    if (cloud.getVerticalVisibility() != null) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Cloud layers cannot co-exist with vertical visibility in trend"));
+                    } else {
+                        cloud.setLayers(cloudLayers);
+                    }
+                }
+                if (fct.isCeilingAndVisibilityOk()) {
+                    if (cloud != null || prevailingVisibility != null || forecastWeather != null) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "CAVOK cannot co-exist with cloud, prevailing visibility or weather in trend"));
+                    }
+                } else {
+                    fct.setCloud(cloud);
+                    fct.setPrevailingVisibility(prevailingVisibility);
+                    if (visibilityOperator != null) {
+                        fct.setPrevailingVisibilityOperator(visibilityOperator);
+                    }
+                    fct.setSurfaceWind(wind);
+                    fct.setForecastWeather(forecastWeather);
+                }
                 trends.add(fct);
                 changeFct = findNext(FORECAST_CHANGE_INDICATOR, changeFct, before);
             }
-            if (!trends.isEmpty()) {
-                msg.setTrends(trends);
-            }
         });
+        if (!trends.isEmpty()) {
+            msg.setTrends(trends);
+        }
     }
 
     private static void updateRemarks(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
@@ -831,6 +932,47 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         		msg.setRemarks(remarks);
         	}
         });
+    }
+
+    private static fi.fmi.avi.data.CloudLayer getCloudLayer(final Lexeme match) {
+        fi.fmi.avi.data.CloudLayer retval = null;
+        CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
+        CloudLayer.CloudType type = match.getParsedValue(Lexeme.ParsedValueName.TYPE, CloudLayer.CloudType.class);
+        Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
+        String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+
+        if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED != cover) {
+            retval = new CloudLayerImpl();
+            switch (cover) {
+                case FEW:
+                    retval.setAmount(AviationCodeListUser.CloudAmount.FEW);
+                    break;
+                case SCATTERED:
+                    retval.setAmount(AviationCodeListUser.CloudAmount.SCT);
+                    break;
+                case BROKEN:
+                    retval.setAmount(AviationCodeListUser.CloudAmount.BKN);
+                    break;
+                case OVERCAST:
+                    retval.setAmount(AviationCodeListUser.CloudAmount.OVC);
+                    break;
+                default:
+                    //NOOP
+                    break;
+            }
+            if (CloudLayer.CloudType.TOWERING_CUMULUS == type) {
+                retval.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.TCU);
+            } else if (CloudLayer.CloudType.CUMULONIMBUS == type) {
+                retval.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.CB);
+            }
+            Integer height = (Integer) value;
+            if ("hft".equals(unit)) {
+                retval.setBase(new NumericMeasureImpl(height * 100, "ft"));
+            } else {
+                retval.setBase(new NumericMeasureImpl(height, unit));
+            }
+        }
+        return retval;
     }
 
 }
