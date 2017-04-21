@@ -42,6 +42,8 @@ import fi.fmi.avi.data.metar.ObservedSurfaceWind;
 import fi.fmi.avi.data.metar.RunwayState;
 import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.SeaState;
+import fi.fmi.avi.data.metar.TrendForecast;
+import fi.fmi.avi.data.metar.TrendTimeGroups;
 import fi.fmi.avi.data.metar.WindShear;
 import fi.fmi.avi.data.metar.impl.HorizontalVisibilityImpl;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
@@ -50,16 +52,20 @@ import fi.fmi.avi.data.metar.impl.ObservedSurfaceWindImpl;
 import fi.fmi.avi.data.metar.impl.RunwayStateImpl;
 import fi.fmi.avi.data.metar.impl.RunwayVisualRangeImpl;
 import fi.fmi.avi.data.metar.impl.SeaStateImpl;
+import fi.fmi.avi.data.metar.impl.TrendForecastImpl;
+import fi.fmi.avi.data.metar.impl.TrendTimeGroupsImpl;
 import fi.fmi.avi.data.metar.impl.WindShearImpl;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.ParsedValueName;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParsingException;
-import fi.fmi.avi.parser.ParsingException.Type;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.ParsingIssue;
+import fi.fmi.avi.parser.ParsingIssue.Type;
+import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.token.AtmosphericPressureQNH;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
+import fi.fmi.avi.parser.impl.lexer.token.ForecastChangeIndicator;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateContamination;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateDeposit;
@@ -71,14 +77,16 @@ import fi.fmi.avi.parser.impl.lexer.token.Weather;
 /**
  * Created by rinne on 13/04/17.
  */
+//TODO: check for each result.addIssue call if it makes to continue or return:
 public class MetarParserImpl extends AbstractAviMessageParser implements AviMessageSpecificParser<Metar> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetarParserImpl.class);
 
-    private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, CAVOK, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, WIND_SHEAR, SEA_STATE,
+    private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, WIND_SHEAR, SEA_STATE,
             REMARKS_START };
 
-    public Metar parseMessage(final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    public ParsingResult<Metar> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
+        ParsingResult<Metar> result = new ParsingResultImpl<>();
         boolean[] oneFound = new boolean[zeroOrOneAllowed.length];
         Iterator<Lexeme> it = lexed.getRecognizedLexemes();
         while (it.hasNext()) {
@@ -88,48 +96,49 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                     if (!oneFound[i]) {
                         oneFound[i] = true;
                     } else {
-                        throw new ParsingException(ParsingException.Type.SYNTAX_ERROR, "More than one of " + l.getIdentity() + " in " + lexed.getTAC());
+                        result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "More than one of " + l.getIdentity() + " in " + lexed.getTAC()));
                     }
                 }
             }
         }
+        result.setParsedMessage(new MetarImpl());
 
-        final Metar retval = new MetarImpl();
         Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> retval.setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
-                () -> retval.setStatus(AviationCodeListUser.MetarStatus.NORMAL));
+        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
+                () -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.NORMAL));
 
         stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
                 WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                (match) -> retval.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                    maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()), hints);
+                (match) -> result.getParsedMessage().setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+                    result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
                 });
 
-        updateMetarIssueTime(retval, lexed, hints);
-        updateSurfaceWind(retval, lexed, hints);
+        updateMetarIssueTime(result, lexed, hints);
+        updateSurfaceWind(result, lexed, hints);
 
         stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> retval.setCeilingAndVisibilityOk(true));
+        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setCeilingAndVisibilityOk(true));
 
-        updateHorizontalVisibility(retval, lexed, hints);
-        updateRVR(retval, lexed, hints);
-        updatePresentWeather(retval, lexed, hints);
-        updateClouds(retval, lexed, hints);
-        updateTemperatures(retval, lexed, hints);
-        updateQNH(retval, lexed, hints);
-        updateRecentWeather(retval, lexed, hints);
-        updateWindShear(retval, lexed, hints);
-        updateSeaState(retval, lexed, hints);
-        updateRunwayStates(retval, lexed, hints);
-        updateTrends(retval, lexed, hints);
-        updateRemarks(retval, lexed, hints);
-        return retval;
+        updateHorizontalVisibility(result, lexed, hints);
+        updateRVR(result, lexed, hints);
+        updatePresentWeather(result, lexed, hints);
+        updateClouds(result, lexed, hints);
+        updateTemperatures(result, lexed, hints);
+        updateQNH(result, lexed, hints);
+        updateRecentWeather(result, lexed, hints);
+        updateWindShear(result, lexed, hints);
+        updateSeaState(result, lexed, hints);
+        updateRunwayStates(result, lexed, hints);
+        updateTrends(result, lexed, hints);
+        updateRemarks(result, lexed, hints);
+        return result;
     }
 
-    private static void updateMetarIssueTime(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateMetarIssueTime(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(ISSUE_TIME, lexed.getFirstLexeme(), before, (match) -> {
@@ -143,13 +152,13 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 msg.setIssueTimeZone("UTC");
             }
         }, () -> {
-            maybeThrow(new ParsingException(ParsingException.Type.MISSING_DATA, "Missing at least some of the issue time components in " + lexed.getTAC()),
-                    hints);
+            result.addIssue(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing at least some of the issue time components in " + lexed.getTAC()));
         });
 
     }
 
-    private static void updateSurfaceWind(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateSurfaceWind(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
@@ -165,13 +174,13 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             } else if (direction != null && direction instanceof Integer) {
                 wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
             } else {
-                maybeThrow(new ParsingException(ParsingException.Type.MISSING_DATA, "Direction missing for surface wind:" + match.getTACToken()), hints);
+                result.addIssue(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Direction missing for surface wind:" + match.getTACToken()));
             }
 
             if (meanSpeed != null) {
                 wind.setMeanWindSpeed(new NumericMeasureImpl(meanSpeed, unit));
             } else {
-                maybeThrow(new ParsingException(ParsingException.Type.MISSING_DATA, "Mean speed missing for surface wind:" + match.getTACToken()), hints);
+                result.addIssue(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Mean speed missing for surface wind:" + match.getTACToken()));
             }
 
             if (gust != null) {
@@ -192,11 +201,12 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             msg.setSurfaceWind(wind);
         }, () -> {
             //TODO: cases where it's ok to be missing the surface wind
-            maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing surface wind information in " + lexed.getTAC()), hints);
+            result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing surface wind information in " + lexed.getTAC()));
         });
     }
 
-    private static void updateHorizontalVisibility(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateHorizontalVisibility(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(HORIZONTAL_VISIBILITY, lexed.getFirstLexeme(), before, (match) -> {
@@ -221,11 +231,12 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             }
             msg.setVisibility(vis);
         }, () -> {
-            maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing horizontal visibility information in " + lexed.getTAC()), hints);
+            result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing horizontal visibility information in " + lexed.getTAC()));
         });
     }
 
-    private static void updateRVR(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateRVR(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR,
                 REMARKS_START };
         findNext(RUNWAY_VISUAL_RANGE, lexed.getFirstLexeme(), before, (match) -> {
@@ -243,10 +254,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
                 if (runway == null) {
-                    maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing runway code for RVR in " + match.getTACToken()), hints);
+                    result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing runway code for RVR in " + match.getTACToken()));
                 }
                 if (minValue == null) {
-                    maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Missing visibility value for RVR in " + match.getTACToken()), hints);
+                    result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing visibility value for RVR in " + match.getTACToken()));
                 }
                 RunwayVisualRange rvr = new RunwayVisualRangeImpl();
                 rvr.setRunwayDirectionDesignator(runway);
@@ -286,22 +297,24 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         });
     }
 
-    private static void updatePresentWeather(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updatePresentWeather(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR,
                 REMARKS_START };
         Lexeme match = findNext(WEATHER, lexed.getFirstLexeme(), before);
         if (match != null) {
             List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
-            appendWeatherCodes(match, weather, before, hints);
+            result.addIssue(appendWeatherCodes(match, weather, before, hints));
             if (!weather.isEmpty()) {
                 msg.setPresentWeather(weather);
             }
         }
     }
 
-    private static void appendWeatherCodes(final Lexeme source, List<fi.fmi.avi.data.Weather> target, Identity[] before, final ParsingHints hints)
-            throws ParsingException {
+    private static List<ParsingIssue> appendWeatherCodes(final Lexeme source, List<fi.fmi.avi.data.Weather> target, Identity[] before,
+            final ParsingHints hints) {
         Lexeme l = source;
+        List<ParsingIssue> issues = new ArrayList<>();
         while (l != null) {
             @SuppressWarnings("unchecked")
             List<Weather.WeatherCodePart> codeParts = l.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
@@ -323,7 +336,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 						if (kind != null) {
 							weather.setKind(kind);
 						} else {
-                            maybeThrow(new ParsingException(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + l.getTACToken()), hints);
+                            issues.add(new ParsingIssue(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + l.getTACToken()));
                         }
 						break;
                  	} 
@@ -332,9 +345,11 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             }
             l = findNext(WEATHER, l, before);
         }
+        return issues;
     }
 
-    private static void updateClouds(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateClouds(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR,
                 REMARKS_START };
         findNext(CLOUD, lexed.getFirstLexeme(), before, (match) -> {
@@ -387,13 +402,12 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         layers.add(layer);
                     }
                 } else {
-                    maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()),
-                            hints);
+                    result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()));
                 }
 
                 match = findNext(CLOUD, match, before);
             }
-            if (layers != null && clouds != null) {
+            if (!layers.isEmpty()) {
                 clouds.setLayers(layers);
             }
             msg.setClouds(clouds);
@@ -401,7 +415,8 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
     }
 
-    private static void updateTemperatures(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateTemperatures(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
@@ -409,20 +424,21 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             if (values[0] != null) {
                 msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
             } else {
-                maybeThrow(new ParsingException(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()), hints);
+                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()));
             }
             if (values[1] != null) {
                 msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
             } else {
-                maybeThrow(new ParsingException(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()), hints);
+                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()));
             }
         }, () -> {
-            maybeThrow(new ParsingException(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + lexed.getTAC()), hints);
+            result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + lexed.getTAC()));
         });
 
     }
 
-    private static void updateQNH(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateQNH(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(AIR_PRESSURE_QNH, lexed.getFirstLexeme(), before, (match) -> {
             AtmosphericPressureQNH.PressureMeasurementUnit unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT,
@@ -435,31 +451,33 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 } else if (unit == AtmosphericPressureQNH.PressureMeasurementUnit.INCHES_OF_MERCURY) {
                     unitStr = "in Hg";
                 } else {
-                    maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR,
-                            "Unknown unit for air pressure: " + unitStr + " in " + match.getTACToken()), hints);
+                    result.addIssue(
+                            new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Unknown unit for air pressure: " + unitStr + " in " + match.getTACToken()));
                 }
                 msg.setAltimeterSettingQNH(new NumericMeasureImpl(value, unitStr));
             } else {
-                maybeThrow(new ParsingException(ParsingException.Type.MISSING_DATA, "Missing air pressure value: " + match.getTACToken()), hints);
+                result.addIssue(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing air pressure value: " + match.getTACToken()));
             }
         }, () -> {
-            maybeThrow(new ParsingException(ParsingException.Type.SYNTAX_ERROR, "QNH missing in " + lexed.getTAC()), hints);
+            result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "QNH missing in " + lexed.getTAC()));
         });
     }
 
-    private static void updateRecentWeather(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateRecentWeather(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         Lexeme match = findNext(RECENT_WEATHER, lexed.getFirstLexeme(), before);
         if (match != null) {
             List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
-            appendWeatherCodes(match, weather, before, hints);
+            result.addIssue(appendWeatherCodes(match, weather, before, hints));
             if (!weather.isEmpty()) {
                 msg.setRecentWeather(weather);
             }
         }
     }
 
-    private static void updateWindShear(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateWindShear(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Identity[] before = { SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(WIND_SHEAR, lexed.getFirstLexeme(), before, (match) -> {
             final WindShear ws = new WindShearImpl();
@@ -468,16 +486,18 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 String rw = match.getParsedValue(Lexeme.ParsedValueName.RUNWAY, String.class);
                 if ("ALL".equals(rw)) {
                 	if (!runways.isEmpty()) {
-                        maybeThrow(new ParsingException(Type.LOGICAL_ERROR,
-                                "Wind shear reported both to all runways and at least one specific runway: " + match.getTACToken()), hints);
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                "Wind shear reported both to all runways and at least one specific runway: " + match.getTACToken()));
+                    } else {
+                        ws.setAllRunways(true);
                     }
-                    ws.setAllRunways(true);
                 } else if (rw != null) {
                 	if (ws.isAllRunways()) {
-                        maybeThrow(new ParsingException(Type.LOGICAL_ERROR,
-                                "Wind shear reported both to all runways and at least one specific runway:" + match.getTACToken()), hints);
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                "Wind shear reported both to all runways and at least one specific runway:" + match.getTACToken()));
+                    } else {
+                        runways.add(rw);
                     }
-                    runways.add(rw);
                 }
                 match = findNext(WIND_SHEAR, match, before);
             }
@@ -488,7 +508,8 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         });
     }
 
-    private static void updateSeaState(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateSeaState(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Lexeme.Identity[] before = { RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SEA_STATE, lexed.getFirstLexeme(), before, (match) -> {
             SeaState ss = new SeaStateImpl();
@@ -498,54 +519,62 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 ss.setSeaSurfaceTemperature(new NumericMeasureImpl((Integer) values[0], tempUnit));
             }
             if (values[1] instanceof fi.fmi.avi.parser.impl.lexer.token.SeaState.SeaSurfaceState) {
-                switch ((fi.fmi.avi.parser.impl.lexer.token.SeaState.SeaSurfaceState) values[1]) {
-                    case CALM_GLASSY:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.CALM_GLASSY);
-                        break;
-                    case CALM_RIPPLED:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.CALM_RIPPLED);
-                        break;
-                    case SMOOTH_WAVELETS:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.SMOOTH_WAVELETS);
-                        break;
-                    case SLIGHT:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.SLIGHT);
-                        break;
-                    case MODERATE:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.MODERATE);
-                        break;
-                    case ROUGH:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.ROUGH);
-                        break;
-                    case VERY_ROUGH:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.VERY_ROUGH);
-                        break;
-                    case HIGH:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.HIGH);
-                        break;
-                    case VERY_HIGH:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.VERY_HIGH);
-                        break;
-                    case PHENOMENAL:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.PHENOMENAL);
-                        break;
-                    case MISSING:
-                        ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.MISSING_VALUE);
-                        break;
+                if (values[2] != null) {
+                    result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                            "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken()));
+                } else {
+                    switch ((fi.fmi.avi.parser.impl.lexer.token.SeaState.SeaSurfaceState) values[1]) {
+                        case CALM_GLASSY:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.CALM_GLASSY);
+                            break;
+                        case CALM_RIPPLED:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.CALM_RIPPLED);
+                            break;
+                        case SMOOTH_WAVELETS:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.SMOOTH_WAVELETS);
+                            break;
+                        case SLIGHT:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.SLIGHT);
+                            break;
+                        case MODERATE:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.MODERATE);
+                            break;
+                        case ROUGH:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.ROUGH);
+                            break;
+                        case VERY_ROUGH:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.VERY_ROUGH);
+                            break;
+                        case HIGH:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.HIGH);
+                            break;
+                        case VERY_HIGH:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.VERY_HIGH);
+                            break;
+                        case PHENOMENAL:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.PHENOMENAL);
+                            break;
+                        case MISSING:
+                            ss.setSeaSurfaceState(AviationCodeListUser.SeaSurfaceState.MISSING_VALUE);
+                            break;
+                    }
                 }
             }
             if (values[2] instanceof Integer) {
             	if (values[1] != null) {
-                    maybeThrow(new ParsingException(Type.LOGICAL_ERROR,
-                            "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken()), hints);
+                    result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                            "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken()));
+                } else {
+                    String heightUnit = match.getParsedValue(Lexeme.ParsedValueName.UNIT2, String.class);
+                    ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[2], heightUnit));
                 }
-                String heightUnit = match.getParsedValue(Lexeme.ParsedValueName.UNIT2, String.class);
-                ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[2], heightUnit));
             }
+            msg.setSeaState(ss);
         });
     }
 
-    private static void updateRunwayStates(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateRunwayStates(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Lexeme.Identity[] before = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RUNWAY_STATE, lexed.getFirstLexeme(), before, (match) -> {
         	List<RunwayState> states = new ArrayList<>();
@@ -570,7 +599,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 	        	} else if (runway != null) {
 	        		rws.setRunwayDirectionDesignator(runway);
 	        	} else {
-                    maybeThrow(new ParsingException(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()), hints);
+                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }
 	        	if (deposit != null) {
 		        	switch(deposit) {
@@ -632,40 +661,43 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 	        	
 	        	if (depthOfDeposit != null) {
 	        		if (deposit == null) {
-                        maybeThrow(new ParsingException(Type.LOGICAL_ERROR, "Missing deposit kind but depth given for runway state: " + match.getTACToken()),
-                                hints);
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Missing deposit kind but depth given for runway state: " + match.getTACToken()));
+                    } else {
+                        rws.setDepthOfDeposit(new NumericMeasureImpl(depthOfDeposit, unitOfDeposit));
                     }
-	        		rws.setDepthOfDeposit(new NumericMeasureImpl(depthOfDeposit, unitOfDeposit));
-	        	}
+                }
 	        	
 	        	if (depthModifier != null) {
 	        		if (depthOfDeposit == null) {
-                        maybeThrow(new ParsingException(Type.LOGICAL_ERROR,
-                                "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken()), hints);
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken()));
+                    } else {
+                        switch (depthModifier) {
+                            case LESS_THAN_OR_EQUAL:
+                                rws.setDepthOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                                break;
+                            case MEASUREMENT_UNRELIABLE:
+                            case NOT_MEASURABLE:
+                                result.addIssue(
+                                        new ParsingIssue(Type.SYNTAX_ERROR, "Illegal modifier for depth of deposit for runway state:" + match.getTACToken()));
+                                break;
+                            case MORE_THAN_OR_EQUAL:
+                                rws.setDepthOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+                                break;
+                            case RUNWAY_NOT_OPERATIONAL:
+                                rws.setRunwayNotOperational(true);
+                                break;
+                        }
                     }
-	        		switch(depthModifier) {
-	        		case LESS_THAN_OR_EQUAL:
-	        			rws.setDepthOperator(AviationCodeListUser.RelationalOperator.BELOW);
-	        			break;
-	        		case MEASUREMENT_UNRELIABLE:
-	        		case NOT_MEASURABLE:
-                        maybeThrow(new ParsingException(Type.SYNTAX_ERROR, "Illegal modifier for depth of deposit for runway state:" + match.getTACToken()),
-                                hints);
-                        case MORE_THAN_OR_EQUAL:
-	        			rws.setDepthOperator(AviationCodeListUser.RelationalOperator.ABOVE);
-	        			break;
-	        		case RUNWAY_NOT_OPERATIONAL:
-	        			rws.setRunwayNotOperational(true);
-	        			break;
-	        		}
-	        	}
+                }
 	        	if (cleared != null && cleared) {
 	        		if (deposit != null || contamination != null || depthOfDeposit != null) {
-                        maybeThrow(new ParsingException(Type.LOGICAL_ERROR,
-                                "Runway state cannot be both cleared and contain deposit or contamination info: " + match.getTACToken()), hints);
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                "Runway state cannot be both cleared and contain deposit or contamination info: " + match.getTACToken()));
+                    } else {
+                        rws.setCleared(true);
                     }
-	        		rws.setCleared(true);
-	        	}
+                }
 	        	states.add(rws);
 	        	match = findNext(RUNWAY_STATE, match, before);
         	}
@@ -675,14 +707,119 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         });
     }
 
-    private static void updateTrends(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateTrends(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         Lexeme.Identity[] before = { REMARKS_START };
-        findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (match) -> {
-        	//TODO
+        findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (changeFct) -> {
+            List<TrendForecast> trends = new ArrayList<>();
+            //loop over change forecasts:
+            Lexeme.Identity[] stopWithingGroup = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            while (changeFct != null) {
+                TrendForecast fct = new TrendForecastImpl();
+                Lexeme token = findNext(changeFct, stopWithingGroup);
+                //loop over group tokens:
+                while (token != null) {
+                    TrendTimeGroups timeGroups = new TrendTimeGroupsImpl();
+                    switch (token.getIdentity()) {
+                        case CHANGE_FORECAST_TIME_GROUP: {
+                            ForecastChangeIndicator.ForecastChangeIndicatorType type = token.getParsedValue(ParsedValueName.TYPE,
+                                    ForecastChangeIndicator.ForecastChangeIndicatorType.class);
+                            switch (type) {
+                                case AT: {
+                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                                    if (fromHour != null) {
+                                        timeGroups.setFromHour(fromHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend AT group " + token.getTACToken()));
+                                    }
+                                    if (fromMinute != null) {
+                                        timeGroups.setFromMinute(fromMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend AT group " + token.getTACToken()));
+                                    }
+                                    timeGroups.setSingleInstance(true);
+                                    break;
+                                }
+                                case FROM: {
+                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                                    if (fromHour != null) {
+                                        timeGroups.setFromHour(fromHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend FM group " + token.getTACToken()));
+                                    }
+                                    if (fromMinute != null) {
+                                        timeGroups.setFromMinute(fromMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend FM group " + token.getTACToken()));
+                                    }
+                                    break;
+                                }
+                                case UNTIL: {
+                                    Integer toHour = token.getParsedValue(ParsedValueName.HOUR2, Integer.class);
+                                    Integer toMinute = token.getParsedValue(ParsedValueName.MINUTE2, Integer.class);
+                                    if (toHour != null) {
+                                        timeGroups.setToHour(toHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend TL group " + token.getTACToken()));
+                                    }
+                                    if (toMinute != null) {
+                                        timeGroups.setFromMinute(toMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend TL group " + token.getTACToken()));
+                                    }
+                                    break;
+                                }
+                                case BECOMING:
+                                    fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.BECOMING);
+                                    break;
+                                case TEMPORARY_FLUCTUATIONS:
+                                    fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.TEMPORARY_FLUCTUATIONS);
+                                    break;
+                                case WITH_30_PCT_PROBABILITY:
+                                case WITH_40_PCT_PROBABILITY:
+                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "PROB groups not allowed in METAR " + token.getTACToken()));
+                                default:
+                                    break;
+                            }
+
+                            break;
+                        }
+                        case CAVOK:
+                            fct.setCeilingAndVisibilityOk(true);
+                            break;
+                        case NO_SIGNIFICANT_WEATHER:
+                            fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
+                            break;
+                        case CLOUD:
+                            //TODO
+                            break;
+                        case HORIZONTAL_VISIBILITY:
+                            //TODO
+                            break;
+                        case SURFACE_WIND:
+                            //TODO
+                            break;
+                        case WEATHER:
+                            //TODO
+                            break;
+                        default:
+                            break;
+                    }
+                    token = findNext(token, stopWithingGroup);
+                }
+                trends.add(fct);
+                changeFct = findNext(FORECAST_CHANGE_INDICATOR, changeFct, before);
+            }
+            if (!trends.isEmpty()) {
+                msg.setTrends(trends);
+            }
         });
     }
 
-    private static void updateRemarks(final Metar msg, final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
+    private static void updateRemarks(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final Metar msg = result.getParsedMessage();
         findNext(Identity.REMARKS_START, lexed.getFirstLexeme(), null, (match) -> {
         	List<String> remarks = new ArrayList<>();
         	match = findNext(REMARK, match);
@@ -695,32 +832,5 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         	}
         });
     }
-    
-    private static void maybeThrow(ParsingException ex, ParsingHints hints) throws ParsingException {
-    	Object mode = hints.get(ParsingHints.KEY_PARSING_MODE);
-    	switch(ex.getType()) {
-		case LOGICAL_ERROR:
-			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_LOGICAL_ERRORS.equals(mode)){
-				throw ex;
-			}
-			break;
-		case SYNTAX_ERROR:
-			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_SYNTAX_ERRORS.equals(mode)){
-				throw ex;
-			}
-			break;
-		case MISSING_DATA:
-			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode) && !ParsingHints.VALUE_PARSING_MODE_ALLOW_MISSING.equals(mode)){
-				throw ex;
-			}
-			break;
-		case OTHER:
-			if (!ParsingHints.VALUE_PARSING_MODE_ALLOW_ANY_ERRORS.equals(mode)){
-				throw ex;
-			}
-			break;
-    	}
-    }
-    
 
 }

@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParsingException;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.ParsingResult;
 
 /**
  * Created by rinne on 13/12/16.
@@ -18,19 +18,18 @@ import fi.fmi.avi.parser.ParsingHints;
 public class AviMessageParserImpl implements AviMessageParser {
     private static final Logger LOG = LoggerFactory.getLogger(AviMessageParserImpl.class);
 
-    private Map<Class<? extends AviationWeatherMessage>, AviMessageSpecificParser<? extends AviationWeatherMessage>> parsers = new HashMap<>();
+    private final Map<Class<? extends AviationWeatherMessage>, AviMessageSpecificParser<? extends AviationWeatherMessage>> parsers = new HashMap<>();
 
     @Override
-    public <T extends AviationWeatherMessage> T parseMessage(final LexemeSequence lexed, final Class<T> type) throws ParsingException {
+    public <T extends AviationWeatherMessage> ParsingResult<T> parseMessage(final LexemeSequence lexed, final Class<T> type) {
         return parseMessage(lexed, type, null);
     }
 
     @Override
-    public <T extends AviationWeatherMessage> T parseMessage(final LexemeSequence lexed, final Class<T> type, final ParsingHints hints)
-            throws ParsingException {
+    public <T extends AviationWeatherMessage> ParsingResult<T> parseMessage(final LexemeSequence lexed, final Class<T> type, final ParsingHints hints) {
         for (Class<? extends AviationWeatherMessage> msgClass : parsers.keySet()) {
             if (msgClass.isAssignableFrom(type)) {
-                return (T) parsers.get(msgClass).parseMessage(lexed, hints);
+                return (ParsingResult<T>) parsers.get(msgClass).parseMessage(lexed, hints);
             }
         }
         throw new IllegalArgumentException("Unable to parse messsage of type " + type.getCanonicalName());
@@ -39,24 +38,5 @@ public class AviMessageParserImpl implements AviMessageParser {
     public <T extends AviationWeatherMessage> void addMessageSpecificParser(Class<T> messageClass, AviMessageSpecificParser<T> parser) {
         this.parsers.put(messageClass, parser);
     }
-
-    /*
-    private static TAF parseTAF(final LexemeSequence lexed, final ParsingHints hints) throws ParsingException {
-        TAFImpl retval = new TAFImpl();
-        updateBaseForecast(retval, lexed, hints);
-        updateChangeForecasts(retval, lexed, hints);
-        return retval;
-    }
-
-    private static void updateBaseForecast(final TAFImpl taf, final LexemeSequence lexed, final ParsingHints hints) {
-        //TODO
-    }
-
-    private static void updateChangeForecasts(final TAFImpl taf, final LexemeSequence lexed, final ParsingHints hints) {
-        //TODO
-    }
-    */
-
-
 
 }

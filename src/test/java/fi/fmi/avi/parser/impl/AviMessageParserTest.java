@@ -1,5 +1,7 @@
 package fi.fmi.avi.parser.impl;
 
+import static junit.framework.TestCase.assertTrue;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +17,7 @@ import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 /**
@@ -32,18 +35,23 @@ public class AviMessageParserTest extends AviMessageTestBase {
 
     @Test
     public void testMetar1() throws Exception {
-        assertMetarEquals(readFromJSON("metar/metar1.json", MetarImpl.class), parser.parseMessage(lexer.lexMessage(metar1), Metar.class));
+        ParsingResult<Metar> result = parser.parseMessage(lexer.lexMessage(metar1), Metar.class);
+        assertTrue("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS == result.getStatus());
+        assertMetarEquals(readFromJSON("metar/metar1.json", MetarImpl.class), result.getParsedMessage());
     }
     
     @Test
     public void testMetar2() throws Exception {
-        assertMetarEquals(readFromJSON("metar/metar2.json", MetarImpl.class), parser.parseMessage(lexer.lexMessage(metar2), Metar.class));
+        ParsingResult<Metar> result = parser.parseMessage(lexer.lexMessage(metar2), Metar.class);
+        assertTrue("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS == result.getStatus());
+        assertMetarEquals(readFromJSON("metar/metar2.json", MetarImpl.class), result.getParsedMessage());
     }
 
     @Test
     @Ignore
     public void testTaf1() throws Exception {
-        assertTAFEquals(readFromJSON("taf/taf1.json", TAFImpl.class),
-                parser.parseMessage(lexer.lexMessage(taf1, ParsingHints.TAF), TAF.class, ParsingHints.TAF));
+        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf1), TAF.class, ParsingHints.TAF);
+        assertTrue("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS == result.getStatus());
+        assertTAFEquals(readFromJSON("taf/taf1.json", TAFImpl.class), result.getParsedMessage());
     }
 }

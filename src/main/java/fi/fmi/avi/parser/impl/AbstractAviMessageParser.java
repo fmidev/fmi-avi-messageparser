@@ -1,7 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingException;
 
 /**
  * Created by rinne on 13/04/17.
@@ -11,23 +10,20 @@ public abstract class AbstractAviMessageParser {
 	protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from) {
        return findNext(needle, from, null);
     }
-	
+
+    protected static Lexeme findNext(final Lexeme from, final Lexeme.Identity[] stopAt) {
+        return findNext(null, from, stopAt);
+    }
     protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from, final Lexeme.Identity[] stopAt) {
-        try {
-            return findNext(needle, from, stopAt, null, null);
-        } catch (ParsingException pe) {
-            //Will never happen
-        }
-        return null;
+        return findNext(needle, from, stopAt, null, null);
     }
 
-    protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from, final Lexeme.Identity[] stopAt, final LexemeParsingConsumer found)
-            throws ParsingException {
+    protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from, final Lexeme.Identity[] stopAt, final LexemeParsingConsumer found) {
         return findNext(needle, from, stopAt, found, null);
     }
 
     protected static Lexeme findNext(final Lexeme.Identity needle, final Lexeme from, final Lexeme.Identity[] stopAt, final LexemeParsingConsumer found,
-            final LexemeParsingNotifyer notFound) throws ParsingException {
+            final LexemeParsingNotifyer notFound) {
         Lexeme retval = null;
         Lexeme current = from.getNext();
         if (current != null) {
@@ -35,7 +31,7 @@ public abstract class AbstractAviMessageParser {
             Lexeme.Identity currentId;
             while (!stop) {
                 currentId = current.getIdentityIfAcceptable();
-                if (currentId == needle) {
+                if (needle == null || currentId == needle) {
                     retval = current;
                 }
                 stop = !current.hasNext() || retval != null;
@@ -64,11 +60,11 @@ public abstract class AbstractAviMessageParser {
 
     @FunctionalInterface
     interface LexemeParsingConsumer {
-        void consume(final Lexeme lexeme) throws ParsingException;
+        void consume(final Lexeme lexeme);
     }
 
     @FunctionalInterface
     interface LexemeParsingNotifyer {
-        void ping() throws ParsingException;
+        void ping();
     }
 }

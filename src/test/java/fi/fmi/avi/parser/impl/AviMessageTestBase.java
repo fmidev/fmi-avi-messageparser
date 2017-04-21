@@ -1,6 +1,9 @@
 package fi.fmi.avi.parser.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -264,14 +267,19 @@ public class AviMessageTestBase {
             expTrend = expected.get(i);
             actTrend = actual.get(i);
             assertNotNull("trend", actTrend);
-            expTimeGroups = expTrend.getParsedTimeGroups();
-            actTimeGroups = actTrend.getParsedTimeGroups();
-            assertEquals("trend/timeGroups/fromHour", expTimeGroups.getFromHour(), actTimeGroups.getFromHour());
-            assertEquals("trend/timeGroups/fromMinute", expTimeGroups.getFromMinute(), actTimeGroups.getFromMinute());
-            assertEquals("trend/timeGroups/toHour", expTimeGroups.getToHour(), actTimeGroups.getToHour());
-            assertEquals("trend/timeGroups/toMinute", expTimeGroups.getToMinute(), actTimeGroups.getToMinute());
-            assertEquals("trend/timeGroups/isSingular", expTimeGroups.isSingular(), actTimeGroups.isSingular());
+            expTimeGroups = expTrend.getTimeGroups();
+            actTimeGroups = actTrend.getTimeGroups();
+            if (expTimeGroups != null) {
+                assertNotNull("trend/timeGroups missing", actTimeGroups);
 
+                assertEquals("trend/timeGroups/fromHour", expTimeGroups.getFromHour(), actTimeGroups.getFromHour());
+                assertEquals("trend/timeGroups/fromMinute", expTimeGroups.getFromMinute(), actTimeGroups.getFromMinute());
+                assertEquals("trend/timeGroups/toHour", expTimeGroups.getToHour(), actTimeGroups.getToHour());
+                assertEquals("trend/timeGroups/toMinute", expTimeGroups.getToMinute(), actTimeGroups.getToMinute());
+                assertEquals("trend/timeGroups/isSingular", expTimeGroups.isSingleInstance(), actTimeGroups.isSingleInstance());
+            } else {
+                assertNull("trend/timeGroups should be missing", actTimeGroups);
+            }
             assertEquals("trend/CAVOK", expTrend.isCeilingAndVisibilityOk(), actTrend.isCeilingAndVisibilityOk());
             assertEquals("trend/changeIndicator", expTrend.getChangeIndicator(), actTrend.getChangeIndicator());
 
@@ -282,7 +290,7 @@ public class AviMessageTestBase {
             actFctWind = actTrend.getSurfaceWind();
             assertTrendForecastWindEquals("trend/surfaceWind", expFctWind, actFctWind);
 
-            assertStringListEquals("trend/forecastWeather", expTrend.getForecastWeather(), actTrend.getForecastWeather());
+            assertStringListEquals("trend/forecastWeather", expTrend.getForecastWeatherCodes(), actTrend.getForecastWeatherCodes());
             
             expFctCloud = expTrend.getCloud();
             actFctCloud = actTrend.getCloud();
