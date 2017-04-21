@@ -4,7 +4,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.DAY1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.MINUTE1;
-import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
+import static fi.fmi.avi.parser.Lexeme.ParsedValueName.TYPE;
 
 import java.util.regex.Matcher;
 
@@ -19,7 +19,6 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     public enum ForecastChangeIndicatorType {
         TEMPORARY_FLUCTUATIONS("TEMPO"),
         BECOMING("BECMG"),
-        NO_SIGNIFICANT_CHANGE("NSC"),
         WITH_40_PCT_PROBABILITY("PROB40"),
         WITH_30_PCT_PROBABILITY("PROB30"),
         AT("AT"),
@@ -44,7 +43,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     }
 
     public ForecastChangeIndicator(final Priority prio) {
-        super("^(TEMPO|BECMG|NSC|PROB40|PROB30)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$", prio);
+        super("^(TEMPO|BECMG|PROB40|PROB30)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$", prio);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
         ForecastChangeIndicatorType indicator;
         if (match.group(1) != null) {
             indicator = ForecastChangeIndicatorType.forCode(match.group(1));
-            token.setParsedValue(VALUE, indicator);
+            token.setParsedValue(TYPE, indicator);
             token.identify(FORECAST_CHANGE_INDICATOR);
         } else {
             indicator = ForecastChangeIndicatorType.forCode(match.group(3));
@@ -68,7 +67,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
                 }
                 token.setParsedValue(HOUR1, hour);
                 token.setParsedValue(MINUTE1, minute);
-                token.setParsedValue(VALUE, indicator);
+                token.setParsedValue(TYPE, indicator);
                 token.identify(FORECAST_CHANGE_INDICATOR);
             } else {
                 token.identify(FORECAST_CHANGE_INDICATOR, Lexeme.Status.SYNTAX_ERROR, "Invalid time");

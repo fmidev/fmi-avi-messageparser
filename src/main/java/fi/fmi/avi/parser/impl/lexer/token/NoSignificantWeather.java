@@ -16,7 +16,7 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
 
     @Override
     public void visit(final Lexeme token, final ParsingHints hints) {
-        if ("NOSIG".equalsIgnoreCase(token.getTACToken()) || "NSW".equalsIgnoreCase(token.getTACToken())) {
+        if ("NOSIG".equalsIgnoreCase(token.getTACToken()) || "NSW".equalsIgnoreCase(token.getTACToken()) || "NSC".equalsIgnoreCase(token.getTACToken())) {
             token.identify(NO_SIGNIFICANT_WEATHER);
         }
     }
