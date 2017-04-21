@@ -17,7 +17,7 @@ public class ParsingResultImpl<T extends AviationWeatherMessage> implements Pars
     private T parsedMessage;
     private List<ParsingIssue> issues;
 
-    ParsingResultImpl() {
+    public ParsingResultImpl() {
         issues = new ArrayList<>();
         status = ParsingStatus.FAIL;
     }
