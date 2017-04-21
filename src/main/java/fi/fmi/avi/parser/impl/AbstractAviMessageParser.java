@@ -31,10 +31,6 @@ public abstract class AbstractAviMessageParser {
             Lexeme.Identity currentId;
             while (!stop) {
                 currentId = current.getIdentityIfAcceptable();
-                if (needle == null || currentId == needle) {
-                    retval = current;
-                }
-                stop = !current.hasNext() || retval != null;
                 if (stopAt != null) {
                     for (Lexeme.Identity i : stopAt) {
                         if (i == currentId) {
@@ -42,6 +38,12 @@ public abstract class AbstractAviMessageParser {
                             break;
                         }
                     }
+                }
+                if (!stop) {
+                    if (needle == null || currentId == needle) {
+                        retval = current;
+                    }
+                    stop = !current.hasNext() || retval != null;
                 }
                 current = current.getNext();
             }
