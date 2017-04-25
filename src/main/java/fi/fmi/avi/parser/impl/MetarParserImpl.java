@@ -24,7 +24,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +83,6 @@ import fi.fmi.avi.parser.impl.lexer.token.Weather;
 /**
  * Created by rinne on 13/04/17.
  */
-//TODO: check for each result.addIssue call if it makes to continue or return:
 public class MetarParserImpl extends AbstractAviMessageParser implements AviMessageSpecificParser<Metar> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetarParserImpl.class);
@@ -94,19 +92,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
     public ParsingResult<Metar> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
         ParsingResult<Metar> result = new ParsingResultImpl<>();
-        boolean[] oneFound = new boolean[zeroOrOneAllowed.length];
-        Iterator<Lexeme> it = lexed.getRecognizedLexemes();
-        while (it.hasNext()) {
-            Lexeme l = it.next();
-            for (int i = 0; i < zeroOrOneAllowed.length; i++) {
-                if (zeroOrOneAllowed[i] == l.getIdentity()) {
-                    if (!oneFound[i]) {
-                        oneFound[i] = true;
-                    } else {
-                        result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "More than one of " + l.getIdentity() + " in " + lexed.getTAC()));
-                    }
-                }
-            }
+        List<ParsingIssue> issues = checkZeroOrOne(lexed, zeroOrOneAllowed);
+        if (!issues.isEmpty()) {
+            result.addIssue(issues);
         }
         result.setParsedMessage(new MetarImpl());
 
@@ -123,7 +111,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 });
 
         updateMetarIssueTime(result, lexed, hints);
-        updateSurfaceWind(result, lexed, hints);
+        updateObservedSurfaceWind(result, lexed, hints);
 
         stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
@@ -148,23 +136,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         final Metar msg = result.getParsedMessage();
         Identity[] before = { SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(ISSUE_TIME, lexed.getFirstLexeme(), before, (match) -> {
-            Integer day = match.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
-            Integer minute = match.getParsedValue(Lexeme.ParsedValueName.MINUTE1, Integer.class);
-            Integer hour = match.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
-            if (day != null && minute != null && hour != null) {
-                msg.setIssueDayOfMonth(day);
-                msg.setIssueHour(hour);
-                msg.setIssueMinute(minute);
-                msg.setIssueTimeZone("UTC");
-            }
-        }, () -> {
-            result.addIssue(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing at least some of the issue time components in " + lexed.getTAC()));
-        });
-
+        result.addIssue(updateIssueTime(msg, lexed, before, hints));
     }
 
-    private static void updateSurfaceWind(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
+    private static void updateObservedSurfaceWind(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
         final Metar msg = result.getParsedMessage();
         Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
@@ -12,6 +13,7 @@ import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
 import fi.fmi.avi.parser.impl.AviMessageTACTokenizerImpl;
 import fi.fmi.avi.parser.impl.MetarParserImpl;
+import fi.fmi.avi.parser.impl.TAFParserImpl;
 import fi.fmi.avi.parser.impl.lexer.AviMessageLexerImpl;
 import fi.fmi.avi.parser.impl.lexer.LexingFactoryImpl;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor.Priority;
@@ -67,12 +69,18 @@ public class AviMessageParserConfig {
     public AviMessageParser aviMessageParser() {
         AviMessageParserImpl p = new AviMessageParserImpl();
         p.addMessageSpecificParser(Metar.class, metarParser());
+        p.addMessageSpecificParser(TAF.class, tafParser());
         return p;
     }
 
     @Bean
     public AviMessageSpecificParser<Metar> metarParser() {
         return new MetarParserImpl();
+    }
+
+    @Bean
+    public AviMessageSpecificParser<TAF> tafParser() {
+        return new TAFParserImpl();
     }
 
     @Bean
