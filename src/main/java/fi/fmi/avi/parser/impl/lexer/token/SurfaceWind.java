@@ -37,7 +37,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
     }
 
     public SurfaceWind(final Priority prio) {
-        super("^(VRB|[0-9]{3})([0-9]{2})(G[0-9]{2})?(KT|MPS)$", prio);
+        super("^(VRB|[0-9]{3})([0-9]{2})(G[0-9]{2})?(KT|MPS|KMH)$", prio);
     }
 
     @Override
