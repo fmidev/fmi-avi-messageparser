@@ -28,14 +28,17 @@ import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
+import fi.fmi.avi.data.taf.TAFSurfaceWind;
 import fi.fmi.avi.data.taf.impl.TAFAirTemperatureForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFBaseForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
+import fi.fmi.avi.data.taf.impl.TAFSurfaceWindImpl;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
+import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 
 /**
  * Created by rinne on 25/04/17.
@@ -258,9 +261,31 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
     private List<ParsingIssue> updateForecastSurfaceWind(final TAFForecast fct, final LexemeSequence lexed, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
-
         findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
+            TAFSurfaceWind wind = new TAFSurfaceWindImpl();
+            Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION);
+            Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
+            Integer gustSpeed = match.getParsedValue(Lexeme.ParsedValueName.MAX_VALUE, Integer.class);
+            String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
+            if (direction == SurfaceWind.WindDirection.VARIABLE) {
+                wind.setVariableDirection(true);
+            } else if (direction instanceof Integer) {
+                wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
+            } else {
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind direction is missing"));
+            }
+
+            if (meanSpeed != null) {
+                wind.setMeanWindSpeed(new NumericMeasureImpl(meanSpeed, unit));
+            } else {
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind mean speed is missing"));
+            }
+
+            if (gustSpeed != null) {
+                wind.setWindGust(new NumericMeasureImpl(gustSpeed, unit));
+            }
+            fct.setSurfaceWind(wind);
         }, () -> {
             if (fct instanceof TAFBaseForecast) {
                 retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind is missing from TAF base forecast"));
