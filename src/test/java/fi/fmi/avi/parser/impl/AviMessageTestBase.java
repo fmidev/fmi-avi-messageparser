@@ -330,12 +330,26 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
+        if (expected.getSurfaceWind() != null) {
+            assertNotNull(message + "/surfaceWind missing", actual.getSurfaceWind());
+            assertTrendForecastWindEquals(message + "/surfaceWind", expected.getSurfaceWind(), actual.getSurfaceWind());
+            assertEquals(message + "/surfaceWind variable", expected.getSurfaceWind().isVariableDirection(), actual.getSurfaceWind().isVariableDirection());
+        } else {
+            assertNull(message + "/surfaceWind should be missing", actual.getSurfaceWind());
+        }
         assertEquals(message + "/CAVOK", expected.isCeilingAndVisibilityOk(), actual.isCeilingAndVisibilityOk());
-        assertNumericalMeasureEquals(message + "/prevailingVisibility", expected.getPrevailingVisibility(), actual.getPrevailingVisibility());
-        assertEquals(message + "/prevailingVisibilityOperator", expected.getPrevailingVisibilityOperator(), actual.getPrevailingVisibilityOperator());
-
-        assertTrendForecastWindEquals(message + "/surfaceWind", expected.getSurfaceWind(), actual.getSurfaceWind());
-        assertEquals(message + "/surfaceWind variable", expected.getSurfaceWind().isVariableDirection(), actual.getSurfaceWind().isVariableDirection());
+        if (expected.getPrevailingVisibility() != null) {
+            assertNotNull(message + "/prevailingVisibility missing", actual.getPrevailingVisibility());
+            assertNumericalMeasureEquals(message + "/prevailingVisibility", expected.getPrevailingVisibility(), actual.getPrevailingVisibility());
+        } else {
+            assertNull(message + "/prevailingVisibility should be missing", actual.getPrevailingVisibility());
+        }
+        if (expected.getPrevailingVisibilityOperator() != null) {
+            assertNotNull(message + "/prevailingVisibilityOperator", actual.getPrevailingVisibilityOperator());
+            assertEquals(message + "/prevailingVisibilityOperator", expected.getPrevailingVisibilityOperator(), actual.getPrevailingVisibilityOperator());
+        } else {
+            assertNull(message + "/prevailingVisibilityOperator should be missing", actual.getPrevailingVisibilityOperator());
+        }
         assertStringListEquals(message + "/forecastWeather", expected.getForecastWeather(), actual.getForecastWeather());
         assertCloudForecastEquals(message + "/cloud", expected.getCloud(), actual.getCloud());
     }
