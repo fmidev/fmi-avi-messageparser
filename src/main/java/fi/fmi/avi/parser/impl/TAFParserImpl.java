@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.fmi.avi.data.AviationCodeListUser;
+import fi.fmi.avi.data.CloudForecast;
+import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
@@ -39,6 +41,7 @@ import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
+import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 
@@ -359,6 +362,46 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
     private List<ParsingIssue> updateClouds(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
+        findNext(CLOUD, from, before, (match) -> {
+            CloudForecast cloud = new CloudForecastImpl();
+            List<fi.fmi.avi.data.CloudLayer> layers = new ArrayList<>();
+            while (match != null) {
+                CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
+                Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
+                String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+                if (value instanceof Integer) {
+                    if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {
+                        int height = ((Integer) value).intValue();
+                        if ("hft".equals(unit)) {
+                            height = height * 100;
+                            unit = "ft";
+                        }
+                        cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
+                    } else {
+                        fi.fmi.avi.data.CloudLayer layer = getCloudLayer(match);
+                        if (layer != null) {
+                            layers.add(layer);
+                        } else {
+                            retval.add(
+                                    new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Could not parse token " + match.getTACToken() + " as cloud " + "layer"));
+                        }
+                    }
+                } else {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()));
+                }
+                match = findNext(CLOUD, match, before);
+            }
+            if (!layers.isEmpty()) {
+                cloud.setLayers(layers);
+            }
+            fct.setCloud(cloud);
+        }, () -> {
+            if (fct instanceof TAFBaseForecast) {
+                if (!fct.isCeilingAndVisibilityOk()) {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Cloud or CAVOK is missing from TAF base forecast"));
+                }
+            }
+        });
         return retval;
     }
 

@@ -34,7 +34,6 @@ import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
-import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.metar.HorizontalVisibility;
 import fi.fmi.avi.data.metar.Metar;
@@ -873,45 +872,5 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         });
     }
 
-    private static fi.fmi.avi.data.CloudLayer getCloudLayer(final Lexeme match) {
-        fi.fmi.avi.data.CloudLayer retval = null;
-        CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
-        CloudLayer.CloudType type = match.getParsedValue(Lexeme.ParsedValueName.TYPE, CloudLayer.CloudType.class);
-        Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
-        String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
-
-        if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED != cover) {
-            retval = new CloudLayerImpl();
-            switch (cover) {
-                case FEW:
-                    retval.setAmount(AviationCodeListUser.CloudAmount.FEW);
-                    break;
-                case SCATTERED:
-                    retval.setAmount(AviationCodeListUser.CloudAmount.SCT);
-                    break;
-                case BROKEN:
-                    retval.setAmount(AviationCodeListUser.CloudAmount.BKN);
-                    break;
-                case OVERCAST:
-                    retval.setAmount(AviationCodeListUser.CloudAmount.OVC);
-                    break;
-                default:
-                    //NOOP
-                    break;
-            }
-            if (CloudLayer.CloudType.TOWERING_CUMULUS == type) {
-                retval.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.TCU);
-            } else if (CloudLayer.CloudType.CUMULONIMBUS == type) {
-                retval.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.CB);
-            }
-            Integer height = (Integer) value;
-            if ("hft".equals(unit)) {
-                retval.setBase(new NumericMeasureImpl(height * 100, "ft"));
-            } else {
-                retval.setBase(new NumericMeasureImpl(height, unit));
-            }
-        }
-        return retval;
-    }
 
 }
