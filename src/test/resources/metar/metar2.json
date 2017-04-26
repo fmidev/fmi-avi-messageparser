@@ -7,7 +7,7 @@
   "aerodromeDesignator": "KORD",
   "presentWeather": [
   	{
-  		"kind": "DRIZZLE",
+      "kind": "DRIZZLE",
       "intensity": "LOW"
   	},
   	{
