@@ -38,6 +38,8 @@ import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
+import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
+import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 
 /**
@@ -139,7 +141,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             if (startDay != null) {
                 fct.setValidityStartDayOfMonth(startDay);
             } else {
-                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing start day of validity"));
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing start day of validity" + match.getTACToken()));
             }
 
             if (endDay != null) {
@@ -151,13 +153,13 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             if (startHour != null) {
                 fct.setValidityStartHour(startHour);
             } else {
-                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing start hour of validity"));
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing start hour of validity: " + match.getTACToken()));
             }
 
             if (endHour != null) {
                 fct.setValidityEndHour(endHour);
             } else {
-                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing end hour of validity"));
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing end hour of validity: " + match.getTACToken()));
             }
         }, () -> {
             retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing validity"));
@@ -170,29 +172,32 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         TAFBaseForecast baseFct = new TAFBaseForecastImpl();
 
         Identity[] before = { HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        retval.addAll(updateForecastSurfaceWind(baseFct, lexed, before, hints));
-
-        before = new Identity[] { WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        retval.addAll(updateVisibility(baseFct, lexed, before, hints));
-
-        before = new Identity[] { CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        retval.addAll(updateWeather(baseFct, lexed, before, hints));
+        retval.addAll(updateForecastSurfaceWind(baseFct, lexed.getFirstLexeme(), before, hints));
 
         before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        retval.addAll(updateClouds(baseFct, lexed, before, hints));
+        findNext(CAVOK, lexed.getFirstLexeme(), before, (match) -> baseFct.setCeilingAndVisibilityOk(true));
 
-        retval.addAll(updateTemperatures(baseFct, lexed, hints));
+        before = new Identity[] { WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateVisibility(baseFct, lexed.getFirstLexeme(), before, hints));
+
+        before = new Identity[] { CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateWeather(baseFct, lexed.getFirstLexeme(), before, hints));
+
+        before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateClouds(baseFct, lexed.getFirstLexeme(), before, hints));
+
+        retval.addAll(updateTemperatures(baseFct, lexed.getFirstLexeme(), hints));
 
         fct.setBaseForecast(baseFct);
         return retval;
     }
 
-    private List<ParsingIssue> updateTemperatures(final TAFBaseForecast baseFct, final LexemeSequence lexed, final ParsingHints hints) {
+    private List<ParsingIssue> updateTemperatures(final TAFBaseForecast baseFct, final Lexeme from, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         List<TAFAirTemperatureForecast> temps = new ArrayList<>();
         TAFAirTemperatureForecast airTemperatureForecast;
         Identity[] stopAt = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        Lexeme minTempToken = findNext(MIN_TEMPERATURE, lexed.getFirstLexeme(), stopAt);
+        Lexeme minTempToken = findNext(MIN_TEMPERATURE, from, stopAt);
         Lexeme maxTempToken;
         while (minTempToken != null) {
             maxTempToken = findNext(MAX_TEMPERATURE, minTempToken, stopAt);
@@ -205,19 +210,21 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 if (day != null) {
                     airTemperatureForecast.setMinTemperatureDayOfMonth(day);
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing day of month for min forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                            "Missing day of month for min forecast temperature: " + minTempToken.getTACToken()));
                 }
 
                 if (hour != null) {
                     airTemperatureForecast.setMinTemperatureHour(hour);
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing hour of day for min forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                            "Missing hour of day for min forecast temperature: " + minTempToken.getTACToken()));
                 }
 
                 if (value != null) {
                     airTemperatureForecast.setMinTemperature(new NumericMeasureImpl(value, "degC"));
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing value for min forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing value for min forecast temperature: " + minTempToken.getTACToken()));
                 }
 
                 day = maxTempToken.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
@@ -227,19 +234,21 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 if (day != null) {
                     airTemperatureForecast.setMaxTemperatureDayOfMonth(day);
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing day of month for max forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                            "Missing day of month for max forecast temperature: " + maxTempToken.getTACToken()));
                 }
 
                 if (hour != null) {
                     airTemperatureForecast.setMaxTemperatureHour(hour);
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing hour of day for max forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                            "Missing hour of day for max forecast temperature: " + maxTempToken.getTACToken()));
                 }
 
                 if (value != null) {
                     airTemperatureForecast.setMaxTemperature(new NumericMeasureImpl(value, "degC"));
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing value for max forecast temperature"));
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing value for max forecast temperature: " + maxTempToken.getTACToken()));
                 }
                 temps.add(airTemperatureForecast);
                 minTempToken = findNext(MIN_TEMPERATURE, maxTempToken, stopAt);
@@ -259,9 +268,9 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         return retval;
     }
 
-    private List<ParsingIssue> updateForecastSurfaceWind(final TAFForecast fct, final LexemeSequence lexed, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateForecastSurfaceWind(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
-        findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
+        findNext(SURFACE_WIND, from, before, (match) -> {
             TAFSurfaceWind wind = new TAFSurfaceWindImpl();
             Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION);
             Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
@@ -273,13 +282,13 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             } else if (direction instanceof Integer) {
                 wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
             } else {
-                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind direction is missing"));
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind direction is missing: " + match.getTACToken()));
             }
 
             if (meanSpeed != null) {
                 wind.setMeanWindSpeed(new NumericMeasureImpl(meanSpeed, unit));
             } else {
-                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind mean speed is missing"));
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Surface wind mean speed is missing: " + match.getTACToken()));
             }
 
             if (gustSpeed != null) {
@@ -294,17 +303,61 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         return retval;
     }
 
-    private List<ParsingIssue> updateVisibility(final TAFForecast fct, final LexemeSequence lexed, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateVisibility(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
+        findNext(HORIZONTAL_VISIBILITY, from, before, (match) -> {
+            Double distance = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
+            String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+            RecognizingAviMessageTokenLexer.RelationalOperator distanceOperator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
+                    RecognizingAviMessageTokenLexer.RelationalOperator.class);
+            MetricHorizontalVisibility.DirectionValue direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
+                    MetricHorizontalVisibility.DirectionValue.class);
+            if (direction != null) {
+                retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Directional horizontal visibility not allowed in TAF: " + match.getTACToken()));
+            }
+            if (distance != null && unit != null) {
+                fct.setPrevailingVisibility(new NumericMeasureImpl(distance, unit));
+            } else {
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing visibility value or unit: " + match.getTACToken()));
+            }
+            if (distanceOperator != null) {
+                if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == distanceOperator) {
+                    fct.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                } else {
+                    fct.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+                }
+            }
+        }, () -> {
+            if (fct instanceof TAFBaseForecast) {
+                if (!fct.isCeilingAndVisibilityOk()) {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Visibility or CAVOK is missing from TAF base forecast"));
+                }
+            }
+        });
         return retval;
     }
 
-    private List<ParsingIssue> updateWeather(final TAFForecast fct, final LexemeSequence lexed, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateWeather(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
+        findNext(WEATHER, from, before, (match) -> {
+            if (match != null) {
+                List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
+                retval.addAll(appendWeatherCodes(match, weather, before, hints));
+                if (!weather.isEmpty()) {
+                    fct.setForecastWeather(weather);
+                }
+            }
+        }, () -> {
+            if (fct instanceof TAFBaseForecast) {
+                if (!fct.isCeilingAndVisibilityOk()) {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Weather or CAVOK is missing from TAF base forecast"));
+                }
+            }
+        });
         return retval;
     }
 
-    private List<ParsingIssue> updateClouds(final TAFForecast fct, final LexemeSequence lexed, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateClouds(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         return retval;
     }
