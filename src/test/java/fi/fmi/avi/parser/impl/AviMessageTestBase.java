@@ -350,7 +350,7 @@ public class AviMessageTestBase {
         } else {
             assertNull(message + "/prevailingVisibilityOperator should be missing", actual.getPrevailingVisibilityOperator());
         }
-        assertStringListEquals(message + "/forecastWeather", expected.getForecastWeather(), actual.getForecastWeather());
+        assertStringListEquals(message + "/forecastWeather", expected.getForecastWeatherCodes(), actual.getForecastWeatherCodes());
         assertCloudForecastEquals(message + "/cloud", expected.getCloud(), actual.getCloud());
     }
 
@@ -401,7 +401,7 @@ public class AviMessageTestBase {
     }
     private static void assertStringListEquals(String message, List<String> expected, List<String> actual) {
     	if (expected != null && !expected.isEmpty()) {
-        	assertNotNull(message + "missing", actual);
+            assertNotNull(message + " missing", actual);
         } else if (expected == null || expected.isEmpty()) {
         	assertTrue(message + " should be missing", actual == null || actual.isEmpty());
         }
