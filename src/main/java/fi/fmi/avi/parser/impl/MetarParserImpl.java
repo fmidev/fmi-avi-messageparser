@@ -31,14 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.fmi.avi.data.AviationCodeListUser;
-import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeIntensity;
-import fi.fmi.avi.data.AviationCodeListUser.WeatherCodeKind;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
-import fi.fmi.avi.data.impl.WeatherImpl;
 import fi.fmi.avi.data.metar.HorizontalVisibility;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.ObservedClouds;
@@ -78,7 +75,6 @@ import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateDeposit;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportSpecialValue;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportType;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
-import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
 /**
  * Created by rinne on 13/04/17.
@@ -191,24 +187,36 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         final Metar msg = result.getParsedMessage();
         Identity[] before = { RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
+
         findNext(HORIZONTAL_VISIBILITY, lexed.getFirstLexeme(), before, (match) -> {
-            MetricHorizontalVisibility.DirectionValue direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
-                    MetricHorizontalVisibility.DirectionValue.class);
-            String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
-            Double value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
-            RecognizingAviMessageTokenLexer.RelationalOperator operator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
-                    RecognizingAviMessageTokenLexer.RelationalOperator.class);
             HorizontalVisibility vis = new HorizontalVisibilityImpl();
-            if (direction != null) {
-                vis.setMinimumVisibility(new NumericMeasureImpl(value, unit));
-                vis.setMinimumVisibilityDirection(new NumericMeasureImpl(direction.inDegrees(), "deg"));
-            } else {
-                vis.setPrevailingVisibility(new NumericMeasureImpl(value, unit));
-                if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == operator) {
-                    vis.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.BELOW);
-                } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == operator) {
-                    vis.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+            while (match != null) {
+                MetricHorizontalVisibility.DirectionValue direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
+                        MetricHorizontalVisibility.DirectionValue.class);
+                String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
+                Double value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
+                RecognizingAviMessageTokenLexer.RelationalOperator operator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
+                        RecognizingAviMessageTokenLexer.RelationalOperator.class);
+                if (direction != null) {
+                    if (vis.getMinimumVisibility() != null) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "More than one directional horizontal visibility given: " + match.getTACToken()));
+                    } else {
+                        vis.setMinimumVisibility(new NumericMeasureImpl(value, unit));
+                        vis.setMinimumVisibilityDirection(new NumericMeasureImpl(direction.inDegrees(), "deg"));
+                    }
+                } else {
+                    if (vis.getPrevailingVisibility() != null) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "More than one prevailing horizontal visibility given: " + match.getTACToken()));
+                    } else {
+                        vis.setPrevailingVisibility(new NumericMeasureImpl(value, unit));
+                        if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == operator) {
+                            vis.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                        } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == operator) {
+                            vis.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+                        }
+                    }
                 }
+                match = findNext(HORIZONTAL_VISIBILITY, match, before);
             }
             msg.setVisibility(vis);
         }, () -> {
@@ -292,50 +300,6 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         }
     }
 
-    private static List<ParsingIssue> appendWeatherCodes(final Lexeme source, List<fi.fmi.avi.data.Weather> target, Identity[] before,
-            final ParsingHints hints) {
-        Lexeme l = source;
-        List<ParsingIssue> issues = new ArrayList<>();
-        while (l != null) {
-            fi.fmi.avi.data.Weather weather = getWeather(l, issues);
-            if (weather != null) {
-                target.add(weather);
-            }
-            l = findNext(WEATHER, l, before);
-        }
-        return issues;
-    }
-
-    private static fi.fmi.avi.data.Weather getWeather(final Lexeme match, final List<ParsingIssue> issues) {
-        fi.fmi.avi.data.Weather retval = null;
-        List<Weather.WeatherCodePart> codeParts = match.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
-        if (codeParts != null) {
-            retval = new WeatherImpl();
-            for (Weather.WeatherCodePart code : codeParts) {
-                switch (code) {
-                    case HIGH_INTENSITY:
-                        retval.setIntensity(WeatherCodeIntensity.HIGH);
-                        break;
-                    case IN_VICINITY:
-                        retval.setInVicinity(true);
-                        break;
-                    case LOW_INTENSITY:
-                        retval.setIntensity(WeatherCodeIntensity.LOW);
-                        break;
-                    default: {
-                        WeatherCodeKind kind = WeatherCodeKind.forCode(code.getCode());
-                        if (kind != null) {
-                            retval.setKind(kind);
-                        } else {
-                            issues.add(new ParsingIssue(Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + match.getTACToken()));
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        return retval;
-    }
 
     private static void updateClouds(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
         final Metar msg = result.getParsedMessage();
