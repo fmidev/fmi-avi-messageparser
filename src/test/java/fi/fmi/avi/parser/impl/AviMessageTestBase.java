@@ -133,18 +133,20 @@ public class AviMessageTestBase {
         assertEquals("validityEndDayOfMonth", expected.getValidityEndDayOfMonth(), actual.getValidityEndDayOfMonth());
         assertEquals("validityEndHour", expected.getValidityEndHour(), actual.getValidityEndHour());
         assertTAFBaseForecastEquals(expected.getBaseForecast(), actual.getBaseForecast());
-        assertEquals("changeForecasts size", expected.getChangeForecasts().size(), actual.getChangeForecasts().size());
-        for (int i = 0; i < expected.getChangeForecasts().size(); i++) {
-            assertTAFChangeForecastEquals(expected.getChangeForecasts().get(i), actual.getChangeForecasts().get(i));
+        if (expected.getChangeForecasts() != null && !expected.getChangeForecasts().isEmpty()) {
+            assertNotNull("changeForecasts is missing", actual.getChangeForecasts());
+            assertEquals("changeForecasts size", expected.getChangeForecasts().size(), actual.getChangeForecasts().size());
+            for (int i = 0; i < expected.getChangeForecasts().size(); i++) {
+                assertTAFChangeForecastEquals(expected.getChangeForecasts().get(i), actual.getChangeForecasts().get(i));
+            }
+        } else {
+            assertTrue("changeForecasts should by missing", actual.getChangeForecasts() == null || actual.getChangeForecasts().isEmpty());
         }
-        if (expected.getPreviousReportAerodromeDesignator() != null || actual.getPreviousReportAerodromeDesignator() != null) {
-            assertEquals("previousReportAerodromeDesignator", expected.getPreviousReportAerodromeDesignator(), actual.getPreviousReportAerodromeDesignator());
-            assertEquals("previousReportValidityStartDayOfMonth", expected.getPreviousReportValidityStartDayOfMonth(),
-                    actual.getPreviousReportValidityStartDayOfMonth());
-            assertEquals("previousReportValidityStartHour", expected.getPreviousReportValidityStartHour(), actual.getPreviousReportValidityStartHour());
-            assertEquals("previousReportValidityEndDayOfMonth", expected.getPreviousReportValidityEndDayOfMonth(),
-                    actual.getPreviousReportValidityEndDayOfMonth());
-            assertEquals("previousReportValidityEndHour", expected.getPreviousReportValidityEndHour(), actual.getPreviousReportValidityEndHour());
+
+        if (expected.getReferredReport() != null) {
+            assertTAFEquals(expected.getReferredReport(), actual.getReferredReport());
+        } else {
+            assertNull("referredReport should be missing", actual.getReferredReport());
         }
     }
 
@@ -302,16 +304,21 @@ public class AviMessageTestBase {
         assertTAFForecastEquals("baseForecast", expected, actual);
         TAFAirTemperatureForecast expAir = null;
         TAFAirTemperatureForecast actAir = null;
-        assertEquals("baseForecast/temperatures size", expected.getTemperatures().size(), actual.getTemperatures().size());
-        for (int i = 0; i < expected.getTemperatures().size(); i++) {
-            expAir = expected.getTemperatures().get(i);
-            actAir = actual.getTemperatures().get(i);
-            assertNumericalMeasureEquals("baseForecast/temperature/maxTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
-            assertEquals("baseForecast/temperature/maxTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
-            assertEquals("baseForecast/temperature/maxTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
-            assertNumericalMeasureEquals("temperature/minTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
-            assertEquals("baseForecast/temperature/minTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
-            assertEquals("baseForecast/temperature/minTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
+        if (expected.getTemperatures() != null && !expected.getTemperatures().isEmpty()) {
+            assertNotNull("baseForecast/temperatures is missing", actual.getTemperatures());
+            assertEquals("baseForecast/temperatures size", expected.getTemperatures().size(), actual.getTemperatures().size());
+            for (int i = 0; i < expected.getTemperatures().size(); i++) {
+                expAir = expected.getTemperatures().get(i);
+                actAir = actual.getTemperatures().get(i);
+                assertNumericalMeasureEquals("baseForecast/temperature/maxTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
+                assertEquals("baseForecast/temperature/maxTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
+                assertEquals("baseForecast/temperature/maxTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
+                assertNumericalMeasureEquals("temperature/minTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
+                assertEquals("baseForecast/temperature/minTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
+                assertEquals("baseForecast/temperature/minTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
+            }
+        } else {
+            assertTrue("baseForecast/temperatures should be missing", actual.getTemperatures() == null || actual.getTemperatures().isEmpty());
         }
     }
 
