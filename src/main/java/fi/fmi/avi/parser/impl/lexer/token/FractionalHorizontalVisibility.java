@@ -40,10 +40,10 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
             int fractionNumenator = Integer.parseInt(s.substring(0, s.indexOf('/')));
             int fractionDenumenator = Integer.parseInt(s.substring(s.indexOf('/') + 1));
             if (fractionDenumenator != 0) {
-                token.setParsedValue(VALUE, new Double(wholePart + (double) fractionNumenator / (double) fractionDenumenator));
+                token.setParsedValue(VALUE, Double.valueOf(wholePart + (double) fractionNumenator / (double) fractionDenumenator));
             }
         } else if (wholePart > -1) {
-            token.setParsedValue(VALUE, wholePart);
+            token.setParsedValue(VALUE, Double.valueOf(wholePart));
         }
         String unit = match.group(4).toLowerCase();
         token.setParsedValue(UNIT, unit.toLowerCase());
