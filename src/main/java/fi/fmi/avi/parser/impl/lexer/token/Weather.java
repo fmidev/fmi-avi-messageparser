@@ -23,7 +23,7 @@ public class Weather extends RegexMatchingLexemeVisitor {
 
     private final static Set<String> weatherSkipWords = new HashSet<String>(Arrays.asList(
             new String[] { "METAR", "TAF", "COR", "AMD", "CNL", "NIL", "CAVOK", "TEMPO", "BECMG", "RMK", "NOSIG", "NSC", "NSW", "AUTO", "SNOCLO", "BLU", "WHT",
-                    "GRN", "YLO1", "YLO2", "AMB", "RED" }));
+                    "GRN", "YLO1", "YLO2", "AMB", "RED", "BLACKWHT", "BLACKBLU", "BLACKGRN", "BLACKYLO1", "BLACKYLO2", "BLACKAMB", "BLACKRED" }));
     public final static Map<String, String> WEATHER_CODES = new HashMap<>();
 
     //Copied from https://codes.wmo.int/306/4678
