@@ -5,6 +5,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AMENDMENT;
 import static fi.fmi.avi.parser.Lexeme.Identity.CANCELLATION;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
+import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
@@ -29,10 +30,12 @@ import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.data.taf.TAFSurfaceWind;
 import fi.fmi.avi.data.taf.impl.TAFAirTemperatureForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFBaseForecastImpl;
+import fi.fmi.avi.data.taf.impl.TAFChangeForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.data.taf.impl.TAFSurfaceWindImpl;
 import fi.fmi.avi.parser.Lexeme;
@@ -42,6 +45,7 @@ import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
+import fi.fmi.avi.parser.impl.lexer.token.ForecastChangeIndicator;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 
@@ -56,71 +60,74 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
     @Override
     public ParsingResult<TAF> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
         ParsingResult<TAF> retval = new ParsingResultImpl<>();
-        retval.addIssue(checkZeroOrOne(lexed, zeroOrOneAllowed));
-        TAF taf = new TAFImpl();
+        if (endsInEndToken(lexed, hints)) {
+            retval.addIssue(checkZeroOrOne(lexed, zeroOrOneAllowed));
+            TAF taf = new TAFImpl();
 
-        Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK,
-                MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK,
+                    MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
 
-        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> taf.setStatus(AviationCodeListUser.TAFStatus.CORRECTION));
+            findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> taf.setStatus(AviationCodeListUser.TAFStatus.CORRECTION));
 
-        findNext(AMENDMENT, lexed.getFirstLexeme(), stopAt, (match) -> {
-            TAF.TAFStatus status = taf.getStatus();
-            if (status != null) {
-                retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR,
-                        "TAF cannot be both " + TAF.TAFStatus.AMENDMENT + " and " + status + " at " + "the same time"));
-            } else {
-                taf.setStatus(AviationCodeListUser.TAFStatus.AMENDMENT);
+            findNext(AMENDMENT, lexed.getFirstLexeme(), stopAt, (match) -> {
+                TAF.TAFStatus status = taf.getStatus();
+                if (status != null) {
+                    retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR,
+                            "TAF cannot be both " + TAF.TAFStatus.AMENDMENT + " and " + status + " at " + "the same time"));
+                } else {
+                    taf.setStatus(AviationCodeListUser.TAFStatus.AMENDMENT);
+                }
+            });
+
+            if (taf.getStatus() == null) {
+                taf.setStatus(AviationCodeListUser.TAFStatus.NORMAL);
             }
-        });
 
-        if (taf.getStatus() == null) {
-            taf.setStatus(AviationCodeListUser.TAFStatus.NORMAL);
+            stopAt = new Identity[] { ISSUE_TIME, NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE,
+                    MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+
+            findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
+                    (match) -> taf.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
+                    });
+
+            retval.addIssue(updateTAFIssueTime(taf, lexed, hints));
+            stopAt = new Identity[] { VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE,
+                    FORECAST_CHANGE_INDICATOR, REMARKS_START };
+
+            findNext(NIL, lexed.getFirstLexeme(), stopAt, (match) -> {
+                taf.setStatus(AviationCodeListUser.TAFStatus.MISSING);
+                if (match.getNext() != null) {
+                    Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
+                    if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
+                        retval.addIssue(
+                                new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Missing TAF message contains extra tokens after NIL: " + lexed.toString()));
+                    }
+                }
+            });
+
+            retval.addIssue(updateTAFValidTime(taf, lexed, hints));
+
+            stopAt = new Identity[] { SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR,
+                    REMARKS_START };
+            findNext(CANCELLATION, lexed.getFirstLexeme(), stopAt, (match) -> {
+                taf.setStatus(AviationCodeListUser.TAFStatus.CANCELLATION);
+                if (match.getNext() != null) {
+                    Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
+                    if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
+                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR,
+                                "Cancelled TAF message contains extra tokens after CNL: " + lexed.toString()));
+                    }
+                }
+            });
+
+            retval.addIssue(updateBaseForecast(taf, lexed, hints));
+            retval.addIssue(updateChangeForecasts(taf, lexed, hints));
+
+            retval.setParsedMessage(taf);
+        } else {
+            retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Message does not end in end token"));
         }
-
-        stopAt = new Identity[] { ISSUE_TIME, NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE,
-                MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-
-        findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                (match) -> taf.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                    retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
-                });
-
-        retval.addIssue(updateTAFIssueTime(taf, lexed, hints));
-        stopAt = new Identity[] { VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE,
-                FORECAST_CHANGE_INDICATOR, REMARKS_START };
-
-        findNext(NIL, lexed.getFirstLexeme(), stopAt, (match) -> {
-            taf.setStatus(AviationCodeListUser.TAFStatus.MISSING);
-            if (match.getNext() != null) {
-                Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
-                if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
-                    retval.addIssue(
-                            new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Missing TAF message contains extra tokens after NIL: " + lexed.toString()));
-                }
-            }
-        });
-
-        retval.addIssue(updateTAFValidTime(taf, lexed, hints));
-
-        stopAt = new Identity[] { SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR,
-                REMARKS_START };
-        findNext(CANCELLATION, lexed.getFirstLexeme(), stopAt, (match) -> {
-            taf.setStatus(AviationCodeListUser.TAFStatus.CANCELLATION);
-            if (match.getNext() != null) {
-                Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
-                if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
-                    retval.addIssue(
-                            new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Cancelled TAF message contains extra tokens after CNL: " + lexed.toString()));
-                }
-            }
-        });
-
-        retval.addIssue(updateBaseForecast(taf, lexed, hints));
-        retval.addIssue(updateChangeForecasts(taf, lexed, hints));
-
-        retval.setParsedMessage(taf);
-
         return retval;
     }
 
@@ -174,16 +181,16 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         List<ParsingIssue> retval = new ArrayList<>();
         TAFBaseForecast baseFct = new TAFBaseForecastImpl();
 
-        Identity[] before = { HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateForecastSurfaceWind(baseFct, lexed.getFirstLexeme(), before, hints));
 
-        before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        before = new Identity[] { HORIZONTAL_VISIBILITY, WEATHER, CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(CAVOK, lexed.getFirstLexeme(), before, (match) -> baseFct.setCeilingAndVisibilityOk(true));
 
-        before = new Identity[] { WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        before = new Identity[] { WEATHER, CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateVisibility(baseFct, lexed.getFirstLexeme(), before, hints));
 
-        before = new Identity[] { CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        before = new Identity[] { CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateWeather(baseFct, lexed.getFirstLexeme(), before, hints));
 
         before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
@@ -267,6 +274,134 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
     private List<ParsingIssue> updateChangeForecasts(final TAF fct, final LexemeSequence lexed, final ParsingHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
+        Identity[] stopAt = { REMARKS_START };
+        findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), stopAt, (match) -> {
+            List<TAFChangeForecast> changeForecasts = new ArrayList<>();
+            while (match != null) {
+
+                //PROB30 [TEMPO] or PROB40 [TEMPO] or BECMG or TEMPO or FM
+                ForecastChangeIndicator.ForecastChangeIndicatorType type = match.getParsedValue(Lexeme.ParsedValueName.TYPE,
+                        ForecastChangeIndicator.ForecastChangeIndicatorType.class);
+                if (match.hasNext()) {
+                    Lexeme next = match.getNext();
+                    if (REMARKS_START != next.getIdentityIfAcceptable() && END_TOKEN != next.getIdentityIfAcceptable()) {
+                        TAFChangeForecast changeFct = new TAFChangeForecastImpl();
+                        switch (type) {
+                            case TEMPORARY_FLUCTUATIONS:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.TEMPORARY_FLUCTUATIONS);
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
+                            case BECOMING:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.BECOMING);
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
+                            case FROM:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.FROM);
+                                Integer day = match.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
+                                Integer hour = match.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
+                                Integer minute = match.getParsedValue(Lexeme.ParsedValueName.MINUTE1, Integer.class);
+                                if (day != null) {
+                                    changeFct.setValidityStartDayOfMonth(day);
+                                }
+                                if (hour != null && minute != null) {
+                                    changeFct.setValidityStartHour(hour);
+                                    changeFct.setValidityStartMinute(minute);
+                                } else {
+                                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                                            "Missing validity start hour or minute in " + match.getTACToken()));
+                                }
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
+                            case WITH_40_PCT_PROBABILITY:
+                            case WITH_30_PCT_PROBABILITY: {
+                                if (FORECAST_CHANGE_INDICATOR == next.getIdentityIfAcceptable()) {
+                                    if (ForecastChangeIndicator.ForecastChangeIndicatorType.TEMPORARY_FLUCTUATIONS == next.getParsedValue(
+                                            Lexeme.ParsedValueName.TYPE, ForecastChangeIndicator.ForecastChangeIndicatorType.class)) {
+                                        if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
+                                            changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30_TEMPORARY_FLUCTUATIONS);
+                                        } else {
+                                            changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40_TEMPORARY_FLUCTUATIONS);
+                                        }
+                                        updateChangeForecastContents(changeFct, type, next, hints);
+                                        match = next;
+                                    } else {
+                                        retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, type + " cannot be followed by " + next));
+                                    }
+                                } else {
+                                    if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
+                                        changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30);
+                                    } else {
+                                        changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40);
+                                    }
+                                    updateChangeForecastContents(changeFct, type, match, hints);
+                                }
+                                break;
+                            }
+                            case AT:
+                            case UNTIL:
+                                retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Change group " + type + " is not allowed in TAF"));
+                                break;
+                            default:
+                                retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Unknonw change group " + type));
+                                break;
+                        }
+                        changeForecasts.add(changeFct);
+                    } else {
+                        retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing change group content"));
+                    }
+                } else {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing change group content"));
+                }
+                match = findNext(FORECAST_CHANGE_INDICATOR, match, stopAt);
+            }
+            if (!changeForecasts.isEmpty()) {
+                fct.setChangeForecasts(changeForecasts);
+            }
+        });
+        return retval;
+    }
+
+    private List<ParsingIssue> updateChangeForecastContents(final TAFChangeForecast fct, final ForecastChangeIndicator.ForecastChangeIndicatorType type,
+            final Lexeme from, final ParsingHints hints) {
+        List<ParsingIssue> retval = new ArrayList<>();
+        Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        if (ForecastChangeIndicator.ForecastChangeIndicatorType.FROM != type) {
+            Lexeme timeGroup = findNext(CHANGE_FORECAST_TIME_GROUP, from, before);
+            if (timeGroup != null) {
+                Integer startDay = timeGroup.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
+                Integer endDay = timeGroup.getParsedValue(Lexeme.ParsedValueName.DAY2, Integer.class);
+                Integer startHour = timeGroup.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
+                Integer endHour = timeGroup.getParsedValue(Lexeme.ParsedValueName.HOUR2, Integer.class);
+                if (endDay != null) {
+                    fct.setValidityEndDayOfMonth(endDay);
+                }
+                if (startDay != null && startHour != null && endHour != null) {
+                    fct.setValidityStartDayOfMonth(startDay);
+                    fct.setValidityStartHour(startHour);
+                    fct.setValidityEndHour(endHour);
+                } else {
+                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA,
+                            "Missing validity day, hour or minute for change group in " + timeGroup.getTACToken()));
+                }
+            } else {
+                retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing validity time for change group after " + from.getTACToken()));
+            }
+        }
+
+        before = new Identity[] { CAVOK, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateForecastSurfaceWind(fct, from, before, hints));
+
+        before = new Identity[] { HORIZONTAL_VISIBILITY, WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        findNext(CAVOK, from, before, (match) -> fct.setCeilingAndVisibilityOk(true));
+
+        before = new Identity[] { WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateVisibility(fct, from, before, hints));
+
+        before = new Identity[] { CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateWeather(fct, from, before, hints));
+
+        before = new Identity[] { FORECAST_CHANGE_INDICATOR, REMARKS_START };
+        retval.addAll(updateClouds(fct, from, before, hints));
 
         return retval;
     }

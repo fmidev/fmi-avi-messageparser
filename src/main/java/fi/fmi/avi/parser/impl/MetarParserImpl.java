@@ -35,6 +35,7 @@ import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
+import fi.fmi.avi.data.impl.WeatherImpl;
 import fi.fmi.avi.data.metar.HorizontalVisibility;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.ObservedClouds;
@@ -74,6 +75,7 @@ import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateDeposit;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportSpecialValue;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportType;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
+import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
 /**
  * Created by rinne on 13/04/17.
@@ -87,43 +89,47 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
     public ParsingResult<Metar> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
         ParsingResult<Metar> result = new ParsingResultImpl<>();
-        List<ParsingIssue> issues = checkZeroOrOne(lexed, zeroOrOneAllowed);
-        if (!issues.isEmpty()) {
-            result.addIssue(issues);
+        if (endsInEndToken(lexed, hints)) {
+            List<ParsingIssue> issues = checkZeroOrOne(lexed, zeroOrOneAllowed);
+            if (!issues.isEmpty()) {
+                result.addIssue(issues);
+            }
+            result.setParsedMessage(new MetarImpl());
+
+            Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE,
+                    AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
+                    () -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.NORMAL));
+
+            stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
+                    WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
+                    (match) -> result.getParsedMessage().setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+                        result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
+                    });
+
+            updateMetarIssueTime(result, lexed, hints);
+            updateObservedSurfaceWind(result, lexed, hints);
+
+            stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
+                    SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setCeilingAndVisibilityOk(true));
+
+            updateHorizontalVisibility(result, lexed, hints);
+            updateRVR(result, lexed, hints);
+            updatePresentWeather(result, lexed, hints);
+            updateClouds(result, lexed, hints);
+            updateTemperatures(result, lexed, hints);
+            updateQNH(result, lexed, hints);
+            updateRecentWeather(result, lexed, hints);
+            updateWindShear(result, lexed, hints);
+            updateSeaState(result, lexed, hints);
+            updateRunwayStates(result, lexed, hints);
+            updateTrends(result, lexed, hints);
+            updateRemarks(result, lexed, hints);
+        } else {
+            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Message does not end in end token"));
         }
-        result.setParsedMessage(new MetarImpl());
-
-        Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
-                RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
-                () -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.NORMAL));
-
-        stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
-                WIND_SHEAR, SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                (match) -> result.getParsedMessage().setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                    result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
-                });
-
-        updateMetarIssueTime(result, lexed, hints);
-        updateObservedSurfaceWind(result, lexed, hints);
-
-        stopAt = new Identity[] { HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
-                SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        findNext(CAVOK, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setCeilingAndVisibilityOk(true));
-
-        updateHorizontalVisibility(result, lexed, hints);
-        updateRVR(result, lexed, hints);
-        updatePresentWeather(result, lexed, hints);
-        updateClouds(result, lexed, hints);
-        updateTemperatures(result, lexed, hints);
-        updateQNH(result, lexed, hints);
-        updateRecentWeather(result, lexed, hints);
-        updateWindShear(result, lexed, hints);
-        updateSeaState(result, lexed, hints);
-        updateRunwayStates(result, lexed, hints);
-        updateTrends(result, lexed, hints);
-        updateRemarks(result, lexed, hints);
         return result;
     }
 
@@ -812,12 +818,14 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                                 forecastWeather = new ArrayList<>();
                             }
                             List<ParsingIssue> issues = new ArrayList<>(1);
-                            fi.fmi.avi.data.Weather weather = getWeather(token, issues);
-                            if (weather != null) {
+                            String code = token.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class);
+                            if (code != null) {
+                                fi.fmi.avi.data.Weather weather = new WeatherImpl();
+                                weather.setCode(code);
+                                weather.setDescription(Weather.WEATHER_CODES.get(code));
                                 forecastWeather.add(weather);
-                            }
-                            if (!issues.isEmpty()) {
-                                result.addIssue(issues);
+                            } else {
+                                result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Weather code not found"));
                             }
                             break;
                         }

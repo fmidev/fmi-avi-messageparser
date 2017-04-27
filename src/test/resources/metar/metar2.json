@@ -7,11 +7,12 @@
   "aerodromeDesignator": "KORD",
   "presentWeather": [
   	{
-      "kind": "DRIZZLE",
-      "intensity": "LOW"
-  	},
+      "code": "-DZ",
+      "description": "Light precipitation of drizzle"
+    },
   	{
-      "kind": "MIST"
+      "code": "BR",
+      "description": "Mist"
   	}
   ],
   "airTemperature": {

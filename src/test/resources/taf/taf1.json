@@ -12,8 +12,8 @@
   "baseForecast": {
     "forecastWeather": [
       {
-        "kind": "RAIN",
-        "intensity": "LOW"
+        "code": "-RA",
+        "description": "Light precipitation of rain"
       }
     ],
     "prevailingVisibility": {
@@ -51,21 +51,19 @@
           }
         }
       ]
-    },
-    "temperatures": []
+    }
   },
   "changeForecasts": [
     {
       "forecastWeather": [
         {
-          "kind": "RAIN",
-          "intensity": "LOW"
+          "code": "-RA",
+          "description": "Light precipitation of rain"
         }
       ],
       "changeIndicator": "BECOMING",
       "validityStartDayOfMonth": 27,
       "validityStartHour": 15,
-      "validityStartMinute": 0,
       "validityEndDayOfMonth": 27,
       "validityEndHour": 17,
       "prevailingVisibility": {
@@ -87,16 +85,13 @@
     {
       "forecastWeather": [
         {
-          "kind": "RAIN"
-        },
-        {
-          "kind": "SNOW"
+          "code": "RASN",
+          "description": "Precipitation of rain and snow"
         }
       ],
       "changeIndicator": "PROBABILITY_40",
       "validityStartDayOfMonth": 27,
       "validityStartHour": 15,
-      "validityStartMinute": 0,
       "validityEndDayOfMonth": 27,
       "validityEndHour": 20,
       "prevailingVisibility": {
@@ -109,7 +104,6 @@
       "changeIndicator": "BECOMING",
       "validityStartDayOfMonth": 27,
       "validityStartHour": 20,
-      "validityStartMinute": 0,
       "validityEndDayOfMonth": 27,
       "validityEndHour": 22,
       "surfaceWind": {
@@ -124,16 +118,9 @@
       }
     },
     {
-      "forecastWeather": [
-        {
-          "kind": "RAIN",
-          "intensity": "LOW"
-        }
-      ],
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
       "validityStartDayOfMonth": 27,
       "validityStartHour": 20,
-      "validityStartMinute": 0,
       "validityEndDayOfMonth": 27,
       "validityEndHour": 24,
       "prevailingVisibility": {
@@ -144,16 +131,13 @@
     {
       "forecastWeather": [
         {
-          "kind": "RAIN"
-        },
-        {
-          "kind": "SNOW"
+          "code": "RASN",
+          "description": "Precipitation of rain and snow"
         }
       ],
       "changeIndicator": "PROBABILITY_40",
       "validityStartDayOfMonth": 28,
       "validityStartHour": 2,
-      "validityStartMinute": 0,
       "validityEndDayOfMonth": 28,
       "validityEndHour": 6,
       "prevailingVisibility": {

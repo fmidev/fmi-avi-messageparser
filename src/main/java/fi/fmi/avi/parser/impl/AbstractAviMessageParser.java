@@ -1,5 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
+import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
@@ -120,45 +121,16 @@ public abstract class AbstractAviMessageParser {
         Lexeme l = source;
         List<ParsingIssue> issues = new ArrayList<>();
         while (l != null) {
-            fi.fmi.avi.data.Weather weather = getWeather(l, issues);
-            if (weather != null) {
+            String code = l.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class);
+            if (code != null) {
+                fi.fmi.avi.data.Weather weather = new WeatherImpl();
+                weather.setCode(code);
+                weather.setDescription(Weather.WEATHER_CODES.get(code));
                 target.add(weather);
             }
             l = findNext(WEATHER, l, before);
         }
         return issues;
-    }
-
-    protected static fi.fmi.avi.data.Weather getWeather(final Lexeme match, final List<ParsingIssue> issues) {
-        fi.fmi.avi.data.Weather retval = null;
-        List<Weather.WeatherCodePart> codeParts = match.getParsedValue(Lexeme.ParsedValueName.VALUE, List.class);
-        if (codeParts != null) {
-            retval = new WeatherImpl();
-            for (Weather.WeatherCodePart code : codeParts) {
-                switch (code) {
-                    case HIGH_INTENSITY:
-                        retval.setIntensity(AviationCodeListUser.WeatherCodeIntensity.HIGH);
-                        break;
-                    case IN_VICINITY:
-                        retval.setInVicinity(true);
-                        break;
-                    case LOW_INTENSITY:
-                        retval.setIntensity(AviationCodeListUser.WeatherCodeIntensity.LOW);
-                        break;
-                    default: {
-                        AviationCodeListUser.WeatherCodeKind kind = AviationCodeListUser.WeatherCodeKind.forCode(code.getCode());
-                        if (kind != null) {
-                            retval.setKind(kind);
-                        } else {
-                            issues.add(
-                                    new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Unknown weather code " + code.getCode() + " in " + match.getTACToken()));
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        return retval;
     }
 
     protected static fi.fmi.avi.data.CloudLayer getCloudLayer(final Lexeme match) {
@@ -200,6 +172,14 @@ public abstract class AbstractAviMessageParser {
             }
         }
         return retval;
+    }
+
+    protected static boolean endsInEndToken(final LexemeSequence lexed, final ParsingHints hints) {
+        if (END_TOKEN == lexed.getLastLexeme().getIdentityIfAcceptable()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @FunctionalInterface
