@@ -68,8 +68,6 @@ public class AviMessageLexerImpl implements AviMessageLexer {
                 LOG.warn("Lexing result for " + result.getFirstLexeme().getIdentity() + " did not stabilize within the maximum iteration count "
                         + +MAX_ITERATIONS + ", result may be incomplete");
             }
-        } else {
-            throw new IllegalArgumentException("Cound not lex message with start token '" + result.getFirstLexeme());
         }
         return result;
     }

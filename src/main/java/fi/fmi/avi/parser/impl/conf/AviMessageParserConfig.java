@@ -73,13 +73,11 @@ public class AviMessageParserConfig {
         return p;
     }
 
-    @Bean
-    public AviMessageSpecificParser<Metar> metarParser() {
+    AviMessageSpecificParser<Metar> metarParser() {
         return new MetarParserImpl();
     }
 
-    @Bean
-    public AviMessageSpecificParser<TAF> tafParser() {
+    AviMessageSpecificParser<TAF> tafParser() {
         return new TAFParserImpl();
     }
 
@@ -94,8 +92,7 @@ public class AviMessageParserConfig {
         return s;
     }
 
-    @Bean
-    public RecognizingAviMessageTokenLexer metarTokenLexer() {
+    RecognizingAviMessageTokenLexer metarTokenLexer() {
         RecognizingAviMessageTokenLexer l = new RecognizingAviMessageTokenLexer();
 
         //The METAR token lexer can understand the following tokens (low priority = occurs less often):
@@ -127,8 +124,7 @@ public class AviMessageParserConfig {
         return l;
     }
 
-    @Bean
-    public RecognizingAviMessageTokenLexer tafTokenLexer() {
+    RecognizingAviMessageTokenLexer tafTokenLexer() {
         RecognizingAviMessageTokenLexer l = new RecognizingAviMessageTokenLexer();
         l.teach(new TAFStart(Priority.LOW));
         l.teach(new ICAOCode(Priority.LOW));

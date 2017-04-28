@@ -195,6 +195,13 @@ public class AviMessageLexerTest extends AviMessageTestBase {
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, WEATHER, CLOUD,
                 AIR_DEWPOINT_TEMPERATURE, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, END_TOKEN);
     }
+    
+    @Test
+    public void testNonMetar() throws Exception {
+        LexemeSequence result = lexer.lexMessage("FOO BAR 5000 30025KT=");
+        Lexeme.Identity[] recognized = new Lexeme.Identity[]{null, null, null, null, END_TOKEN}; 
+        assertTokenSequenceIdentityMatch(result, recognized);
+    }
 
     /**************
      * TAF tests
