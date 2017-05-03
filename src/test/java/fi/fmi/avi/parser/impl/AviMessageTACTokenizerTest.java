@@ -37,7 +37,6 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
     }
 
     @Test
-    @Ignore
     public void testTAF1() throws Exception {
         assertTokenSequenceMatch(taf1, "taf/taf1.json", TAFImpl.class);
     }

@@ -3,6 +3,7 @@ package fi.fmi.avi.parser.impl.lexer.token;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
@@ -26,7 +27,12 @@ public class MetarStart extends PrioritizedLexemeVisitor {
 
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final Object specifier) {
-            return this.getLexingFactory().createLexeme("METAR", Lexeme.Identity.METAR_START);
+            if (Metar.class.isAssignableFrom(clz)) {
+                return this.getLexingFactory().createLexeme("METAR", Lexeme.Identity.METAR_START);
+            } else {
+                return null;
+            }
+
         }
     }
 

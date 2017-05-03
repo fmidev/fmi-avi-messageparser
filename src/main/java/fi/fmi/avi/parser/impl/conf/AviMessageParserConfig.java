@@ -8,6 +8,7 @@ import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexingFactory;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
@@ -85,8 +86,13 @@ public class AviMessageParserConfig {
     public AviMessageTACTokenizer tacTokenizer() {
         AviMessageTACTokenizerImpl s = new AviMessageTACTokenizerImpl();
         s.setLexingFactory(lexingFactory());
-        //s.addReconstructor(METAR_START, new MetarStart.Reconstructor());
-        //s.addReconstructor(TAF_START, new TAFStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.METAR_START, new MetarStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.TAF_START, new TAFStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AMENDMENT, new Amendment.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
+
         //s.addReconstructor(ISSUE_TIME, new IssueTime.Reconstructor());
         //TODO: all the other Metar & TAF reconstructors
         return s;

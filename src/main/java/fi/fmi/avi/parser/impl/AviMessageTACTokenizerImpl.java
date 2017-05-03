@@ -3,7 +3,9 @@ package fi.fmi.avi.parser.impl;
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.AMENDMENT;
 import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
+import static fi.fmi.avi.parser.Lexeme.Identity.CANCELLATION;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
@@ -13,6 +15,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
@@ -21,6 +24,8 @@ import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
@@ -35,6 +40,8 @@ import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.ObservedClouds;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
@@ -115,7 +122,11 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
             for (TrendForecast trend : msg.getTrends()) {
                 appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, Metar.class, trend);
                 appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, Metar.class, trend);
+                appendToken(retval, SURFACE_WIND, msg, Metar.class, trend);
+                appendToken(retval, CAVOK, msg, Metar.class, trend);
+                appendToken(retval, HORIZONTAL_VISIBILITY, msg, Metar.class, trend);
                 appendToken(retval, WEATHER, msg, Metar.class, trend);
+
                 CloudForecast clouds = trend.getCloud();
                 if (clouds.getVerticalVisibility() != null) {
                 	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, "VV");
@@ -136,9 +147,38 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private LexemeSequence tokenizeTAF(final TAF msg, final ParsingHints hints) {
-        LexemeSequenceBuilder builder = this.factory.createLexemeSequenceBuilder();
-        //TODO: impl
-        return builder.build();
+        LexemeSequenceBuilder retval = this.factory.createLexemeSequenceBuilder();
+
+        appendToken(retval, TAF_START, msg, TAF.class);
+        appendToken(retval, AMENDMENT, msg, TAF.class);
+        appendToken(retval, CORRECTION, msg, TAF.class);
+        appendToken(retval, AERODROME_DESIGNATOR, msg, TAF.class);
+        appendToken(retval, ISSUE_TIME, msg, TAF.class);
+        appendToken(retval, NIL, msg, TAF.class);
+
+        TAFBaseForecast baseFct = msg.getBaseForecast();
+        appendToken(retval, VALID_TIME, msg, TAF.class, baseFct);
+        appendToken(retval, CANCELLATION, msg, TAF.class, baseFct);
+        appendToken(retval, SURFACE_WIND, msg, TAF.class, baseFct);
+        appendToken(retval, CAVOK, msg, TAF.class, baseFct);
+        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, baseFct);
+        appendToken(retval, WEATHER, msg, TAF.class, baseFct);
+        appendToken(retval, CLOUD, msg, TAF.class, baseFct);
+        appendToken(retval, AIR_DEWPOINT_TEMPERATURE, msg, TAF.class, baseFct);
+
+        if (msg.getChangeForecasts() != null) {
+            for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
+                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, changeFct);
+                appendToken(retval, VALID_TIME, msg, TAF.class, changeFct);
+                appendToken(retval, SURFACE_WIND, msg, TAF.class, changeFct);
+                appendToken(retval, CAVOK, msg, TAF.class, changeFct);
+                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, changeFct);
+                appendToken(retval, WEATHER, msg, TAF.class, changeFct);
+                appendToken(retval, CLOUD, msg, TAF.class, changeFct);
+            }
+        }
+        appendToken(retval, END_TOKEN, msg, TAF.class);
+        return retval.build();
     }
 
     private <T extends AviationWeatherMessage> void appendCloudLayers(LexemeSequenceBuilder builder, T msg, Class<T> clz, List<CloudLayer> layers) {
