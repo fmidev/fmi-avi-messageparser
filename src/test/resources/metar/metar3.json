@@ -1,0 +1,103 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 4,
+  "issueHour": 16,
+  "issueMinute": 0,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "LBBG",
+  "presentWeather": [
+  	{
+      "code": "+SN",
+      "description": "Heavy precipitation of snow"
+    }
+  ],
+  
+  "airTemperature": {
+    "value": -4.0,
+    "uom": "degC"
+  },
+  "dewpointTemperature": {
+    "value": -7.0,
+    "uom": "degC"
+  },
+  "altimeterSettingQNH": {
+    "value": 1020.0,
+    "uom": "hPa"
+  },
+  "surfaceWind": {
+    "meanWindDirection": {
+      "value": 120.0,
+      "uom": "deg"
+    },
+    "meanWindSpeed": {
+      "value": 12.0,
+      "uom": "mps"
+    },
+    "extremeClockwiseWindDirection": {
+      "value": 150.0,
+      "uom": "deg"
+    },
+    "extremeCounterClockwiseWindDirection": {
+      "value": 90.0,
+      "uom": "deg"
+    }
+  },
+  "visibility": {
+    "prevailingVisibility": {
+      "value": 1400.0,
+      "uom": "m"
+    }
+  },
+  "runwayVisualRanges": [
+    {
+      "runwayDirectionDesignator": "04",
+      "pastTendency": "NO_CHANGE",
+      "meanRVROperator": "ABOVE",
+      "meanRVR": {
+        "value": 1500.0,
+        "uom": "m"
+      }
+    },
+    {
+      "runwayDirectionDesignator": "22",
+      "pastTendency": "UPWARD",
+      "meanRVROperator": "ABOVE",
+      "meanRVR": {
+        "value": 1500.0,
+        "uom": "m"
+      }
+    }	
+  ],
+  "runwayStates": [
+    {
+      "allRunways": true,
+      "deposit": "DRY_SNOW",
+      "contamination": "PCT_COVERED_51_100",
+      "depthOfDeposit": null,
+      "breakingAction": "POOR"
+    }
+  ],
+  "clouds": {
+    "layers": [
+      {
+        "amount": "BKN",
+        "base": {
+          "value": 2200,
+          "uom": "ft"
+        }
+      },
+      {
+        "amount": "OVC",
+        "base": {
+          "value": 5000,
+          "uom": "ft"
+        }
+      }
+    ]
+  },
+  "trends": [
+    {
+      "changeIndicator": "NO_SIGNIFICANT_CHANGES"
+    }
+  ]
+}

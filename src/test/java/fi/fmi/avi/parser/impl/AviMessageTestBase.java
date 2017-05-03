@@ -154,6 +154,7 @@ public class AviMessageTestBase {
     	if (expected == null && actual == null){
     		return;
     	}
+    	assertNotNull("surfaceWind expected is missing", expected);
     	assertNotNull("surfaceWind is missing", actual);
         assertNumericalMeasureEquals("surfaceWind/extremeClockwiseWindDirection", expected.getExtremeClockwiseWindDirection(),
                 actual.getExtremeClockwiseWindDirection());
@@ -168,6 +169,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("visibility is missing", actual);
+    	assertNotNull("expected visibility is missing", expected);
         assertNumericalMeasureEquals("visibility/prevailingVisibility", expected.getPrevailingVisibility(), actual.getPrevailingVisibility());
         assertEquals("visibility/prevailingVisibilityOperator", expected.getPrevailingVisibilityOperator(), actual.getPrevailingVisibilityOperator());
         assertNumericalMeasureEquals("visibility/minimumVisibility", expected.getMinimumVisibility(), actual.getMinimumVisibility());
@@ -180,6 +182,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("runwayVisualRanges is missing", actual);
+    	assertNotNull("expected runwayVisualRanges is missing", expected);
         assertEquals("runwayVisualRanges size", expected.size(), actual.size());
         RunwayVisualRange expRange = null;
         RunwayVisualRange actRange = null;
@@ -199,6 +202,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("clouds is missing", actual);
+    	assertNotNull("expected clouds is missing", expected);
         assertEquals("clouds/isAmountAndHeightUnobservableByAutoSystem", expected.isAmountAndHeightUnobservableByAutoSystem(),
                 actual.isAmountAndHeightUnobservableByAutoSystem());
         assertNumericalMeasureEquals("clouds/verticalVisibility", expected.getVerticalVisibility(), actual.getVerticalVisibility());
@@ -210,6 +214,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("windShear is missing", actual);
+    	assertNotNull("expected windShear is missing", expected);
         assertEquals("windShear/allRunways", expected.isAllRunways(), actual.isAllRunways());
         assertStringListEquals("windShear/runwayDirectionDesignators", expected.getRunwayDirectionDesignators(), actual.getRunwayDirectionDesignators());
        
@@ -220,6 +225,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("seaState is missing", actual);
+    	assertNotNull("expected seaState is missing", expected);
         assertNumericalMeasureEquals("seaState/seaSurfaceTemperature", expected.getSeaSurfaceTemperature(), actual.getSeaSurfaceTemperature());
         assertNumericalMeasureEquals("seaState/significantWaveHight", expected.getSignificantWaveHeight(), actual.getSignificantWaveHeight());
         assertEquals("seaState/seaSurfaceState", expected.getSeaSurfaceState(), actual.getSeaSurfaceState());
@@ -230,6 +236,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("runwayStates is missing", actual);
+    	assertNotNull("expected runwayStates is missing", expected);
         assertEquals("runwayStates size", expected.size(), actual.size());
         RunwayState expRS = null;
         RunwayState actRS = null;
@@ -246,8 +253,13 @@ public class AviMessageTestBase {
             assertEquals("runwayState/runwayDeposit", expRS.getDeposit(), actRS.getDeposit());
             assertEquals("runwayState/runwayContamination", expRS.getContamination(), actRS.getContamination());
             assertNumericalMeasureEquals("RunwayState/depthOfDeposit", expRS.getDepthOfDeposit(), actRS.getDepthOfDeposit());
-            assertTrue("runwayState/estimatedSurfaceFriction close enough",
-                    Math.abs(expRS.getEstimatedSurfaceFriction() - actRS.getEstimatedSurfaceFriction()) < FLOAT_EQUIVALENCE_THRESHOLD);
+            
+            assertTrue("estimatedSurfaceFriction mismatch (one set and other null)", !(expRS.getEstimatedSurfaceFriction() == null ^ actRS.getEstimatedSurfaceFriction() == null));
+            if (expRS.getEstimatedSurfaceFriction() != null) {
+	            assertTrue("runwayState/estimatedSurfaceFriction close enough",
+	                    Math.abs(expRS.getEstimatedSurfaceFriction() - actRS.getEstimatedSurfaceFriction()) < FLOAT_EQUIVALENCE_THRESHOLD);
+            }
+            assertEquals("runwayState/breakingAction", expRS.getBreakingAction(), actRS.getBreakingAction());
         }
     }
 
@@ -256,6 +268,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull("trends is missing", actual);
+    	assertNotNull("expected trends is missing", expected);
         assertEquals("trends size", expected.size(), actual.size());
         TrendForecast expTrend = null;
         TrendForecast actTrend = null;
@@ -337,6 +350,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
+    	assertNotNull("expected " + message + " is missing", expected);
         if (expected.getSurfaceWind() != null) {
             assertNotNull(message + "/surfaceWind missing", actual.getSurfaceWind());
             assertTrendForecastWindEquals(message + "/surfaceWind", expected.getSurfaceWind(), actual.getSurfaceWind());
@@ -366,6 +380,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
+    	assertNotNull("expected " + message + " is missing", expected);
     	double diff = Math.abs(expected.getValue() - actual.getValue());
         assertTrue(message + "/value is close enough, difference: " + diff, diff < FLOAT_EQUIVALENCE_THRESHOLD);
         assertEquals(message + "/uom", expected.getUom(), actual.getUom());
@@ -375,6 +390,8 @@ public class AviMessageTestBase {
         if (expected == null && actual == null) {
             return;
         }
+        assertNotNull("trendForecastSurfaceWind is missing", actual);
+        assertNotNull("expected trendForecastSurfaceWind is missing", expected);
         assertNumericalMeasureEquals(message + "/meanWindDirection", expected.getMeanWindDirection(), actual.getMeanWindDirection());
         assertNumericalMeasureEquals(message + "/meanWindSpeed", expected.getMeanWindSpeed(), actual.getMeanWindSpeed());
         assertNumericalMeasureEquals(message + "/windGust", expected.getWindGust(), actual.getWindGust());
@@ -385,6 +402,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
+    	assertNotNull("expected " + message + " is missing", expected);
         assertNumericalMeasureEquals(message + "/verticalVisibility", expected.getVerticalVisibility(), actual.getVerticalVisibility());
         assertCloudLayerEquals(message + "/layers", expected.getLayers(), actual.getLayers());
     }
@@ -394,6 +412,7 @@ public class AviMessageTestBase {
     		return;
     	}
     	assertNotNull(message + " is missing", actual);
+    	assertNotNull("expected " + message + " is missing", expected);
         assertEquals(message + " size", expected.size(), actual.size());
         CloudLayer expLayer = null;
         CloudLayer actLayer = null;
