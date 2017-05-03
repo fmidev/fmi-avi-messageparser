@@ -207,11 +207,20 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         List<TAFAirTemperatureForecast> temps = new ArrayList<>();
         TAFAirTemperatureForecast airTemperatureForecast;
         Identity[] stopAt = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
-        Lexeme minTempToken = findNext(MIN_TEMPERATURE, from, stopAt);
-        Lexeme maxTempToken;
-        while (minTempToken != null) {
-            maxTempToken = findNext(MAX_TEMPERATURE, minTempToken, stopAt);
-            if (maxTempToken != null) {
+        Lexeme maxTempToken = findNext(MAX_TEMPERATURE, from, stopAt);
+
+        if (maxTempToken != null) {
+        	Lexeme minBeforeFirstMax = findNext(MIN_TEMPERATURE, from, new Identity[] { maxTempToken.getIdentity() });
+        	if (minBeforeFirstMax != null) {
+        		retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR,
+        				"Minimum temperature given before maximum temperature: " + minBeforeFirstMax.getTACToken()));
+        	}
+        }
+        
+        Lexeme minTempToken;
+        while (maxTempToken != null) {
+            minTempToken = findNext(MIN_TEMPERATURE, maxTempToken, stopAt);
+            if (minTempToken != null) {
                 airTemperatureForecast = new TAFAirTemperatureForecastImpl();
                 Integer day = minTempToken.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
                 Integer hour = minTempToken.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
@@ -261,9 +270,9 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                     retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Missing value for max forecast temperature: " + maxTempToken.getTACToken()));
                 }
                 temps.add(airTemperatureForecast);
-                minTempToken = findNext(MIN_TEMPERATURE, maxTempToken, stopAt);
+                maxTempToken = findNext(MAX_TEMPERATURE, minTempToken, stopAt);
             } else {
-                minTempToken = null;
+            	maxTempToken = null;
             }
         }
         if (!temps.isEmpty()) {

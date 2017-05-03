@@ -1,0 +1,152 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 30,
+  "issueHour": 11,
+  "issueMinute": 0,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "ENOA",
+  "validityStartDayOfMonth": 30,
+  "validityStartHour": 12,
+  "validityEndDayOfMonth": 31,
+  "validityEndHour": 12,
+  
+  "baseForecast": {
+    "surfaceWind": {
+	  "variableDirection": false,
+	  "meanWindDirection": {
+	    "value": 290.0,
+	    "uom": "deg"
+	  },
+	  "meanWindSpeed": {
+	    "value": 28.0,
+	    "uom": "kt"
+	  }
+	},
+	"prevailingVisibility": {
+	  "value": 10000.0,
+	  "uom": "m"
+	},
+	"prevailingVisibilityOperator": "ABOVE",
+	"forecastWeather": [
+	  {
+        "code": "-SHRA",
+        "description": "Light showery precipitation of rain"
+	  }
+	],
+	"cloud": {
+	  "verticalVisibility": null,
+	  "layers": [
+	    {
+	       "amount": "FEW",
+	       "base": {
+	         "value": 1500.0,
+	         "uom": "ft"
+	       },
+	       "cloudType": "TCU"
+	    },
+	    {
+	       "amount": "SCT",
+	       "base": {
+	         "value": 2500.0,
+	         "uom": "ft"
+	       }
+	    }
+	  ]
+	}
+  },
+  "changeForecasts": [
+    {
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "validityStartDayOfMonth": 30,
+      "validityStartHour": 12,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 30,
+      "validityEndHour": 24,
+      
+      "prevailingVisibility": {
+	    "value": 4000.0,
+	    "uom": "m"
+	  },
+	  
+      "forecastWeather": [
+	    {
+          "code": "SHRAGS",
+          "description": "Showery precipitation of rain and snow pellets/small hail"
+	    }
+	  ],
+	  "cloud": {
+	    "layers": [
+	      {
+            "amount": "BKN",
+            "base": {
+              "value": 1200.0,
+              "uom": "ft"
+            },
+            "cloudType": "CB"
+	      }
+	    ]
+	  }
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 30,
+      "validityStartHour": 17,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 30,
+      "validityEndHour": 20,
+      
+      "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 250.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 18.0,
+	      "uom": "kt"
+	    }
+	  }
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 31,
+      "validityStartHour": 0,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 31,
+      "validityEndHour": 3,
+      
+      "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 170.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 8.0,
+	      "uom": "kt"
+	    }
+	  }
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 31,
+      "validityStartHour": 7,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 31,
+      "validityEndHour": 10,
+      
+      "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 230.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 15.0,
+	      "uom": "kt"
+	    }
+	  }
+    }
+
+  ]
+}

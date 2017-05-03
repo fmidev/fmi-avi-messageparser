@@ -1,37 +1,25 @@
 package fi.fmi.avi.parser.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+
+import org.unitils.reflectionassert.ReflectionComparator;
+import org.unitils.reflectionassert.ReflectionComparatorFactory;
+import org.unitils.reflectionassert.comparator.Comparator;
+import org.unitils.reflectionassert.difference.Difference;
+import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.CloudForecast;
-import fi.fmi.avi.data.CloudLayer;
-import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.HorizontalVisibility;
 import fi.fmi.avi.data.metar.Metar;
-import fi.fmi.avi.data.metar.ObservedClouds;
-import fi.fmi.avi.data.metar.ObservedSurfaceWind;
-import fi.fmi.avi.data.metar.RunwayState;
-import fi.fmi.avi.data.metar.RunwayVisualRange;
-import fi.fmi.avi.data.metar.SeaState;
-import fi.fmi.avi.data.metar.TrendForecast;
-import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
-import fi.fmi.avi.data.metar.TrendTimeGroups;
-import fi.fmi.avi.data.metar.WindShear;
 import fi.fmi.avi.data.taf.TAF;
-import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
-import fi.fmi.avi.data.taf.TAFBaseForecast;
-import fi.fmi.avi.data.taf.TAFChangeForecast;
-import fi.fmi.avi.data.taf.TAFForecast;
 
 /**
  * Created by rinne on 24/02/17.
@@ -93,350 +81,84 @@ public class AviMessageTestBase {
 
     private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 
+    private static Difference deepCompareObjects(Object expected, Object actual) {
+    	
+    	// Use anonymous class to call protected member function
+    	LinkedList<Comparator> comparatorChain = (new ReflectionComparatorFactory() {
+	    		LinkedList<Comparator> createBaseComparators() {
+	    			return new LinkedList<Comparator>(getComparatorChain(Collections.emptySet()));
+	    		}
+	    	}).createBaseComparators();
+    	
+    	// Add lenient collection comparator ([] == null) as first-in-chain
+    	comparatorChain.addFirst(new Comparator() {
+			
+			@Override
+			public Difference compare(Object left, Object right, boolean onlyFirstDifference,
+					ReflectionComparator reflectionComparator) {
+				Collection<?> coll = (Collection<?>)left;
+				if (coll == null) {
+					coll = (Collection<?>)right;
+				}
+				
+				if (coll.size() == 0) {
+					return null;
+				}
+				
+				return new Difference("Null list does not match a non-empty list", left, right);
+			}
+			
+			@Override
+			public boolean canCompare(Object left, Object right) {
+				return
+					(left == null && right instanceof Collection<?>) || 
+					(right == null && left instanceof Collection<?>);
+			}
+		});
+    	
+    	// Add double comparator with specified accuracy as first-in-chain
+    	comparatorChain.addFirst(new Comparator() {
+    		@Override
+    		public Difference compare(Object left, Object right, boolean onlyFirstDifference,
+    				ReflectionComparator reflectionComparator) {
+    			double diff = Math.abs( ((Double)left) - ((Double)right));
+    			if (diff >= FLOAT_EQUIVALENCE_THRESHOLD) {
+    				return new Difference("Floating point values differ more than set threshold", left, right);
+    			}
+    			
+    			return null;
+    		}
+    		
+    		@Override
+    		public boolean canCompare(Object left, Object right) {
+    			return left instanceof Double && right instanceof Double;
+    		}
+    	
+    	});
+    	
+    	
+    	ReflectionComparator reflectionComparator = new ReflectionComparator(comparatorChain);
+    	return reflectionComparator.getDifference(expected, actual);
+    }
+    
     protected static void assertMetarEquals(Metar expected, Metar actual) {
-        assertEquals("isAutomatedStation", expected.isAutomatedStation(), actual.isAutomatedStation());
-        assertEquals("status", expected.getStatus(), actual.getStatus());
-        assertEquals("dayOfMonth", expected.getIssueDayOfMonth(), actual.getIssueDayOfMonth());
-        assertEquals("hour", expected.getIssueHour(), actual.getIssueHour());
-        assertEquals("minute", expected.getIssueMinute(), actual.getIssueMinute());
-        assertEquals("timeZone", expected.getIssueTimeZone(), actual.getIssueTimeZone());
-        assertEquals("aerodromeDesignator", expected.getAerodromeDesignator(), actual.getAerodromeDesignator());
-        assertEquals("CAVOK", expected.isCeilingAndVisibilityOk(), actual.isCeilingAndVisibilityOk());
-        
-        assertObservedSurfaceWindEquals(expected.getSurfaceWind(), actual.getSurfaceWind());
-        assertHorizontalVisibilityEquals(expected.getVisibility(), actual.getVisibility());
-        assertRunwayVisualRangesEquals(expected.getRunwayVisualRanges(), actual.getRunwayVisualRanges());
-        assertStringListEquals("presentWeather", expected.getPresentWeatherCodes(), actual.getPresentWeatherCodes());
-        
-        assertObservedCloudsEquals(expected.getClouds(), actual.getClouds());
-        assertNumericalMeasureEquals("airTemperature", expected.getAirTemperature(), actual.getAirTemperature());
-        assertNumericalMeasureEquals("dewPointTemperature", expected.getDewpointTemperature(), actual.getDewpointTemperature());
-        assertNumericalMeasureEquals("altimeterSettingQNH", expected.getAltimeterSettingQNH(), actual.getAltimeterSettingQNH());
-        assertStringListEquals("recentWeatherCodes", expected.getRecentWeatherCodes(), actual.getRecentWeatherCodes());
-        assertWindShearEquals(expected.getWindShear(), actual.getWindShear());
-        assertSeaStateEquals(expected.getSeaState(), actual.getSeaState());
-        assertRunwayStatesEquals(expected.getRunwayStates(), actual.getRunwayStates());
-        assertTrendForecastsEquals(expected.getTrends(), actual.getTrends());
-        assertStringListEquals("remarks", expected.getRemarks(), actual.getRemarks());
-        
+    	Difference diff = deepCompareObjects(expected, actual);
+    	if (diff != null) {
+            StringBuilder failureMessage = new StringBuilder();
+            failureMessage.append("METAR objects are not equivalent\n");
+            failureMessage.append(new DefaultDifferenceReport().createReport(diff));
+            fail(failureMessage.toString());
+    	}
     }
 
     protected static void assertTAFEquals(TAF expected, TAF actual) {
-        assertEquals("status", expected.getStatus(), actual.getStatus());
-        assertEquals("issueDayOfMonth", expected.getIssueDayOfMonth(), actual.getIssueDayOfMonth());
-        assertEquals("issueHour", expected.getIssueHour(), actual.getIssueHour());
-        assertEquals("issueMinute", expected.getIssueMinute(), actual.getIssueMinute());
-        assertEquals("timeZone", expected.getIssueTimeZone(), actual.getIssueTimeZone());
-        assertEquals("aerodromeDesignator", expected.getAerodromeDesignator(), actual.getAerodromeDesignator());
-        assertEquals("validityStartDayOfMonth", expected.getValidityStartDayOfMonth(), actual.getValidityStartDayOfMonth());
-        assertEquals("validityStartHour", expected.getValidityStartHour(), actual.getValidityStartHour());
-        assertEquals("validityEndDayOfMonth", expected.getValidityEndDayOfMonth(), actual.getValidityEndDayOfMonth());
-        assertEquals("validityEndHour", expected.getValidityEndHour(), actual.getValidityEndHour());
-        assertTAFBaseForecastEquals(expected.getBaseForecast(), actual.getBaseForecast());
-        if (expected.getChangeForecasts() != null && !expected.getChangeForecasts().isEmpty()) {
-            assertNotNull("changeForecasts is missing", actual.getChangeForecasts());
-            assertEquals("changeForecasts size", expected.getChangeForecasts().size(), actual.getChangeForecasts().size());
-            for (int i = 0; i < expected.getChangeForecasts().size(); i++) {
-                assertTAFChangeForecastEquals(expected.getChangeForecasts().get(i), actual.getChangeForecasts().get(i));
-            }
-        } else {
-            assertTrue("changeForecasts should by missing", actual.getChangeForecasts() == null || actual.getChangeForecasts().isEmpty());
-        }
-
-        if (expected.getReferredReport() != null) {
-            assertTAFEquals(expected.getReferredReport(), actual.getReferredReport());
-        } else {
-            assertNull("referredReport should be missing", actual.getReferredReport());
-        }
-    }
-
-    private static void assertObservedSurfaceWindEquals(ObservedSurfaceWind expected, ObservedSurfaceWind actual) {
-    	if (expected == null && actual == null){
-    		return;
+    	Difference diff = deepCompareObjects(expected, actual);
+    	if (diff != null) {
+            StringBuilder failureMessage = new StringBuilder();
+            failureMessage.append("TAF objects are not equivalent\n");
+            failureMessage.append(new DefaultDifferenceReport().createReport(diff));
+            fail(failureMessage.toString());
     	}
-    	assertNotNull("surfaceWind expected is missing", expected);
-    	assertNotNull("surfaceWind is missing", actual);
-        assertNumericalMeasureEquals("surfaceWind/extremeClockwiseWindDirection", expected.getExtremeClockwiseWindDirection(),
-                actual.getExtremeClockwiseWindDirection());
-        assertNumericalMeasureEquals("surfaceWind/extremeCounterClockwiseWindDirection", expected.getExtremeCounterClockwiseWindDirection(),
-                actual.getExtremeCounterClockwiseWindDirection());
-        assertNumericalMeasureEquals("surfaceWind/meanWindDirection", expected.getMeanWindDirection(), actual.getMeanWindDirection());
-        assertNumericalMeasureEquals("surfaceWind/meanWindSpeed", expected.getMeanWindSpeed(), actual.getMeanWindSpeed());
-    }
-
-    private static void assertHorizontalVisibilityEquals(HorizontalVisibility expected, HorizontalVisibility actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("visibility is missing", actual);
-    	assertNotNull("expected visibility is missing", expected);
-        assertNumericalMeasureEquals("visibility/prevailingVisibility", expected.getPrevailingVisibility(), actual.getPrevailingVisibility());
-        assertEquals("visibility/prevailingVisibilityOperator", expected.getPrevailingVisibilityOperator(), actual.getPrevailingVisibilityOperator());
-        assertNumericalMeasureEquals("visibility/minimumVisibility", expected.getMinimumVisibility(), actual.getMinimumVisibility());
-        assertNumericalMeasureEquals("visibility/minimumVisibilityDirection", expected.getMinimumVisibilityDirection(),
-                actual.getMinimumVisibilityDirection());
-    }
-
-    private static void assertRunwayVisualRangesEquals(List<RunwayVisualRange> expected, List<RunwayVisualRange> actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("runwayVisualRanges is missing", actual);
-    	assertNotNull("expected runwayVisualRanges is missing", expected);
-        assertEquals("runwayVisualRanges size", expected.size(), actual.size());
-        RunwayVisualRange expRange = null;
-        RunwayVisualRange actRange = null;
-        for (int i = 0; i < expected.size(); i++) {
-            expRange = expected.get(i);
-            actRange = actual.get(i);
-            assertNotNull("runwayVisualRange", actRange);
-            assertEquals("runwayVisualRange/runwayDirectionDesignator", expRange.getRunwayDirectionDesignator(), actRange.getRunwayDirectionDesignator());
-            assertNumericalMeasureEquals("RunwayVisualRange/meanRVR", expRange.getMeanRVR(), actRange.getMeanRVR());
-            assertEquals("runwayVisualRange/meanRVROperator", expRange.getMeanRVROperator(), actRange.getMeanRVROperator());
-            assertEquals("runwayVisualRange/pastTendency", expRange.getPastTendency(), actRange.getPastTendency());
-        }
-    }
-
-    private static void assertObservedCloudsEquals(ObservedClouds expected, ObservedClouds actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("clouds is missing", actual);
-    	assertNotNull("expected clouds is missing", expected);
-        assertEquals("clouds/isAmountAndHeightUnobservableByAutoSystem", expected.isAmountAndHeightUnobservableByAutoSystem(),
-                actual.isAmountAndHeightUnobservableByAutoSystem());
-        assertNumericalMeasureEquals("clouds/verticalVisibility", expected.getVerticalVisibility(), actual.getVerticalVisibility());
-        assertCloudLayerEquals("clouds/layers", expected.getLayers(), actual.getLayers());
-    }
-
-    private static void assertWindShearEquals(WindShear expected, WindShear actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("windShear is missing", actual);
-    	assertNotNull("expected windShear is missing", expected);
-        assertEquals("windShear/allRunways", expected.isAllRunways(), actual.isAllRunways());
-        assertStringListEquals("windShear/runwayDirectionDesignators", expected.getRunwayDirectionDesignators(), actual.getRunwayDirectionDesignators());
-       
-    }
-
-    private static void assertSeaStateEquals(SeaState expected, SeaState actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("seaState is missing", actual);
-    	assertNotNull("expected seaState is missing", expected);
-        assertNumericalMeasureEquals("seaState/seaSurfaceTemperature", expected.getSeaSurfaceTemperature(), actual.getSeaSurfaceTemperature());
-        assertNumericalMeasureEquals("seaState/significantWaveHight", expected.getSignificantWaveHeight(), actual.getSignificantWaveHeight());
-        assertEquals("seaState/seaSurfaceState", expected.getSeaSurfaceState(), actual.getSeaSurfaceState());
-    }
-
-    private static void assertRunwayStatesEquals(List<RunwayState> expected, List<RunwayState> actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("runwayStates is missing", actual);
-    	assertNotNull("expected runwayStates is missing", expected);
-        assertEquals("runwayStates size", expected.size(), actual.size());
-        RunwayState expRS = null;
-        RunwayState actRS = null;
-        for (int i = 0; i < expected.size(); i++) {
-            expRS = expected.get(i);
-            actRS = actual.get(i);
-            assertNotNull("runwayState", actRS);
-            assertEquals("runwayState/allRunways", expRS.isAllRunways(), actRS.isAllRunways());
-            assertEquals("runwayState/isCleared match", expRS.isCleared(), actRS.isCleared());
-            assertEquals("runwayState/isEstimatedSurfaceFrictionUnreliable", expRS.isEstimatedSurfaceFrictionUnreliable(),
-                    actRS.isEstimatedSurfaceFrictionUnreliable());
-            assertEquals("runwayState/isSnowClosure", expRS.isSnowClosure(), actRS.isSnowClosure());
-            assertEquals("runwayState/runwayDirectionDesignator", expRS.getRunwayDirectionDesignator(), actRS.getRunwayDirectionDesignator());
-            assertEquals("runwayState/runwayDeposit", expRS.getDeposit(), actRS.getDeposit());
-            assertEquals("runwayState/runwayContamination", expRS.getContamination(), actRS.getContamination());
-            assertNumericalMeasureEquals("RunwayState/depthOfDeposit", expRS.getDepthOfDeposit(), actRS.getDepthOfDeposit());
-            
-            assertTrue("estimatedSurfaceFriction mismatch (one set and other null)", !(expRS.getEstimatedSurfaceFriction() == null ^ actRS.getEstimatedSurfaceFriction() == null));
-            if (expRS.getEstimatedSurfaceFriction() != null) {
-	            assertTrue("runwayState/estimatedSurfaceFriction close enough",
-	                    Math.abs(expRS.getEstimatedSurfaceFriction() - actRS.getEstimatedSurfaceFriction()) < FLOAT_EQUIVALENCE_THRESHOLD);
-            }
-            assertEquals("runwayState/breakingAction", expRS.getBreakingAction(), actRS.getBreakingAction());
-        }
-    }
-
-    private static void assertTrendForecastsEquals(List<TrendForecast> expected, List<TrendForecast> actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull("trends is missing", actual);
-    	assertNotNull("expected trends is missing", expected);
-        assertEquals("trends size", expected.size(), actual.size());
-        TrendForecast expTrend = null;
-        TrendForecast actTrend = null;
-        TrendTimeGroups expTimeGroups = null;
-        TrendTimeGroups actTimeGroups = null;
-        TrendForecastSurfaceWind expFctWind = null;
-        TrendForecastSurfaceWind actFctWind = null;
-        CloudForecast expFctCloud = null;
-        CloudForecast actFctCloud = null;
-        for (int i = 0; i < expected.size(); i++) {
-            expTrend = expected.get(i);
-            actTrend = actual.get(i);
-            assertNotNull("trend", actTrend);
-            expTimeGroups = expTrend.getTimeGroups();
-            actTimeGroups = actTrend.getTimeGroups();
-            if (expTimeGroups != null) {
-                assertNotNull("trend/timeGroups missing", actTimeGroups);
-
-                assertEquals("trend/timeGroups/fromHour", expTimeGroups.getFromHour(), actTimeGroups.getFromHour());
-                assertEquals("trend/timeGroups/fromMinute", expTimeGroups.getFromMinute(), actTimeGroups.getFromMinute());
-                assertEquals("trend/timeGroups/toHour", expTimeGroups.getToHour(), actTimeGroups.getToHour());
-                assertEquals("trend/timeGroups/toMinute", expTimeGroups.getToMinute(), actTimeGroups.getToMinute());
-                assertEquals("trend/timeGroups/isSingular", expTimeGroups.isSingleInstance(), actTimeGroups.isSingleInstance());
-            } else {
-                assertNull("trend/timeGroups should be missing", actTimeGroups);
-            }
-            assertEquals("trend/CAVOK", expTrend.isCeilingAndVisibilityOk(), actTrend.isCeilingAndVisibilityOk());
-            assertEquals("trend/changeIndicator", expTrend.getChangeIndicator(), actTrend.getChangeIndicator());
-
-            assertNumericalMeasureEquals("trend/prevailingVisibility", expTrend.getPrevailingVisibility(), actTrend.getPrevailingVisibility());
-            assertEquals("trend/prevailingVisibilityOperator", expTrend.getPrevailingVisibilityOperator(), actTrend.getPrevailingVisibilityOperator());
-
-            expFctWind = expTrend.getSurfaceWind();
-            actFctWind = actTrend.getSurfaceWind();
-            assertTrendForecastWindEquals("trend/surfaceWind", expFctWind, actFctWind);
-
-            assertStringListEquals("trend/forecastWeather", expTrend.getForecastWeatherCodes(), actTrend.getForecastWeatherCodes());
-            
-            expFctCloud = expTrend.getCloud();
-            actFctCloud = actTrend.getCloud();
-            assertCloudForecastEquals("trend/cloud", expFctCloud, actFctCloud);
-        }
-    }
-
-    private static void assertTAFBaseForecastEquals(TAFBaseForecast expected, TAFBaseForecast actual) {
-        assertTAFForecastEquals("baseForecast", expected, actual);
-        TAFAirTemperatureForecast expAir = null;
-        TAFAirTemperatureForecast actAir = null;
-        if (expected.getTemperatures() != null && !expected.getTemperatures().isEmpty()) {
-            assertNotNull("baseForecast/temperatures is missing", actual.getTemperatures());
-            assertEquals("baseForecast/temperatures size", expected.getTemperatures().size(), actual.getTemperatures().size());
-            for (int i = 0; i < expected.getTemperatures().size(); i++) {
-                expAir = expected.getTemperatures().get(i);
-                actAir = actual.getTemperatures().get(i);
-                assertNumericalMeasureEquals("baseForecast/temperature/maxTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
-                assertEquals("baseForecast/temperature/maxTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
-                assertEquals("baseForecast/temperature/maxTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
-                assertNumericalMeasureEquals("temperature/minTemperature", expAir.getMinTemperature(), actAir.getMinTemperature());
-                assertEquals("baseForecast/temperature/minTemperatureDayOfMonth", expAir.getMinTemperatureDayOfMonth(), actAir.getMinTemperatureDayOfMonth());
-                assertEquals("baseForecast/temperature/minTemperatureHour", expAir.getMinTemperatureHour(), actAir.getMinTemperatureHour());
-            }
-        } else {
-            assertTrue("baseForecast/temperatures should be missing", actual.getTemperatures() == null || actual.getTemperatures().isEmpty());
-        }
-    }
-
-    private static void assertTAFChangeForecastEquals(TAFChangeForecast expected, TAFChangeForecast actual) {
-        assertTAFForecastEquals("changeForecast", expected, actual);
-        assertEquals("changeForecast/changeIndicator", expected.getChangeIndicator(), actual.getChangeIndicator());
-        assertEquals("changeForecast/validityStartDayOfMonth", expected.getValidityStartDayOfMonth(), actual.getValidityStartDayOfMonth());
-        assertEquals("changeForecast/validityStartHour", expected.getValidityStartHour(), actual.getValidityStartHour());
-        assertEquals("changeForecast/validityStartMinute", expected.getValidityStartMinute(), actual.getValidityStartMinute());
-        assertEquals("changeForecast/validityEndDayOfMonth", expected.getValidityEndDayOfMonth(), actual.getValidityEndDayOfMonth());
-        assertEquals("changeForecast/validityEndHour", expected.getValidityEndHour(), actual.getValidityEndHour());
-    }
-
-    private static void assertTAFForecastEquals(String message, TAFForecast expected, TAFForecast actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull(message + " is missing", actual);
-    	assertNotNull("expected " + message + " is missing", expected);
-        if (expected.getSurfaceWind() != null) {
-            assertNotNull(message + "/surfaceWind missing", actual.getSurfaceWind());
-            assertTrendForecastWindEquals(message + "/surfaceWind", expected.getSurfaceWind(), actual.getSurfaceWind());
-            assertEquals(message + "/surfaceWind variable", expected.getSurfaceWind().isVariableDirection(), actual.getSurfaceWind().isVariableDirection());
-        } else {
-            assertNull(message + "/surfaceWind should be missing", actual.getSurfaceWind());
-        }
-        assertEquals(message + "/CAVOK", expected.isCeilingAndVisibilityOk(), actual.isCeilingAndVisibilityOk());
-        if (expected.getPrevailingVisibility() != null) {
-            assertNotNull(message + "/prevailingVisibility missing", actual.getPrevailingVisibility());
-            assertNumericalMeasureEquals(message + "/prevailingVisibility", expected.getPrevailingVisibility(), actual.getPrevailingVisibility());
-        } else {
-            assertNull(message + "/prevailingVisibility should be missing", actual.getPrevailingVisibility());
-        }
-        if (expected.getPrevailingVisibilityOperator() != null) {
-            assertNotNull(message + "/prevailingVisibilityOperator", actual.getPrevailingVisibilityOperator());
-            assertEquals(message + "/prevailingVisibilityOperator", expected.getPrevailingVisibilityOperator(), actual.getPrevailingVisibilityOperator());
-        } else {
-            assertNull(message + "/prevailingVisibilityOperator should be missing", actual.getPrevailingVisibilityOperator());
-        }
-        assertStringListEquals(message + "/forecastWeather", expected.getForecastWeatherCodes(), actual.getForecastWeatherCodes());
-        assertCloudForecastEquals(message + "/cloud", expected.getCloud(), actual.getCloud());
-    }
-
-    private static void assertNumericalMeasureEquals(String message, NumericMeasure expected, NumericMeasure actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull(message + " is missing", actual);
-    	assertNotNull("expected " + message + " is missing", expected);
-    	double diff = Math.abs(expected.getValue() - actual.getValue());
-        assertTrue(message + "/value is close enough, difference: " + diff, diff < FLOAT_EQUIVALENCE_THRESHOLD);
-        assertEquals(message + "/uom", expected.getUom(), actual.getUom());
-    }
-
-    private static void assertTrendForecastWindEquals(String message, TrendForecastSurfaceWind expected, TrendForecastSurfaceWind actual) {
-        if (expected == null && actual == null) {
-            return;
-        }
-        assertNotNull("trendForecastSurfaceWind is missing", actual);
-        assertNotNull("expected trendForecastSurfaceWind is missing", expected);
-        assertNumericalMeasureEquals(message + "/meanWindDirection", expected.getMeanWindDirection(), actual.getMeanWindDirection());
-        assertNumericalMeasureEquals(message + "/meanWindSpeed", expected.getMeanWindSpeed(), actual.getMeanWindSpeed());
-        assertNumericalMeasureEquals(message + "/windGust", expected.getWindGust(), actual.getWindGust());
-    }
-
-    private static void assertCloudForecastEquals(String message, CloudForecast expected, CloudForecast actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull(message + " is missing", actual);
-    	assertNotNull("expected " + message + " is missing", expected);
-        assertNumericalMeasureEquals(message + "/verticalVisibility", expected.getVerticalVisibility(), actual.getVerticalVisibility());
-        assertCloudLayerEquals(message + "/layers", expected.getLayers(), actual.getLayers());
-    }
-
-    private static void assertCloudLayerEquals(String message, List<CloudLayer> expected, List<CloudLayer> actual) {
-    	if (expected == null && actual == null){
-    		return;
-    	}
-    	assertNotNull(message + " is missing", actual);
-    	assertNotNull("expected " + message + " is missing", expected);
-        assertEquals(message + " size", expected.size(), actual.size());
-        CloudLayer expLayer = null;
-        CloudLayer actLayer = null;
-        for (int i = 0; i < expected.size(); i++) {
-            expLayer = expected.get(i);
-            actLayer = actual.get(i);
-            assertNotNull(message, actLayer);
-            assertEquals(message + "/amount", expLayer.getAmount(), actLayer.getAmount());
-            assertNumericalMeasureEquals(message + "/base", expLayer.getBase(), actLayer.getBase());
-            assertEquals(message + "/cloudType", expLayer.getCloudType(), actLayer.getCloudType());
-        }
-    }
-    private static void assertStringListEquals(String message, List<String> expected, List<String> actual) {
-    	if (expected != null && !expected.isEmpty()) {
-            assertNotNull(message + " missing", actual);
-        } else if (expected == null || expected.isEmpty()) {
-        	assertTrue(message + " should be missing", actual == null || actual.isEmpty());
-        }
-        if (actual != null) {
-        	assertEquals(message + " size", expected.size(), actual.size());
-        	for (int i = 0; i < expected.size(); i++) {
-                assertEquals(message + " at index " + i, expected.get(i), actual.get(i));
-            }
-        }
     }
 
     protected static <T extends AviationWeatherMessage> T readFromJSON(String fileName, Class<T> clz) throws IOException {

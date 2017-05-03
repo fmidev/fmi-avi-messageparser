@@ -1,0 +1,15 @@
+{
+  "status": "MISSING",
+  "issueDayOfMonth": 1,
+  "issueHour": 23,
+  "issueMinute": 50,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFHK",
+  "validityStartDayOfMonth": -1,
+  "validityStartHour": -1,
+  "validityEndDayOfMonth": -1,
+  "validityEndHour": -1,
+  
+  "baseForecast": {
+  }
+}

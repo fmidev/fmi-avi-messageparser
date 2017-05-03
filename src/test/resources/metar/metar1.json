@@ -58,7 +58,8 @@
       "varyingRVRMaximum": {
         "value": 1500.0,
         "uom": "m"
-      }
+      },
+      "varyingRVRMaximumOperator": "ABOVE"
     },
     {
       "runwayDirectionDesignator": "22L",

@@ -1,0 +1,90 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 19,
+  "issueHour": 8,
+  "issueMinute": 30,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFKU",
+  "validityStartDayOfMonth": 19,
+  "validityStartHour": 9,
+  "validityEndDayOfMonth": 20,
+  "validityEndHour": 9,
+  
+  "baseForecast": {
+    "surfaceWind": {
+	  "variableDirection": false,
+	  "meanWindDirection": {
+	    "value": 230.0,
+	    "uom": "deg"
+	  },
+	  "meanWindSpeed": {
+	    "value": 10.0,
+	    "uom": "kt"
+	  }
+	},
+	"ceilingAndVisibilityOk": true
+  },
+  
+  "changeForecasts": [
+    {
+      "changeIndicator": "PROBABILITY_30_TEMPORARY_FLUCTUATIONS",
+      "validityStartDayOfMonth": 19,
+      "validityStartHour": 15,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 19,
+      "validityEndHour": 19,
+      
+      "prevailingVisibility": {
+	    "value": 7000.0,
+	    "uom": "m"
+	  },
+	  
+	  "forecastWeather": [
+	    {
+          "code": "SHRA",
+          "description": "Showery precipitation of rain"
+	    }
+	  ],
+	  
+      "cloud": {
+        "layers": [
+          {
+            "amount": "SCT",
+            "base": {
+              "value": 3000.0,
+              "uom": "ft"
+            },
+            "cloudType": "CB"
+          },
+          {
+            "amount": "BKN",
+            "base": {
+              "value": 4500.0,
+              "uom": "ft"
+            }
+          }
+        ]
+      }
+	},
+	{
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 19,
+      "validityStartHour": 23,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 20,
+      "validityEndHour": 1,
+      
+      "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 300.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 10.0,
+	      "uom": "kt"
+	    }
+	  }
+    }
+  ]
+}

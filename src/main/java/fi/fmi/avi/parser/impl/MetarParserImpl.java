@@ -256,21 +256,21 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 }
                 RunwayVisualRange rvr = new RunwayVisualRangeImpl();
                 rvr.setRunwayDirectionDesignator(runway);
-                if (maxValue != null) {
-                	rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
+                if (maxValue != null && minValue != null) {
+                    rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
-                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                        rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.BELOW);
                     } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == minValueOperator) {
-                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
+                        rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.ABOVE);
                     }
                     
                     rvr.setVaryingRVRMaximum(new NumericMeasureImpl(maxValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == maxValueOperator) {
-                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                        rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.BELOW);
                     } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == maxValueOperator) {
-                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
-                    }                    
-                } else {
+                        rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+                    }
+                } else if (minValue != null) {
                     rvr.setMeanRVR(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
                         rvr.setMeanRVROperator(AviationCodeListUser.RelationalOperator.BELOW);
