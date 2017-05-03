@@ -38,7 +38,7 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
 
     @Test
     public void testTAF1() throws Exception {
-        assertTokenSequenceMatch(taf1, "taf/taf1.json", TAFImpl.class);
+        assertTokenSequenceMatch("TAF " + taf1, "taf/taf1.json", TAFImpl.class);
     }
 
     private void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz) throws IOException {

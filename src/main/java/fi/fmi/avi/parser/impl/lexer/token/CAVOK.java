@@ -5,6 +5,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
@@ -36,14 +37,20 @@ public class CAVOK extends PrioritizedLexemeVisitor {
                     if (m.isCeilingAndVisibilityOk()) {
                         retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
                     }
+                }
+            } else if (TAF.class.isAssignableFrom(clz)) {
+                TAF t = (TAF) msg;
+                if (specifier instanceof TAFBaseForecast) {
+                    TAFBaseForecast b = (TAFBaseForecast) specifier;
+                    if (b.isCeilingAndVisibilityOk()) {
+                        retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
+                    }
                 } else if (specifier instanceof TAFChangeForecast) {
                     TAFChangeForecast c = (TAFChangeForecast) specifier;
                     if (c.isCeilingAndVisibilityOk()) {
                         retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
                     }
                 }
-            } else if (TAF.class.isAssignableFrom(clz)) {
-
             }
             return retval;
         }

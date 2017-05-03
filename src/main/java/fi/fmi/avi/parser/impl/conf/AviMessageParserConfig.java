@@ -90,11 +90,33 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.TAF_START, new TAFStart.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AMENDMENT, new Amendment.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AERODROME_DESIGNATOR, new ICAOCode.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
+        //Lexeme.Identity.AUTOMATED
+        //Lexeme.Identity.VALID_TIME
+        //Lexeme.Identity.CANCELLATION
+        //Lexeme.Identity.SURFACE_WIND
+        //Lexeme.Identity.VARIABLE_WIND_DIRECTION
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
-
-        //s.addReconstructor(ISSUE_TIME, new IssueTime.Reconstructor());
-        //TODO: all the other Metar & TAF reconstructors
+        //Lexeme.Identity.HORIZONTAL_VISIBILITY
+        //Lexeme.Identity.WEATHER
+        //Lexeme.Identity.CLOUD
+        //Lexeme.Identity.MIN_TEMPERATURE
+        //Lexeme.Identity.MAX_TEMPERATURE
+        //Lexeme.Identity.FORECAST_CHANGE_INDICATOR
+        //Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP
+        //Lexeme.Identity.RUNWAY_VISUAL_RANGE
+        //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
+        //Lexeme.Identity.AIR_PRESSURE_QNH
+        //Lexeme.Identity.RECENT_WEATHER
+        //Lexeme.Identity.WIND_SHEAR
+        //Lexeme.Identity.SEA_STATE
+        //Lexeme.Identity.RUNWAY_STATE
+        //Lexeme.Identity.NO_SIGNIFICANT_WEATHER
+        //Lexeme.Identity.COLOR_CODE
+        //Lexeme.Identity.REMARKS_START
+        //Lexeme.Identity.REMARK
         return s;
     }
 

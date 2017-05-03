@@ -14,7 +14,9 @@ import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.MAX_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.MIN_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
@@ -164,17 +166,24 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, baseFct);
         appendToken(retval, WEATHER, msg, TAF.class, baseFct);
         appendToken(retval, CLOUD, msg, TAF.class, baseFct);
-        appendToken(retval, AIR_DEWPOINT_TEMPERATURE, msg, TAF.class, baseFct);
+        appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, baseFct);
+        appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, baseFct);
 
         if (msg.getChangeForecasts() != null) {
             for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
                 appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, changeFct);
-                appendToken(retval, VALID_TIME, msg, TAF.class, changeFct);
+                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, changeFct);
                 appendToken(retval, SURFACE_WIND, msg, TAF.class, changeFct);
                 appendToken(retval, CAVOK, msg, TAF.class, changeFct);
                 appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, changeFct);
                 appendToken(retval, WEATHER, msg, TAF.class, changeFct);
                 appendToken(retval, CLOUD, msg, TAF.class, changeFct);
+            }
+        }
+        if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
+            appendToken(retval, REMARKS_START, msg, TAF.class);
+            for (String remark : msg.getRemarks()) {
+                this.appendToken(retval, REMARK, msg, TAF.class, remark);
             }
         }
         appendToken(retval, END_TOKEN, msg, TAF.class);

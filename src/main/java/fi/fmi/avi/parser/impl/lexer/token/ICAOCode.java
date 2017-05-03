@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
@@ -265,6 +268,27 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
                 }
             }
             token.identify(AERODROME_DESIGNATOR, Lexeme.Status.SYNTAX_ERROR, "Invalid ICAO code country prefix");
+        }
+    }
+
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final Object specifier) {
+            Lexeme retval = null;
+            if (Metar.class.isAssignableFrom(clz)) {
+                Metar m = (Metar) msg;
+                if (m.getAerodromeDesignator() != null) {
+                    retval = this.getLexingFactory().createLexeme(m.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                }
+
+            } else if (TAF.class.isAssignableFrom(clz)) {
+                TAF t = (TAF) msg;
+                if (t.getAerodromeDesignator() != null) {
+                    retval = this.getLexingFactory().createLexeme(t.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                }
+            }
+            return retval;
         }
     }
 }
