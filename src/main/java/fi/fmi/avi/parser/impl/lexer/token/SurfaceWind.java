@@ -8,6 +8,12 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.UNIT;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFForecast;
+import fi.fmi.avi.data.taf.TAFSurfaceWind;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
@@ -82,4 +88,53 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
         }
     }
 
+	public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier) {
+			Lexeme retval = null;
+			TrendForecastSurfaceWind wind = null;
+			
+			if (specifier instanceof TAFForecast) {
+				wind = ((TAFForecast) specifier).getSurfaceWind();
+			}
+			
+			if (wind != null) {
+				if (!wind.getMeanWindDirection().getUom().equals("deg")) {
+					// TODO: throw an exception
+				}
+
+				StringBuilder builder = new StringBuilder();
+
+				builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
+				int speed = wind.getMeanWindSpeed().getValue().intValue();
+				appendSpeed(builder, speed);
+
+				if (wind.getWindGust() != null) {
+					if (!wind.getWindGust().getUom().equals(wind.getMeanWindSpeed().getUom())) {
+						// TODO: throw an exception
+					}
+					builder.append("G");
+					appendSpeed(builder, wind.getWindGust().getValue().intValue());
+				}
+
+				builder.append(wind.getMeanWindSpeed().getUom().toUpperCase());
+
+				retval = this.getLexingFactory().createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
+			
+			}
+
+			return retval;
+		}
+
+		private void appendSpeed(StringBuilder builder, int speed) {
+			if (speed < 0 || speed >= 1000) {
+				// TODO: throw an exception
+			} else if (speed >= 100) {
+				builder.append(String.format("P%03d", speed));
+			} else {
+				builder.append(String.format("%02d", speed));
+			}
+		}
+	}
 }

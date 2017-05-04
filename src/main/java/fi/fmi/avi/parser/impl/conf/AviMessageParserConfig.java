@@ -96,7 +96,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.AUTOMATED
         s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
         //Lexeme.Identity.CANCELLATION
-        //Lexeme.Identity.SURFACE_WIND
+        s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
         //Lexeme.Identity.VARIABLE_WIND_DIRECTION
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         //Lexeme.Identity.HORIZONTAL_VISIBILITY
