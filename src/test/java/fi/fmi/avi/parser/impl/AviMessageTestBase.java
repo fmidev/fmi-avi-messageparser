@@ -164,7 +164,7 @@ public class AviMessageTestBase {
     protected static <T extends AviationWeatherMessage> T readFromJSON(String fileName, Class<T> clz) throws IOException {
         T retval = null;
         ObjectMapper om = new ObjectMapper();
-        InputStream is = AviMessageParserTest.class.getClassLoader().getResourceAsStream(fileName);
+        InputStream is = AviMessageTestBase.class.getClassLoader().getResourceAsStream(fileName);
         if (is != null) {
             retval = om.readValue(is, clz);
         } else {
