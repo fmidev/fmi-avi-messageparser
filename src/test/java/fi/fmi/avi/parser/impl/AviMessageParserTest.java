@@ -50,7 +50,7 @@ public class AviMessageParserTest extends AviMessageTestBase {
     public void testMetar3() throws Exception {
         // Note: VariableSurfaceWind seems to be missing in the Metar POJO model. Might cause interesting issues when serializing back to a string
         ParsingResult<Metar> result = parser.parseMessage(lexer.lexMessage(metar3), Metar.class);
-        assertTrue("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS == result.getStatus());
+        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
         assertMetarEquals(readFromJSON("metar/metar3.json", MetarImpl.class), result.getParsedMessage());
     }
 
