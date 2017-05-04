@@ -157,6 +157,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             if (endDay != null) {
                 fct.setValidityEndDayOfMonth(endDay);
             } else {
+            	// TODO: test this (1)
                 fct.setValidityEndDayOfMonth(startDay);
             }
 
@@ -272,6 +273,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 temps.add(airTemperatureForecast);
                 maxTempToken = findNext(MAX_TEMPERATURE, minTempToken, stopAt);
             } else {
+            	// TODO: add SYNTAX ERROR
             	maxTempToken = null;
             }
         }
@@ -329,6 +331,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                                         if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
                                             changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30_TEMPORARY_FLUCTUATIONS);
                                         } else {
+                                        	// TODO: test this (5)
                                             changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40_TEMPORARY_FLUCTUATIONS);
                                         }
                                         updateChangeForecastContents(changeFct, type, next, hints);
@@ -338,6 +341,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                                     }
                                 } else {
                                     if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
+                                    	// TODO: test this (2)
                                         changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30);
                                     } else {
                                         changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40);
@@ -425,6 +429,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
             if (direction == SurfaceWind.WindDirection.VARIABLE) {
+            	// TODO: test this (3)
                 wind.setVariableDirection(true);
             } else if (direction instanceof Integer) {
                 wind.setMeanWindDirection(new NumericMeasureImpl((Integer) direction, "deg"));
@@ -469,6 +474,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             }
             if (distanceOperator != null) {
                 if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == distanceOperator) {
+                	// TODO: test this (4)
                     fct.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.BELOW);
                 } else {
                     fct.setPrevailingVisibilityOperator(AviationCodeListUser.RelationalOperator.ABOVE);
