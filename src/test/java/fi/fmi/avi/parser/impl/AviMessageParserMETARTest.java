@@ -11,11 +11,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
-import fi.fmi.avi.data.taf.TAF;
-import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
