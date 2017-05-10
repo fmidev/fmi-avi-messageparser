@@ -18,6 +18,8 @@ import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
 import fi.fmi.avi.parser.LexemeSequence;
+import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 /**
@@ -33,16 +35,17 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
     @Test
     @Ignore
     public void testMetar1() throws Exception {
-        assertTokenSequenceMatch(metar1, "metar/metar1.json", MetarImpl.class);
+        assertTokenSequenceMatch(metar1, "metar/metar1.json", MetarImpl.class, null);
     }
 
     @Test
     public void testTAF1() throws Exception {
-        assertTokenSequenceMatch("TAF " + taf1, "taf/taf1.json", TAFImpl.class);
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+        assertTokenSequenceMatch("TAF " + taf1, "taf/taf1.json", TAFImpl.class, hints);
     }
 
-    private void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz) throws IOException {
-        LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz));
+    private void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz, final ParsingHints hints) throws IOException, TokenizingException {
+        LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz), hints);
         assertNotNull("Null sequence was produced", seq);
         assertEquals(expected, seq.getTAC());
     }

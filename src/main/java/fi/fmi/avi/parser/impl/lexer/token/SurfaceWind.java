@@ -16,7 +16,9 @@ import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.data.taf.TAFSurfaceWind;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
+import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -88,10 +90,10 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
         }
     }
 
-	public static class Reconstructor extends FactoryBasedReconstructor {
+	public static class Reconstructor extends TACReconstructorAdapter {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier) {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier, final ParsingHints hints) throws TokenizingException {
 			Lexeme retval = null;
 			TrendForecastSurfaceWind wind = null;
 			
@@ -101,7 +103,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 			
 			if (wind != null) {
 				if (!wind.getMeanWindDirection().getUom().equals("deg")) {
-					// TODO: throw an exception
+					throw new TokenizingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
 				}
 
 				StringBuilder builder = new StringBuilder();
@@ -112,7 +114,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 
 				if (wind.getWindGust() != null) {
 					if (!wind.getWindGust().getUom().equals(wind.getMeanWindSpeed().getUom())) {
-						// TODO: throw an exception
+						throw new TokenizingException("Wind gust speed unit '" + wind.getWindGust().getUom() + "' is not the same as mean wind speed unit '" + wind.getMeanWindSpeed().getUom() + "'");
 					}
 					builder.append("G");
 					appendSpeed(builder, wind.getWindGust().getValue().intValue());
@@ -127,9 +129,9 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 			return retval;
 		}
 
-		private void appendSpeed(StringBuilder builder, int speed) {
+		private void appendSpeed(StringBuilder builder, int speed) throws TokenizingException {
 			if (speed < 0 || speed >= 1000) {
-				// TODO: throw an exception
+				throw new TokenizingException("Wind speed value " + speed + " is now withing acceptable limits [0,1000]");
 			} else if (speed >= 100) {
 				builder.append(String.format("P%03d", speed));
 			} else {

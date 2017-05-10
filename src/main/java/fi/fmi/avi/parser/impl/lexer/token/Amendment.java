@@ -8,6 +8,7 @@ import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
+import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -25,10 +26,10 @@ public class Amendment extends PrioritizedLexemeVisitor {
         }
     }
 
-    public static class Reconstructor extends FactoryBasedReconstructor {
+    public static class Reconstructor extends TACReconstructorAdapter {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final Object specifier) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final Object specifier, final ParsingHints hints) {
             Lexeme retval = null;
             if (TAF.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.TAFStatus.AMENDMENT == ((TAF) msg).getStatus()) {

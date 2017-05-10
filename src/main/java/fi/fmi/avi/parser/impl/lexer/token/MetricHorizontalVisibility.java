@@ -17,6 +17,7 @@ import fi.fmi.avi.parser.Lexeme.Status;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
+import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -88,10 +89,10 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
         token.identify(HORIZONTAL_VISIBILITY);
     }
 
-	public static class Reconstructor extends FactoryBasedReconstructor {
+	public static class Reconstructor extends TACReconstructorAdapter {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier) {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier, final ParsingHints hints) {
 			Lexeme retval = null;
 
 			NumericMeasure visibility = null;
