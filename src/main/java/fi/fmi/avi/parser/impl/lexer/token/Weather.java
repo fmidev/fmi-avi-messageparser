@@ -1,6 +1,7 @@
 package fi.fmi.avi.parser.impl.lexer.token;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.parser.Lexeme.Identity.AMENDMENT;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
@@ -8,12 +9,22 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationCodeListUser;
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.AviationCodeListUser.TrendForecastChangeIndicator;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -463,6 +474,25 @@ public class Weather extends RegexMatchingLexemeVisitor {
                     token.identify(isRecent ? RECENT_WEATHER : WEATHER, Lexeme.Status.SYNTAX_ERROR, "Unknown weather code " + code);
                 }
             }
+        }
+    }
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
+            Lexeme retval = null;
+            if (TAF.class.isAssignableFrom(clz)) {
+            	fi.fmi.avi.data.Weather weather = getAs(specifier, 1, fi.fmi.avi.data.Weather.class);
+            	TAFBaseForecast baseFct = getAs(specifier, 0, TAFBaseForecast.class);
+            	TAFChangeForecast changeFct = getAs(specifier, 0, TAFChangeForecast.class);
+            	if (baseFct != null || changeFct != null) {
+            		retval = this.getLexingFactory().createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+            	}
+            } else if (Metar.class.isAssignableFrom(clz)) {
+            	fi.fmi.avi.data.Weather weather = getAs(specifier, fi.fmi.avi.data.Weather.class);
+            	retval = this.getLexingFactory().createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+            }
+            return retval;
         }
     }
 }
