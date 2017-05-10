@@ -10,15 +10,12 @@ import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
-import fi.fmi.avi.data.taf.TAF;
-import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
-import fi.fmi.avi.data.taf.TAFSurfaceWind;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
-import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -90,15 +87,15 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
         }
     }
 
-	public static class Reconstructor extends TACReconstructorAdapter {
+	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier, final ParsingHints hints) throws TokenizingException {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) throws TokenizingException {
 			Lexeme retval = null;
 			TrendForecastSurfaceWind wind = null;
-			
-			if (specifier instanceof TAFForecast) {
-				wind = ((TAFForecast) specifier).getSurfaceWind();
+			TAFForecast fct = getAs(specifier, TAFForecast.class);
+			if (fct != null) {
+				wind = fct.getSurfaceWind();
 			}
 			
 			if (wind != null) {
@@ -131,7 +128,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 
 		private void appendSpeed(StringBuilder builder, int speed) throws TokenizingException {
 			if (speed < 0 || speed >= 1000) {
-				throw new TokenizingException("Wind speed value " + speed + " is now withing acceptable limits [0,1000]");
+				throw new TokenizingException("Wind speed value " + speed + " is not withing acceptable range [0,1000]");
 			} else if (speed >= 100) {
 				builder.append(String.format("P%03d", speed));
 			} else {

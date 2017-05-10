@@ -8,8 +8,8 @@ import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
-import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -27,10 +27,10 @@ public class Correction extends PrioritizedLexemeVisitor {
         }
     }
 
-    public static class Reconstructor extends TACReconstructorAdapter {
+    public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final Object specifier, final ParsingHints hints) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
             Lexeme retval = null;
             if (Metar.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.MetarStatus.CORRECTION == ((Metar) msg).getStatus()) {

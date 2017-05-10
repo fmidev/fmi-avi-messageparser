@@ -1,15 +1,10 @@
 package fi.fmi.avi.parser.impl.lexer.token;
 
-
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Partial;
-import org.joda.time.Period;
-
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
  * Created by rinne on 10/02/17.
@@ -30,10 +25,10 @@ public class ValidTime extends TAFTimePeriod {
         return Lexeme.Identity.VALID_TIME;
     }
 
-	public static class Reconstructor extends TACReconstructorAdapter {
+	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier, final ParsingHints hints) {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) {
 			Lexeme retval = null;
 			if (TAF.class.isAssignableFrom(clz)) {
 				TAF taf = (TAF) msg;

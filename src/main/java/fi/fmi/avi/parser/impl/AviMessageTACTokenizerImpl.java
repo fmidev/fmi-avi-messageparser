@@ -38,10 +38,14 @@ import java.util.Map;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.CloudLayer;
+import fi.fmi.avi.data.Weather;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.ObservedClouds;
+import fi.fmi.avi.data.metar.RunwayState;
+import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
@@ -99,15 +103,23 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, AERODROME_DESIGNATOR, msg, Metar.class, hints);
         appendToken(retval, ISSUE_TIME, msg, Metar.class, hints);
         appendToken(retval, AUTOMATED, msg, Metar.class, hints);
-        appendAllTokens(retval, SURFACE_WIND, msg, Metar.class, hints);
+        appendToken(retval, SURFACE_WIND, msg, Metar.class, hints);
         appendToken(retval, CAVOK, msg, Metar.class, hints);
         appendToken(retval, HORIZONTAL_VISIBILITY, msg, Metar.class, hints);
-        appendAllTokens(retval, RUNWAY_VISUAL_RANGE, msg, Metar.class, hints);
-        appendAllTokens(retval, WEATHER, msg, Metar.class, hints);
+        if (msg.getRunwayVisualRanges() != null) {
+        	for (RunwayVisualRange range:msg.getRunwayVisualRanges()) {
+        		appendToken(retval, RUNWAY_VISUAL_RANGE, msg, Metar.class,  hints, range);
+        	}
+        }
+        if (msg.getPresentWeather() != null) {
+        	for (Weather weather:msg.getPresentWeather()) {
+        		 appendToken(retval, WEATHER, msg, Metar.class, hints, weather);
+        	}
+        }
         ObservedClouds obsClouds = msg.getClouds();
         if (obsClouds != null) {
             if (obsClouds.getVerticalVisibility() != null) {
-                this.appendToken(retval, Identity.CLOUD, msg, Metar.class, "VV", hints);
+                this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV");
             } else if (obsClouds.isAmountAndHeightUnobservableByAutoSystem()) {
                 retval.append(this.factory.createLexeme("//////", Identity.CLOUD));
             } else {
@@ -116,32 +128,43 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         }
         appendToken(retval, AIR_DEWPOINT_TEMPERATURE, msg, Metar.class, hints);
         appendToken(retval, AIR_PRESSURE_QNH, msg, Metar.class, hints);
-        appendAllTokens(retval, RECENT_WEATHER, msg, Metar.class, hints);
+        if (msg.getRecentWeather() != null) {
+        	for (Weather weather:msg.getRecentWeather()) {
+        		 appendToken(retval, RECENT_WEATHER, msg, Metar.class, hints, weather);
+        	}
+        }
         appendToken(retval, WIND_SHEAR, msg, Metar.class, hints);
         appendToken(retval, SEA_STATE, msg, Metar.class, hints);
-        appendAllTokens(retval, RUNWAY_STATE, msg, Metar.class, hints);
+        if (msg.getRunwayStates() != null) {
+        	for (RunwayState state:msg.getRunwayStates()) {
+        		appendToken(retval, RUNWAY_STATE, msg, Metar.class, hints, state);
+        	}
+        }
         appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, Metar.class, hints);
         if (msg.getTrends() != null) {
             for (TrendForecast trend : msg.getTrends()) {
-                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, Metar.class, trend, hints);
-                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, Metar.class, trend, hints);
-                appendToken(retval, SURFACE_WIND, msg, Metar.class, trend, hints);
-                appendToken(retval, CAVOK, msg, Metar.class, trend, hints);
-                appendToken(retval, HORIZONTAL_VISIBILITY, msg, Metar.class, trend, hints);
-                appendAllTokens(retval, WEATHER, msg, Metar.class, trend, hints);
-
+                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, Metar.class, hints, trend);
+                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, Metar.class, hints, trend);
+                appendToken(retval, SURFACE_WIND, msg, Metar.class, hints, trend);
+                appendToken(retval, CAVOK, msg, Metar.class, hints, trend);
+                appendToken(retval, HORIZONTAL_VISIBILITY, msg, Metar.class, hints, trend);
+                if (trend.getForecastWeather() != null) {
+                	for (Weather weather:trend.getForecastWeather()) {
+                		 appendToken(retval, WEATHER, msg, Metar.class, hints, trend, weather);
+                	}
+                }
                 CloudForecast clouds = trend.getCloud();
                 if (clouds.getVerticalVisibility() != null) {
-                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, "VV", hints);
+                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV");
                 } else {
-                    this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers(), hints);
+                    this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers(), hints, trend);
                 }
             }
         }
         if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
             appendToken(retval, REMARKS_START, msg, Metar.class, hints);
             for (String remark : msg.getRemarks()) {
-                this.appendToken(retval, REMARK, msg, Metar.class, remark, hints);
+                this.appendToken(retval, REMARK, msg, Metar.class, hints, remark);
             }
         }
         appendToken(retval, END_TOKEN, msg, Metar.class, hints);
@@ -160,30 +183,49 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, NIL, msg, TAF.class, hints);
 
         TAFBaseForecast baseFct = msg.getBaseForecast();
-        appendToken(retval, VALID_TIME, msg, TAF.class, baseFct, hints);
-        appendToken(retval, CANCELLATION, msg, TAF.class, baseFct, hints);
-        appendToken(retval, SURFACE_WIND, msg, TAF.class, baseFct, hints);
-        appendToken(retval, CAVOK, msg, TAF.class, baseFct, hints);
-        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, baseFct, hints);
-        appendAllTokens(retval, WEATHER, msg, TAF.class, baseFct, hints);
-        appendAllTokens(retval, CLOUD, msg, TAF.class, baseFct, hints);
-        appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, baseFct, hints);
-        appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, baseFct, hints);
-
+        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
+        appendToken(retval, CANCELLATION, msg, TAF.class, hints, baseFct);
+        appendToken(retval, SURFACE_WIND, msg, TAF.class,  hints, baseFct);
+        appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
+        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, baseFct);
+        if (baseFct.getForecastWeather() != null) {
+        	for (Weather weather:baseFct.getForecastWeather()) {
+        		appendToken(retval, WEATHER, msg, TAF.class, hints, baseFct, weather);
+        	}
+        }
+        CloudForecast clouds = baseFct.getCloud();
+        if (clouds != null) {
+        	if (clouds.getVerticalVisibility() != null) {
+            	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", baseFct);
+            } else {
+                this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, baseFct);
+            }
+        }
+        if (baseFct.getTemperatures() != null) {
+        	for (TAFAirTemperatureForecast tempFct: baseFct.getTemperatures()) {
+        		appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+                appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+        	}
+        }
+        
         if (msg.getChangeForecasts() != null) {
             for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
-                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, changeFct, hints);
-                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, changeFct, hints);
-                appendToken(retval, SURFACE_WIND, msg, TAF.class, changeFct, hints);
-                appendToken(retval, CAVOK, msg, TAF.class, changeFct, hints);
-                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, changeFct, hints);
-                appendAllTokens(retval, WEATHER, msg, TAF.class, changeFct, hints);
-                CloudForecast clouds = changeFct.getCloud();
+                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, hints, changeFct);
+                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, hints, changeFct);
+                appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
+                appendToken(retval, CAVOK, msg, TAF.class,  hints, changeFct);
+                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, changeFct);
+                if (changeFct.getForecastWeather() != null) {
+                	for (Weather weather:changeFct.getForecastWeather()) {
+                		appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);
+                	}
+                }
+                clouds = changeFct.getCloud();
                 if (clouds != null) {
                 	if (clouds.getVerticalVisibility() != null) {
-                    	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, "VV", hints);
+                    	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", changeFct);
                     } else {
-                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints);
+                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, changeFct);
                     }
                 }
             }
@@ -191,7 +233,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
             appendToken(retval, REMARKS_START, msg, TAF.class, hints);
             for (String remark : msg.getRemarks()) {
-                this.appendToken(retval, REMARK, msg, TAF.class, remark, hints);
+                this.appendToken(retval, REMARK, msg, TAF.class, hints, remark);
             }
         }
         appendToken(retval, END_TOKEN, msg, TAF.class, hints);
@@ -199,23 +241,13 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private <T extends AviationWeatherMessage> void appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
+    	appendCloudLayers(builder, msg, clz, layers, hints, null);
+    }
+    
+    private <T extends AviationWeatherMessage> void appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
         if (layers != null) {
             for (CloudLayer layer : layers) {
-                appendToken(builder, CLOUD, msg, clz, layer, hints);
-            }
-        }
-    }
-
-    private <T extends AviationWeatherMessage> void appendAllTokens(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints) throws TokenizingException {
-        appendAllTokens(builder, id, msg, clz, null);
-    }
-
-    private <T extends AviationWeatherMessage> void appendAllTokens(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final Object specifier, final ParsingHints hints) throws TokenizingException {
-        TACTokenReconstructor rec = this.reconstructors.get(id);
-        if (rec != null) {
-            List<Lexeme> l = rec.getAllAsLexemes(msg, clz, specifier, hints);
-            if (l != null) {
-                builder.appendAll(l);
+                appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
             }
         }
     }
@@ -224,10 +256,10 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(builder, id, msg, clz, null, hints);
     }
 
-    private <T extends AviationWeatherMessage> void appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final Object specifier, final ParsingHints hints) throws TokenizingException {
+    private <T extends AviationWeatherMessage> void appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
         if (rec != null) {
-            Lexeme l = rec.getAsLexeme(msg, clz, specifier, hints);
+            Lexeme l = rec.getAsLexeme(msg, clz, hints, specifier);
             if (l != null) {
                 builder.append(l);
             }
