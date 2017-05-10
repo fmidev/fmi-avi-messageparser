@@ -108,13 +108,13 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 				String str;
 
 				int meters = visibility.getValue().intValue();
-				if (meters < 0 || meters > 1000) {
-					throw new TokenizingException("Visibility " + meters + " not withing acceptable range [0,1000]");
+				if (meters < 0) {
+					throw new TokenizingException("Visibility " + meters + " must be positive");
 				}
 
 				if (operator == RelationalOperator.BELOW && meters <= 50) {
 					str = "0000";
-				} else if (operator == RelationalOperator.ABOVE && meters >= 1000) {
+				} else if (operator == RelationalOperator.ABOVE && meters >= 9999) {
 					str = "9999";
 				} else {
 					str = String.format("%04d", meters);
