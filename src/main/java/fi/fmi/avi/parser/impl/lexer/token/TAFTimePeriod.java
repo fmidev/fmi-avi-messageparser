@@ -7,6 +7,12 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR2;
 
 import java.util.regex.Matcher;
 
+import javax.xml.transform.sax.SAXTransformerFactory;
+
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.Partial;
+import org.joda.time.Period;
+
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 
@@ -14,6 +20,28 @@ import fi.fmi.avi.parser.ParsingHints;
  * Created by rinne on 22/02/17.
  */
 public abstract class TAFTimePeriod extends TimeHandlingRegex {
+	
+	protected static String encodeTimePeriod(final int startDay, final int startHour, final int endDay, final int endHour, final ParsingHints hints) {
+		String retval = null;
+		DateTimeFieldType[] dayHour = {DateTimeFieldType.dayOfMonth(), DateTimeFieldType.hourOfDay()};
+		int [] start = {startDay, startHour};
+		int [] end = {endDay, endHour};
+		Period p = new Period(new Partial(dayHour, start), new Partial(dayHour, end));
+		if (endDay > 0) {
+			//If the valid time period is < 24h and the short format is preferred, is the short format
+			if (hints != null && ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hints.get(ParsingHints.KEY_VALIDTIME_FORMAT)) && p.toStandardHours().getHours() < 24) {
+				retval = String.format("%02d%02d%02d",startDay,startHour,endHour);
+			} else {
+			// Otherwise produce validity in the (long) 2008 Nov TAF format
+				retval = String.format("%02d%02d/%02d%02d",startDay,startHour,endDay,endHour);
+			}
+		} else {
+			//End day not given, assume the short format
+			retval = String.format("%02d%02d%02d",startDay,startHour,endHour);
+		}
+		return retval;
+	}
+	
     public TAFTimePeriod(final Priority prio) {
         super("^(([0-9]{2})([0-9]{2})([0-9]{2}))|(([0-9]{2})([0-9]{2})/([0-9]{2})([0-9]{2}))$", prio);
     }
@@ -57,5 +85,6 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
     protected abstract Lexeme.Identity getRequiredPreceedingIdentity();
 
     protected abstract Lexeme.Identity getRecognizedIdentity();
+    
 
 }

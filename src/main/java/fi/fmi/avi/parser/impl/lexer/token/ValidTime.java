@@ -1,8 +1,15 @@
 package fi.fmi.avi.parser.impl.lexer.token;
 
+
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.Partial;
+import org.joda.time.Period;
+
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.impl.lexer.TACReconstructorAdapter;
 
 /**
  * Created by rinne on 10/02/17.
@@ -23,22 +30,20 @@ public class ValidTime extends TAFTimePeriod {
         return Lexeme.Identity.VALID_TIME;
     }
 
-	public static class Reconstructor extends FactoryBasedReconstructor {
+	public static class Reconstructor extends TACReconstructorAdapter {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier) {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, Object specifier, final ParsingHints hints) {
 			Lexeme retval = null;
 			if (TAF.class.isAssignableFrom(clz)) {
 				TAF taf = (TAF) msg;
-
-				// Always produce validity in the 2008 Nov TAF format
-				String str = String.format("%02d%02d/%02d%02d",
-						taf.getValidityStartDayOfMonth(),
-						taf.getValidityStartHour(),
-						taf.getValidityEndDayOfMonth(),
-						taf.getValidityEndHour());
-
-				retval = this.getLexingFactory().createLexeme(str, Lexeme.Identity.VALID_TIME);
+				String period = encodeTimePeriod(
+						taf.getValidityStartDayOfMonth(), 
+						taf.getValidityStartHour(), 
+						taf.getValidityEndDayOfMonth(), 
+						taf.getValidityEndHour(), 
+						hints);
+				retval = this.getLexingFactory().createLexeme(period, Lexeme.Identity.VALID_TIME);
 			}
 
 			return retval;
