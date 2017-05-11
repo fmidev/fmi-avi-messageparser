@@ -476,6 +476,7 @@ public class Weather extends RegexMatchingLexemeVisitor {
             }
         }
     }
+    
     public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
