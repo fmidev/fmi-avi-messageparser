@@ -101,7 +101,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
         s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
-        //Lexeme.Identity.CLOUD
+        s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         //Lexeme.Identity.MIN_TEMPERATURE
         //Lexeme.Identity.MAX_TEMPERATURE
         //Lexeme.Identity.FORECAST_CHANGE_INDICATOR

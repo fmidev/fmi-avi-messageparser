@@ -121,7 +121,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
             if (obsClouds.getVerticalVisibility() != null) {
                 this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV");
             } else if (obsClouds.isAmountAndHeightUnobservableByAutoSystem()) {
-                retval.append(this.factory.createLexeme("//////", Identity.CLOUD));
+            	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "//////");
             } else {
                 this.appendCloudLayers(retval, msg, Metar.class, obsClouds.getLayers(), hints);
             }
@@ -155,7 +155,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
                 }
                 CloudForecast clouds = trend.getCloud();
                 if (clouds.getVerticalVisibility() != null) {
-                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV");
+                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV", trend);
                 } else {
                     this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers(), hints, trend);
                 }
