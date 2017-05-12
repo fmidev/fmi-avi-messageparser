@@ -119,7 +119,7 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             				verVis = changeFct.getCloud().getVerticalVisibility();
             			}
             		}
-            		this.getLexingFactory().createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis),Identity.CLOUD);
+            		retval = this.getLexingFactory().createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis),Identity.CLOUD);
             	}
             } else if (Metar.class.isAssignableFrom(clz)) {
             	//TODO
