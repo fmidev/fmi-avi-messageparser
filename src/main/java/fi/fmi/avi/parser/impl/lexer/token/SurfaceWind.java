@@ -129,11 +129,8 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 		private void appendSpeed(StringBuilder builder, int speed) throws TokenizingException {
 			if (speed < 0 || speed >= 1000) {
 				throw new TokenizingException("Wind speed value " + speed + " is not withing acceptable range [0,1000]");
-			} else if (speed >= 100) {
-				builder.append(String.format("P%03d", speed));
-			} else {
-				builder.append(String.format("%02d", speed));
 			}
+			builder.append(String.format("%02d", speed));
 		}
 	}
 }
