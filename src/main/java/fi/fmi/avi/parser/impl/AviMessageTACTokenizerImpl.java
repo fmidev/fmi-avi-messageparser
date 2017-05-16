@@ -180,91 +180,99 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, CORRECTION, msg, TAF.class, hints);
         appendToken(retval, AERODROME_DESIGNATOR, msg, TAF.class, hints);
         appendToken(retval, ISSUE_TIME, msg, TAF.class, hints);
-        appendToken(retval, NIL, msg, TAF.class, hints);
-
-        TAFBaseForecast baseFct = msg.getBaseForecast();
-        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
-        appendToken(retval, CANCELLATION, msg, TAF.class, hints, baseFct);
-        appendToken(retval, SURFACE_WIND, msg, TAF.class,  hints, baseFct);
-        appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
-        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, baseFct);
-        if (baseFct.getForecastWeather() != null) {
-        	for (Weather weather:baseFct.getForecastWeather()) {
-        		appendToken(retval, WEATHER, msg, TAF.class, hints, baseFct, weather);
-        	}
-        }
-        CloudForecast clouds = baseFct.getCloud();
-        if (clouds != null) {
-        	if (clouds.getVerticalVisibility() != null) {
-            	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", baseFct);
-            } else {
-                this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, baseFct);
-            }
-        }
-        if (baseFct.getTemperatures() != null) {
-        	for (TAFAirTemperatureForecast tempFct: baseFct.getTemperatures()) {
-        		appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
-                appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
-        	}
-        }
         
-        if (msg.getChangeForecasts() != null) {
-            for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
-                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, hints, changeFct);
-                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, hints, changeFct);
-                appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
-                appendToken(retval, CAVOK, msg, TAF.class,  hints, changeFct);
-                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, changeFct);
-                appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, TAF.class, hints, changeFct);
-                if (changeFct.getForecastWeather() != null) {
-                	for (Weather weather:changeFct.getForecastWeather()) {
-                		appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);
-                	}
-                }
-                clouds = changeFct.getCloud();
-                if (clouds != null) {
-                	if (clouds.getVerticalVisibility() != null) {
-                    	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", changeFct);
-                    } else {
-                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, changeFct);
-                    }
-                }
-            }
-        }
-        if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
-            appendToken(retval, REMARKS_START, msg, TAF.class, hints);
-            for (String remark : msg.getRemarks()) {
-                this.appendToken(retval, REMARK, msg, TAF.class, hints, remark);
-            }
-        }
+        boolean nil = appendToken(retval, NIL, msg, TAF.class, hints);
+        
+        if (!nil) {
+	        TAFBaseForecast baseFct = msg.getBaseForecast();
+	        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
+	        appendToken(retval, CANCELLATION, msg, TAF.class, hints, baseFct);
+	        appendToken(retval, SURFACE_WIND, msg, TAF.class,  hints, baseFct);
+	        appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
+	        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, baseFct);
+	        if (baseFct.getForecastWeather() != null) {
+	        	for (Weather weather:baseFct.getForecastWeather()) {
+	        		appendToken(retval, WEATHER, msg, TAF.class, hints, baseFct, weather);
+	        	}
+	        }
+	        CloudForecast clouds = baseFct.getCloud();
+	        if (clouds != null) {
+	        	if (clouds.getVerticalVisibility() != null) {
+	            	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", baseFct);
+	            } else {
+	                this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, baseFct);
+	            }
+	        }
+	        if (baseFct.getTemperatures() != null) {
+	        	for (TAFAirTemperatureForecast tempFct: baseFct.getTemperatures()) {
+	        		appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+	                appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+	        	}
+	        }
+	        
+	        if (msg.getChangeForecasts() != null) {
+	            for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
+	                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, hints, changeFct);
+	                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, hints, changeFct);
+	                appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
+	                appendToken(retval, CAVOK, msg, TAF.class,  hints, changeFct);
+	                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, changeFct);
+	                appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, TAF.class, hints, changeFct);
+	                if (changeFct.getForecastWeather() != null) {
+	                	for (Weather weather:changeFct.getForecastWeather()) {
+	                		appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);
+	                	}
+	                }
+	                clouds = changeFct.getCloud();
+	                if (clouds != null) {
+	                	if (clouds.getVerticalVisibility() != null) {
+	                    	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", changeFct);
+	                    } else {
+	                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, changeFct);
+	                    }
+	                }
+	            }
+	        }
+	        if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
+	            appendToken(retval, REMARKS_START, msg, TAF.class, hints);
+	            for (String remark : msg.getRemarks()) {
+	                this.appendToken(retval, REMARK, msg, TAF.class, hints, remark);
+	            }
+	        }
+	    }
         appendToken(retval, END_TOKEN, msg, TAF.class, hints);
         return retval.build();
     }
 
-    private <T extends AviationWeatherMessage> void appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
-    	appendCloudLayers(builder, msg, clz, layers, hints, null);
+    private <T extends AviationWeatherMessage> boolean appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
+    	return appendCloudLayers(builder, msg, clz, layers, hints, null);
     }
     
-    private <T extends AviationWeatherMessage> void appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
+    private <T extends AviationWeatherMessage> boolean appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
+    	boolean retval = false;
         if (layers != null) {
             for (CloudLayer layer : layers) {
-                appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
+                boolean b = appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
+                retval = retval || b;
             }
         }
+        return retval;
     }
     
-    private <T extends AviationWeatherMessage> void appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints) throws TokenizingException {
-        appendToken(builder, id, msg, clz, null, hints);
+    private <T extends AviationWeatherMessage> boolean appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints) throws TokenizingException {
+        return appendToken(builder, id, msg, clz, null, hints);
     }
 
-    private <T extends AviationWeatherMessage> void appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
+    private <T extends AviationWeatherMessage> boolean appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
         if (rec != null) {
             Lexeme l = rec.getAsLexeme(msg, clz, hints, specifier);
             if (l != null) {
                 builder.append(l);
+                return true;
             }
         }
+        return false;
     }
 
 }

@@ -62,6 +62,23 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
         assertTokenSequenceMatch(taf4, "taf/taf4.json", TAFImpl.class, hints);
     }
     
+    @Test
+    public void testTAF5() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+        assertTokenSequenceMatch("TAF " + taf5, "taf/taf5.json", TAFImpl.class, hints);
+    }
+    
+    @Test
+    public void testTAF6() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+        assertTokenSequenceMatch(taf6, "taf/taf6.json", TAFImpl.class, hints);
+    }
+
+    @Test
+    public void testTAF7() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+        assertTokenSequenceMatch(taf7, "taf/taf7.json", TAFImpl.class, hints);
+    }
     
     @Test
     public void testTAF11() throws Exception {
