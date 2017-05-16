@@ -335,7 +335,7 @@ public class LexingFactoryImpl implements LexingFactory {
                 sb.append(' ');
             }
             if (sb.length() > 0) {
-                return sb.substring(0, sb.length() - 1);
+                return sb.substring(0, sb.length() - 1)+"=";
             } else {
                 return "";
             }

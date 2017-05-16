@@ -7,14 +7,18 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR2;
 
 import java.util.regex.Matcher;
 
-import javax.xml.transform.sax.SAXTransformerFactory;
-
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Partial;
 import org.joda.time.Period;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
  * Created by rinne on 22/02/17.
@@ -87,4 +91,30 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
     protected abstract Lexeme.Identity getRecognizedIdentity();
     
 
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+				Object... specifier) throws TokenizingException {
+			Lexeme retval = null;
+			if (TAF.class.isAssignableFrom(clz)) {
+				TAFChangeForecast forecast = getAs(specifier, TAFChangeForecast.class);
+				if (forecast != null) {
+
+					int validityEndDayOfMonth = forecast.getValidityEndDayOfMonth();
+					if (validityEndDayOfMonth == -1) {
+						validityEndDayOfMonth = forecast.getValidityStartDayOfMonth();
+					}
+					
+					String str = String.format("%02d%02d/%02d%02d",
+							forecast.getValidityStartDayOfMonth(), forecast.getValidityStartHour(),
+							validityEndDayOfMonth, forecast.getValidityEndHour());
+					
+					retval = this.getLexingFactory().createLexeme(str, Identity.CHANGE_FORECAST_TIME_GROUP);
+				}
+			}
+			return retval;
+		}
+    	
+    }
 }

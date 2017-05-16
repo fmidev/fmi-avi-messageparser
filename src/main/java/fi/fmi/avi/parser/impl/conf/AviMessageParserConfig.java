@@ -46,6 +46,7 @@ import fi.fmi.avi.parser.impl.lexer.token.SeaState;
 import fi.fmi.avi.parser.impl.lexer.token.SnowClosure;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.TAFStart;
+import fi.fmi.avi.parser.impl.lexer.token.TAFTimePeriod;
 import fi.fmi.avi.parser.impl.lexer.token.ValidTime;
 import fi.fmi.avi.parser.impl.lexer.token.VariableSurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
@@ -104,8 +105,8 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         //Lexeme.Identity.MIN_TEMPERATURE
         //Lexeme.Identity.MAX_TEMPERATURE
-        //Lexeme.Identity.FORECAST_CHANGE_INDICATOR
-        //Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP
+        s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new TAFTimePeriod.Reconstructor());
         //Lexeme.Identity.RUNWAY_VISUAL_RANGE
         //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
         //Lexeme.Identity.AIR_PRESSURE_QNH

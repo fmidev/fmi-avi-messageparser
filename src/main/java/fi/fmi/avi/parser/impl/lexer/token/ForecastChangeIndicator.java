@@ -8,15 +8,21 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.TYPE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
  * Created by rinne on 10/02/17.
  */
 public class ForecastChangeIndicator extends TimeHandlingRegex {
 
-    public enum ForecastChangeIndicatorType {
+	public enum ForecastChangeIndicatorType {
         TEMPORARY_FLUCTUATIONS("TEMPO"),
         BECOMING("BECMG"),
         WITH_40_PCT_PROBABILITY("PROB40"),
@@ -74,4 +80,51 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
             }
         }
     }
+    
+
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+				Object... specifier) throws TokenizingException {
+			TAFChangeForecast changeForecast = getAs(specifier, TAFChangeForecast.class);
+			
+			Lexeme retval = null;
+			
+			String code = null;
+			if (changeForecast != null) {
+				
+				switch (changeForecast.getChangeIndicator()) {
+				case BECOMING:
+					code = "BECMG";
+					break;
+				case TEMPORARY_FLUCTUATIONS:
+					code = "TEMPO";
+					break;
+				case PROBABILITY_30:
+					code = "PROB30";
+					break;
+				case PROBABILITY_40:
+					code = "PROB40";
+					break;
+				case PROBABILITY_30_TEMPORARY_FLUCTUATIONS:
+					code = "PROB30 TEMPO";
+					break;
+				case PROBABILITY_40_TEMPORARY_FLUCTUATIONS:
+					code = "PROB40 TEMPO";
+					break;
+				case FROM:
+					throw new RuntimeException("TODO");
+				}
+			}
+			
+			if (code != null) {
+				retval = this.getLexingFactory().createLexeme(code, FORECAST_CHANGE_INDICATOR);
+			}
+			
+			return retval;
+		}
+
+	}
+
 }
