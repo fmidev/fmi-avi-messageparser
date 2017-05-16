@@ -43,6 +43,31 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
     	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
         assertTokenSequenceMatch("TAF " + taf1, "taf/taf1.json", TAFImpl.class, hints);
     }
+   
+    @Test
+    public void testTAF2() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+        assertTokenSequenceMatch(taf2, "taf/taf2.json", TAFImpl.class, hints);
+    }
+    
+    @Test
+    public void testTAF3() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+        assertTokenSequenceMatch(taf3, "taf/taf3.json", TAFImpl.class, hints);
+    }
+    
+    @Test
+    public void testTAF4() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+        assertTokenSequenceMatch(taf4, "taf/taf4.json", TAFImpl.class, hints);
+    }
+    
+    
+    @Test
+    public void testTAF11() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+        assertTokenSequenceMatch("TAF " + taf11, "taf/taf11.json", TAFImpl.class, hints);
+    }
 
     private void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz, final ParsingHints hints) throws IOException, TokenizingException {
         LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz), hints);

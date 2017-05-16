@@ -215,6 +215,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
                 appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
                 appendToken(retval, CAVOK, msg, TAF.class,  hints, changeFct);
                 appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, changeFct);
+                appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, TAF.class, hints, changeFct);
                 if (changeFct.getForecastWeather() != null) {
                 	for (Weather weather:changeFct.getForecastWeather()) {
                 		appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);

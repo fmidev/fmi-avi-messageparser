@@ -96,7 +96,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
         //Lexeme.Identity.AUTOMATED
         s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
-        //Lexeme.Identity.CANCELLATION
+        s.addReconstructor(Lexeme.Identity.CANCELLATION, new Cancellation.Reconstructor());
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
         //Lexeme.Identity.VARIABLE_WIND_DIRECTION
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
@@ -106,7 +106,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.MIN_TEMPERATURE
         //Lexeme.Identity.MAX_TEMPERATURE
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new TAFTimePeriod.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
         //Lexeme.Identity.RUNWAY_VISUAL_RANGE
         //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
         //Lexeme.Identity.AIR_PRESSURE_QNH
@@ -114,7 +114,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.WIND_SHEAR
         //Lexeme.Identity.SEA_STATE
         //Lexeme.Identity.RUNWAY_STATE
-        //Lexeme.Identity.NO_SIGNIFICANT_WEATHER
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         //Lexeme.Identity.COLOR_CODE
         //Lexeme.Identity.REMARKS_START
         //Lexeme.Identity.REMARK

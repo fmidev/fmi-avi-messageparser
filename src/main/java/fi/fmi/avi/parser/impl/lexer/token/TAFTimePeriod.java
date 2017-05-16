@@ -11,6 +11,7 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.Partial;
 import org.joda.time.Period;
 
+import fi.fmi.avi.data.AviationCodeListUser.TAFChangeIndicator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -99,8 +100,9 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 			Lexeme retval = null;
 			if (TAF.class.isAssignableFrom(clz)) {
 				TAFChangeForecast forecast = getAs(specifier, TAFChangeForecast.class);
-				if (forecast != null) {
 
+				// Skip FROM change indicators since validity time is indicated with the FM lexeme
+				if (forecast != null && forecast.getChangeIndicator() != TAFChangeIndicator.FROM) {
 					int validityEndDayOfMonth = forecast.getValidityEndDayOfMonth();
 					if (validityEndDayOfMonth == -1) {
 						validityEndDayOfMonth = forecast.getValidityStartDayOfMonth();

@@ -114,7 +114,8 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
 					code = "PROB40 TEMPO";
 					break;
 				case FROM:
-					throw new RuntimeException("TODO");
+					code = createCode_From(changeForecast);
+					break;
 				}
 			}
 			
@@ -123,6 +124,16 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
 			}
 			
 			return retval;
+		}
+
+		private String createCode_From(TAFChangeForecast changeForecast) {
+			StringBuilder ret = new StringBuilder("FM");
+			ret.append(String.format("%02d%02d%02d", 
+					changeForecast.getValidityStartDayOfMonth(),
+					changeForecast.getValidityStartHour(),
+					changeForecast.getValidityStartMinute()));
+			
+			return ret.toString();
 		}
 
 	}

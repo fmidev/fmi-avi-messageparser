@@ -32,9 +32,12 @@ public class Amendment extends PrioritizedLexemeVisitor {
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
             Lexeme retval = null;
             if (TAF.class.isAssignableFrom(clz)) {
-                if (AviationCodeListUser.TAFStatus.AMENDMENT == ((TAF) msg).getStatus()) {
+                // Note: cancellation messages are also amendments
+                if (AviationCodeListUser.TAFStatus.AMENDMENT == ((TAF) msg).getStatus() ||
+                    AviationCodeListUser.TAFStatus.CANCELLATION == ((TAF) msg).getStatus()) {
                     retval = this.getLexingFactory().createLexeme("AMD", AMENDMENT);
                 }
+
             }
             return retval;
         }
