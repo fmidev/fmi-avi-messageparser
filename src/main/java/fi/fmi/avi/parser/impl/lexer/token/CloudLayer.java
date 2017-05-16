@@ -93,7 +93,7 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
 	            token.identify(CLOUD, Lexeme.Status.SYNTAX_ERROR, "Unknown cloud cover " + match.group(2));
 	        }
 	        if (match.group(4) != null) {
-	            token.setParsedValue(TYPE, CloudType.forCode(match.group(3)));
+	            token.setParsedValue(TYPE, CloudType.forCode(match.group(4)));
 	        }
 	        token.setParsedValue(VALUE, height);
 	        token.setParsedValue(UNIT, "hft");

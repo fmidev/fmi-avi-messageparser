@@ -1,0 +1,27 @@
+{
+	"status": "AMENDMENT",
+	"issueDayOfMonth": 19,
+	"issueHour": 10,
+	"issueMinute": 0,
+	"issueTimeZone": "UTC",
+	"aerodromeDesignator": "EFAB",
+	"validityStartDayOfMonth": 19,
+	"validityStartHour": 9,
+	"validityEndDayOfMonth": 19,
+	"validityEndHour": 15,
+	
+	"baseForecast": {
+	  "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 200.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 8.0,
+	      "uom": "kt"
+	    }
+	  },
+	  "ceilingAndVisibilityOk": true
+	}
+}

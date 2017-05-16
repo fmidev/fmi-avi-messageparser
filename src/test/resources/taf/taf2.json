@@ -1,0 +1,53 @@
+{
+	"status": "NORMAL",
+	"issueDayOfMonth": 19,
+	"issueHour": 8,
+	"issueMinute": 15,
+	"issueTimeZone": "UTC",
+	"aerodromeDesignator": "EFAB",
+	"validityStartDayOfMonth": 19,
+	"validityStartHour": 9,
+	"validityEndDayOfMonth": 19,
+	"validityEndHour": 15,
+	
+	"baseForecast": {
+	  "surfaceWind": {
+	  	"variableDirection": false,
+	  	"meanWindDirection": {
+	  	  "value": 140.0,
+	  	  "uom": "deg"
+	  	},
+	  	"meanWindSpeed": {
+	  	  "value": 8.0,
+	  	  "uom": "mps"
+	  	},
+	  	"windGust": {
+	  	  "value": 15.0,
+	  	  "uom": "mps"
+	  	}
+	  },
+	  "prevailingVisibility": {
+	  	"value": 10000.0,
+	  	"uom": "m"
+	  },
+	  "prevailingVisibilityOperator": "ABOVE",
+	  "cloud": {
+	    "layers": [
+	      {
+	        "amount": "BKN",
+	      	"base": {
+	      	  "value": 1000,
+	      	  "uom": "ft"
+	      	}
+	      },
+	      {
+	        "amount": "BKN",
+	      	"base": {
+	      	  "value": 1500,
+	      	  "uom": "ft"
+	      	}
+	      }
+	    ]
+	  }
+	}
+}

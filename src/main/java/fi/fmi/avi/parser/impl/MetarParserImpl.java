@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.fmi.avi.data.AviationCodeListUser;
+import fi.fmi.avi.data.AviationCodeListUser.BreakingAction;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
@@ -255,21 +256,21 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 }
                 RunwayVisualRange rvr = new RunwayVisualRangeImpl();
                 rvr.setRunwayDirectionDesignator(runway);
-                if (maxValue != null) {
-                	rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
+                if (maxValue != null && minValue != null) {
+                    rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
-                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                        rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.BELOW);
                     } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == minValueOperator) {
-                    	rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
+                        rvr.setVaryingRVRMinimumOperator(AviationCodeListUser.RelationalOperator.ABOVE);
                     }
                     
                     rvr.setVaryingRVRMaximum(new NumericMeasureImpl(maxValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == maxValueOperator) {
-                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.BELOW);
+                        rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.BELOW);
                     } else if (RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN == maxValueOperator) {
-                    	rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.ABOVE);	
-                    }                    
-                } else {
+                        rvr.setVaryingRVRMaximumOperator(AviationCodeListUser.RelationalOperator.ABOVE);
+                    }
+                } else if (minValue != null) {
                     rvr.setMeanRVR(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
                         rvr.setMeanRVROperator(AviationCodeListUser.RelationalOperator.BELOW);
@@ -528,6 +529,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 	        	RunwayStateReportSpecialValue depthModifier = (RunwayStateReportSpecialValue)values.get(RunwayStateReportType.DEPTH_MODIFIER);
 	        	Boolean cleared = (Boolean)values.get(RunwayStateReportType.CLEARED);
 	        	
+	        	Object breakingAction = values.get(RunwayStateReportType.BREAKING_ACTION);
+	        	Object frictionCoefficient = values.get(RunwayStateReportType.FRICTION_COEFFICIENT);
+	        	
 	        	if (repetition != null && repetition) {
 	        		rws.setRepetition(true);
 	        	} else if (allRunways != null && allRunways) {
@@ -604,7 +608,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 }
 	        	
 	        	if (depthModifier != null) {
-	        		if (depthOfDeposit == null) {
+	        		if (depthOfDeposit == null && depthModifier == RunwayStateReportSpecialValue.NOT_MEASURABLE) {
+	        			rws.setDepthNotMeasurable(true);
+	        			rws.setDepthOfDeposit(null);
+	        		} else if (depthOfDeposit == null) {
                         result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
                                 "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken()));
                     } else {
@@ -634,6 +641,49 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         rws.setCleared(true);
                     }
                 }
+		        	
+				if (breakingAction instanceof fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction) {
+					BreakingAction action;
+					switch((fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction)breakingAction) {
+					case POOR:
+						action = BreakingAction.POOR;
+						break;
+					case MEDIUM_POOR:
+						action = BreakingAction.MEDIUM_POOR;
+						break;
+					case MEDIUM:
+						action = BreakingAction.MEDIUM;
+						break;
+					case MEDIUM_GOOD:
+						action = BreakingAction.MEDIUM_GOOD;
+						break;
+					case GOOD:
+						action = BreakingAction.GOOD;
+						break;
+					default:
+						action = null;
+					}
+					rws.setBreakingAction(action);
+				} else if (breakingAction instanceof RunwayStateReportSpecialValue) {
+					switch((RunwayStateReportSpecialValue)breakingAction) {
+					case RUNWAY_NOT_OPERATIONAL:
+						rws.setRunwayNotOperational(true);
+						break;
+					case MEASUREMENT_UNRELIABLE:
+						rws.setEstimatedSurfaceFrictionUnreliable(true);
+						break;
+					case MORE_THAN_OR_EQUAL:
+					case LESS_THAN_OR_EQUAL:
+					case NOT_MEASURABLE:
+						// TODO: no idea what we should do here
+						break;
+					}
+				}
+				
+				if (frictionCoefficient != null && frictionCoefficient instanceof Number) {
+					rws.setEstimatedSurfaceFriction(((Number)frictionCoefficient).doubleValue());
+				}
+				
 	        	states.add(rws);
 	        	match = findNext(RUNWAY_STATE, match, before);
         	}
