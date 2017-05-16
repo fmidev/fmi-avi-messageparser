@@ -182,7 +182,6 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, ISSUE_TIME, msg, TAF.class, hints);
         
         boolean nil = appendToken(retval, NIL, msg, TAF.class, hints);
-        
         if (!nil) {
 	        TAFBaseForecast baseFct = msg.getBaseForecast();
 	        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
@@ -205,8 +204,8 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
 	        }
 	        if (baseFct.getTemperatures() != null) {
 	        	for (TAFAirTemperatureForecast tempFct: baseFct.getTemperatures()) {
-	        		appendToken(retval, MIN_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
 	                appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+	                // No MIN_TEMPERATURE needed as they are parsed together
 	        	}
 	        }
 	        
@@ -265,14 +264,17 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
 
     private <T extends AviationWeatherMessage> boolean appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
+        boolean retval = false;
         if (rec != null) {
-            Lexeme l = rec.getAsLexeme(msg, clz, hints, specifier);
-            if (l != null) {
-                builder.append(l);
-                return true;
+            List<Lexeme> list = rec.getAsLexemes(msg, clz, hints, specifier);
+            if (list != null) {
+            	for (Lexeme l : list) {
+            		builder.append(l);
+            		retval = true;
+            	}
             }
         }
-        return false;
+        return retval;
     }
 
 }

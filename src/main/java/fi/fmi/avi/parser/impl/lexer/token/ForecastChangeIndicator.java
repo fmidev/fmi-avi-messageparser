@@ -6,6 +6,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.MINUTE1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.TYPE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
@@ -85,55 +87,52 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+		public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints,
 				Object... specifier) throws TokenizingException {
 			TAFChangeForecast changeForecast = getAs(specifier, TAFChangeForecast.class);
 			
-			Lexeme retval = null;
+			List<Lexeme> retval = new ArrayList<>();
 			
-			String code = null;
 			if (changeForecast != null) {
 				
 				switch (changeForecast.getChangeIndicator()) {
 				case BECOMING:
-					code = "BECMG";
+					retval.add(this.getLexingFactory().createLexeme("BECMG", FORECAST_CHANGE_INDICATOR));
 					break;
 				case TEMPORARY_FLUCTUATIONS:
-					code = "TEMPO";
+					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
 					break;
 				case PROBABILITY_30:
-					code = "PROB30";
+					retval.add(this.getLexingFactory().createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
 					break;
 				case PROBABILITY_40:
-					code = "PROB40";
+					retval.add(this.getLexingFactory().createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
 					break;
 				case PROBABILITY_30_TEMPORARY_FLUCTUATIONS:
-					code = "PROB30 TEMPO";
+					retval.add(this.getLexingFactory().createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
+					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
 					break;
 				case PROBABILITY_40_TEMPORARY_FLUCTUATIONS:
-					code = "PROB40 TEMPO";
+					retval.add(this.getLexingFactory().createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
+					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
 					break;
 				case FROM:
-					code = createCode_From(changeForecast);
+					retval.add(createLexeme_From(changeForecast));
 					break;
 				}
-			}
-			
-			if (code != null) {
-				retval = this.getLexingFactory().createLexeme(code, FORECAST_CHANGE_INDICATOR);
 			}
 			
 			return retval;
 		}
 
-		private String createCode_From(TAFChangeForecast changeForecast) {
+		private Lexeme createLexeme_From(TAFChangeForecast changeForecast) {
 			StringBuilder ret = new StringBuilder("FM");
 			ret.append(String.format("%02d%02d%02d", 
 					changeForecast.getValidityStartDayOfMonth(),
 					changeForecast.getValidityStartHour(),
 					changeForecast.getValidityStartMinute()));
 			
-			return ret.toString();
+			return this.getLexingFactory().createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR);
 		}
 
 	}

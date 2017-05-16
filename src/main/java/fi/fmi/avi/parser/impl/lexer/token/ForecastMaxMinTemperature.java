@@ -8,8 +8,16 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
+import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
  * Created by rinne on 10/02/17.
@@ -73,4 +81,24 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
         }
     }
 
+    public static class Reconstructor extends FactoryBasedReconstructor {
+    	@Override
+    	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+    			Object... specifier) throws TokenizingException {
+    		Lexeme retval = null;
+    		if (TAF.class.isAssignableFrom(clz)) {
+    			
+    			TAFBaseForecast forecast = getAs(specifier, TAFBaseForecast.class);
+    			
+    			if (forecast.getTemperatures() != null) {
+    				for (TAFAirTemperatureForecast temp : forecast.getTemperatures()) {
+    					//temp.
+    				}
+    				//for ()
+    			}
+    		}
+    		
+    		return retval;
+    	}
+    }
 }
