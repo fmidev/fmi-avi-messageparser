@@ -6,14 +6,14 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.DAY1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR1;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
-import fi.fmi.avi.data.taf.TAFChangeForecast;
-import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
@@ -83,22 +83,58 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
 
     public static class Reconstructor extends FactoryBasedReconstructor {
     	@Override
-    	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+    	public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints,
     			Object... specifier) throws TokenizingException {
-    		Lexeme retval = null;
+    		List<Lexeme> retval = new ArrayList<>();
+    		
     		if (TAF.class.isAssignableFrom(clz)) {
     			
     			TAFBaseForecast forecast = getAs(specifier, TAFBaseForecast.class);
     			
     			if (forecast.getTemperatures() != null) {
     				for (TAFAirTemperatureForecast temp : forecast.getTemperatures()) {
-    					//temp.
+
+    					if (temp.getMaxTemperature() != null) {
+    						if (!"degC".equals(temp.getMaxTemperature().getUom())) {
+    							throw new TokenizingException("Unsupported unit of measurement for maximum temperature: '"+temp.getMaxTemperature().getUom()+"'");
+    						}
+    						
+    						String s = formatTemp("TX", 
+    								temp.getMaxTemperature().getValue(), 
+    								temp.getMaxTemperatureDayOfMonth(),
+    								temp.getMaxTemperatureHour());
+
+    						retval.add(this.getLexingFactory().createLexeme(s, MAX_TEMPERATURE));
+    					}
+    					
+    					if (temp.getMinTemperature() != null) {
+    						if (!"degC".equals(temp.getMinTemperature().getUom())) {
+    							throw new TokenizingException("Unsupported unit of measurement for minimum temperature: '"+temp.getMaxTemperature().getUom()+"'");
+    						}
+    						
+    						String s = formatTemp("TN", 
+    								temp.getMinTemperature().getValue(), 
+    								temp.getMinTemperatureDayOfMonth(),
+    								temp.getMinTemperatureHour());
+
+    						retval.add(this.getLexingFactory().createLexeme(s, MIN_TEMPERATURE));
+    					}
+    					
     				}
-    				//for ()
     			}
     		}
     		
     		return retval;
+    	}
+    	
+    	public String formatTemp(String prefix, Double temp, int day, int hour) {
+    		String s = String.format("%s%02d/%02d%02dZ",
+					temp < 0.0 ? prefix + "M" : prefix,
+					Math.abs(temp.intValue()),
+					day,
+					hour);
+    		
+    		return s;
     	}
     }
 }
