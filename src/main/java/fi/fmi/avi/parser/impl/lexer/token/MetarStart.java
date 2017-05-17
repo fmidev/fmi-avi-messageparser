@@ -29,7 +29,7 @@ public class MetarStart extends PrioritizedLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
             if (Metar.class.isAssignableFrom(clz)) {
-                return this.getLexingFactory().createLexeme("METAR", Lexeme.Identity.METAR_START);
+                return this.createLexeme("METAR", Lexeme.Identity.METAR_START);
             } else {
                 return null;
             }

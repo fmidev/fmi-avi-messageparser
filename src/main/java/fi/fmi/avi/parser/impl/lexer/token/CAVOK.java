@@ -36,7 +36,7 @@ public class CAVOK extends PrioritizedLexemeVisitor {
                 Metar m = (Metar) msg;
                 if (specifier == null) {
                     if (m.isCeilingAndVisibilityOk()) {
-                        retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
+                        retval = this.createLexeme("CAVOK", CAVOK);
                     }
                 }
             } else if (TAF.class.isAssignableFrom(clz)) {
@@ -44,12 +44,12 @@ public class CAVOK extends PrioritizedLexemeVisitor {
                 if (specifier != null && specifier[0] instanceof TAFBaseForecast) {
                     TAFBaseForecast b = (TAFBaseForecast) specifier[0];
                     if (b.isCeilingAndVisibilityOk()) {
-                        retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
+                        retval = this.createLexeme("CAVOK", CAVOK);
                     }
                 } else if (specifier != null && specifier[0] instanceof TAFChangeForecast) {
                     TAFChangeForecast c = (TAFChangeForecast) specifier[0];
                     if (c.isCeilingAndVisibilityOk()) {
-                        retval = this.getLexingFactory().createLexeme("CAVOK", CAVOK);
+                        retval = this.createLexeme("CAVOK", CAVOK);
                     }
                 }
             }

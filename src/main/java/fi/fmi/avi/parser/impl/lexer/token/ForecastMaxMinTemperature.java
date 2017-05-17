@@ -104,8 +104,8 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
     								temp.getMaxTemperatureDayOfMonth(),
     								temp.getMaxTemperatureHour());
 
-    						retval.add(this.getLexingFactory().createLexeme(s, MAX_TEMPERATURE));
-    					}
+                            retval.add(this.createLexeme(s, MAX_TEMPERATURE));
+                        }
     					
     					if (temp.getMinTemperature() != null) {
     						if (!"degC".equals(temp.getMinTemperature().getUom())) {
@@ -117,8 +117,8 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
     								temp.getMinTemperatureDayOfMonth(),
     								temp.getMinTemperatureHour());
 
-    						retval.add(this.getLexingFactory().createLexeme(s, MIN_TEMPERATURE));
-    					}
+                            retval.add(this.createLexeme(s, MIN_TEMPERATURE));
+                        }
     					
     				}
     			}

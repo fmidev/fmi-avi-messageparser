@@ -38,7 +38,7 @@ public class ValidTime extends TAFTimePeriod {
 						taf.getValidityEndDayOfMonth(), 
 						taf.getValidityEndHour(), 
 						hints);
-				retval = this.getLexingFactory().createLexeme(period, Lexeme.Identity.VALID_TIME);
+				retval = this.createLexeme(period, Lexeme.Identity.VALID_TIME);
 			}
 
 			return retval;

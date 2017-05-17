@@ -120,7 +120,7 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 					str = String.format("%04d", meters);
 				}
 
-				retval = this.getLexingFactory().createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY);
+				retval = this.createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY);
 			}
 			return retval;
 		}

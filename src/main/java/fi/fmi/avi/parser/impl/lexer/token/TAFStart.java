@@ -29,7 +29,7 @@ public class TAFStart extends PrioritizedLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
             if (TAF.class.isAssignableFrom(clz)) {
-                return this.getLexingFactory().createLexeme("TAF", Lexeme.Identity.TAF_START);
+                return this.createLexeme("TAF", Lexeme.Identity.TAF_START);
             } else {
                 return null;
             }

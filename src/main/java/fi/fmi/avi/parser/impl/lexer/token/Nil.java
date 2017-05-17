@@ -35,11 +35,11 @@ public class Nil extends PrioritizedLexemeVisitor {
             Lexeme retval = null;
             if (Metar.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.MetarStatus.MISSING == ((Metar) msg).getStatus()) {
-                    retval = this.getLexingFactory().createLexeme("NIL", NIL);
+                    retval = this.createLexeme("NIL", NIL);
                 }
             } else if (TAF.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.TAFStatus.MISSING == ((TAF) msg).getStatus()) {
-                    retval = this.getLexingFactory().createLexeme("NIL", NIL);
+                    retval = this.createLexeme("NIL", NIL);
                 }
             }
             return retval;

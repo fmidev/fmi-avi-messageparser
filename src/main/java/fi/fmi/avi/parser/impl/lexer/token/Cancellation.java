@@ -35,8 +35,8 @@ public class Cancellation extends PrioritizedLexemeVisitor {
     		Lexeme retval = null;
             if (TAF.class.isAssignableFrom(clz)) {
             	if (AviationCodeListUser.TAFStatus.CANCELLATION == ((TAF) msg).getStatus()) {
-            		retval = this.getLexingFactory().createLexeme("CNL", CANCELLATION);
-            	}
+                    retval = this.createLexeme("CNL", CANCELLATION);
+                }
             }
             
             return retval;

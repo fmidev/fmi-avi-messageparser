@@ -16,9 +16,9 @@ import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
-import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -111,9 +111,9 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 					String str = String.format("%02d%02d/%02d%02d",
 							forecast.getValidityStartDayOfMonth(), forecast.getValidityStartHour(),
 							validityEndDayOfMonth, forecast.getValidityEndHour());
-					
-					retval = this.getLexingFactory().createLexeme(str, Identity.CHANGE_FORECAST_TIME_GROUP);
-				}
+
+                    retval = this.createLexeme(str, Identity.CHANGE_FORECAST_TIME_GROUP);
+                }
 			}
 			return retval;
 		}

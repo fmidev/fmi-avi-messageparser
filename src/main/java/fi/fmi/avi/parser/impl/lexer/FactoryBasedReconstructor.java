@@ -37,6 +37,22 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
         return this.factory;
     }
 
+	protected Lexeme createLexeme(final String token) {
+		return this.createLexeme(token, null, Lexeme.Status.UNRECOGNIZED);
+	}
+
+	protected Lexeme createLexeme(final String token, final Lexeme.Identity identity) {
+		return this.createLexeme(token, identity, Lexeme.Status.OK);
+	}
+
+	protected Lexeme createLexeme(final String token, final Lexeme.Identity identity, final Lexeme.Status status) {
+		if (this.factory != null) {
+			return this.factory.createLexeme(token, identity, status);
+		} else {
+			throw new IllegalStateException("No LexingFactory injected");
+		}
+	}
+
     @Override
     public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints, Object... specifier) throws TokenizingException {
     	List<Lexeme> retval = new ArrayList<>();

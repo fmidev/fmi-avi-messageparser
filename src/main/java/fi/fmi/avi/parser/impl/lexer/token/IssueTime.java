@@ -57,7 +57,7 @@ public class IssueTime extends TimeHandlingRegex {
                     retval.append(msg.getIssueTimeZone());
                 }
             }
-            return this.getLexingFactory().createLexeme(retval.toString(), Lexeme.Identity.ISSUE_TIME);
+            return this.createLexeme(retval.toString(), Lexeme.Identity.ISSUE_TIME);
         }
     }
 

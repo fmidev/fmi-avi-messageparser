@@ -8,9 +8,9 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
@@ -119,8 +119,8 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             				verVis = changeFct.getCloud().getVerticalVisibility();
             			}
             		}
-            		retval = this.getLexingFactory().createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis),Identity.CLOUD);
-            	}
+					retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
+				}
             } else if (Metar.class.isAssignableFrom(clz)) {
             	//TODO
             }

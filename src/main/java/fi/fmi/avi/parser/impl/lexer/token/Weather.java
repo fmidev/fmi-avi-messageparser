@@ -1,7 +1,6 @@
 package fi.fmi.avi.parser.impl.lexer.token;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.AMENDMENT;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
@@ -10,14 +9,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.AviationCodeListUser.TrendForecastChangeIndicator;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
@@ -491,11 +487,11 @@ public class Weather extends RegexMatchingLexemeVisitor {
             	TAFBaseForecast baseFct = getAs(specifier, 0, TAFBaseForecast.class);
             	TAFChangeForecast changeFct = getAs(specifier, 0, TAFChangeForecast.class);
             	if (baseFct != null || changeFct != null) {
-            		retval = this.getLexingFactory().createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
-            	}
+                    retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+                }
             } else if (Metar.class.isAssignableFrom(clz)) {
             	fi.fmi.avi.data.Weather weather = getAs(specifier, fi.fmi.avi.data.Weather.class);
-            	retval = this.getLexingFactory().createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+                retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
             }
             return retval;
         }

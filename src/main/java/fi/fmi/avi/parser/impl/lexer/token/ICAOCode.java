@@ -280,13 +280,13 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
             if (Metar.class.isAssignableFrom(clz)) {
                 Metar m = (Metar) msg;
                 if (m.getAerodromeDesignator() != null) {
-                    retval = this.getLexingFactory().createLexeme(m.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                    retval = this.createLexeme(m.getAerodromeDesignator(), AERODROME_DESIGNATOR);
                 }
 
             } else if (TAF.class.isAssignableFrom(clz)) {
                 TAF t = (TAF) msg;
                 if (t.getAerodromeDesignator() != null) {
-                    retval = this.getLexingFactory().createLexeme(t.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                    retval = this.createLexeme(t.getAerodromeDesignator(), AERODROME_DESIGNATOR);
                 }
             }
             return retval;

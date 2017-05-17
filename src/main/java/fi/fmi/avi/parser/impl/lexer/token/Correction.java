@@ -34,11 +34,11 @@ public class Correction extends PrioritizedLexemeVisitor {
             Lexeme retval = null;
             if (Metar.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.MetarStatus.CORRECTION == ((Metar) msg).getStatus()) {
-                    retval = this.getLexingFactory().createLexeme("COR", CORRECTION);
+                    retval = this.createLexeme("COR", CORRECTION);
                 }
             } else if (TAF.class.isAssignableFrom(clz)) {
                 if (AviationCodeListUser.TAFStatus.CORRECTION == ((TAF) msg).getStatus()) {
-                    retval = this.getLexingFactory().createLexeme("COR", CORRECTION);
+                    retval = this.createLexeme("COR", CORRECTION);
                 }
             }
             return retval;

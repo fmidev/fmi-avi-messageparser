@@ -35,7 +35,7 @@ public class Amendment extends PrioritizedLexemeVisitor {
                 // Note: cancellation messages are also amendments
                 if (AviationCodeListUser.TAFStatus.AMENDMENT == ((TAF) msg).getStatus() ||
                     AviationCodeListUser.TAFStatus.CANCELLATION == ((TAF) msg).getStatus()) {
-                    retval = this.getLexingFactory().createLexeme("AMD", AMENDMENT);
+                    retval = this.createLexeme("AMD", AMENDMENT);
                 }
 
             }

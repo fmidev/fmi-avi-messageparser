@@ -119,9 +119,9 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 
 				builder.append(wind.getMeanWindSpeed().getUom().toUpperCase());
 
-				retval = this.getLexingFactory().createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
-			
-			}
+                retval = this.createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
+
+            }
 
 			return retval;
 		}
