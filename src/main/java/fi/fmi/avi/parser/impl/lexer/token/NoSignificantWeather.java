@@ -21,8 +21,8 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
 
     @Override
     public void visit(final Lexeme token, final ParsingHints hints) {
-        if ("NOSIG".equalsIgnoreCase(token.getTACToken()) || "NSW".equalsIgnoreCase(token.getTACToken()) || "NSC".equalsIgnoreCase(token.getTACToken())) {
-            token.identify(NO_SIGNIFICANT_WEATHER);
+		if ("NSW".equalsIgnoreCase(token.getTACToken())) {
+			token.identify(NO_SIGNIFICANT_WEATHER);
         }
     }
     
@@ -31,11 +31,6 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
     	@Override
     	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
     			Object... specifier) throws TokenizingException {
-			// Produce NSW's only when long format is requested
-			if (hints.get(ParsingHints.KEY_VALIDTIME_FORMAT) != ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG) {
-				return null;
-			}
-
 			Lexeme retval = null;
 			
 			if (TAF.class.isAssignableFrom(clz)) {
@@ -43,7 +38,7 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
 				
 				if (forecast != null) {
 					if (forecast.getForecastWeather() == null || forecast.getForecastWeather().isEmpty()) {
-						retval = this.getLexingFactory().createLexeme("NSW", NO_SIGNIFICANT_WEATHER);
+						retval = this.createLexeme("NSW", NO_SIGNIFICANT_WEATHER);
 					}
 				}
 			}

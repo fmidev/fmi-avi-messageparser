@@ -37,6 +37,7 @@ import fi.fmi.avi.parser.impl.lexer.token.IssueTime;
 import fi.fmi.avi.parser.impl.lexer.token.MetarStart;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.Nil;
+import fi.fmi.avi.parser.impl.lexer.token.NoSignificantCloud;
 import fi.fmi.avi.parser.impl.lexer.token.NoSignificantWeather;
 import fi.fmi.avi.parser.impl.lexer.token.Remark;
 import fi.fmi.avi.parser.impl.lexer.token.RemarkStart;
@@ -46,7 +47,6 @@ import fi.fmi.avi.parser.impl.lexer.token.SeaState;
 import fi.fmi.avi.parser.impl.lexer.token.SnowClosure;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.TAFStart;
-import fi.fmi.avi.parser.impl.lexer.token.TAFTimePeriod;
 import fi.fmi.avi.parser.impl.lexer.token.ValidTime;
 import fi.fmi.avi.parser.impl.lexer.token.VariableSurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
@@ -102,7 +102,9 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
         s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
         s.addReconstructor(Lexeme.Identity.MAX_TEMPERATURE, new ForecastMaxMinTemperature.Reconstructor());
         // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
@@ -114,7 +116,6 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.WIND_SHEAR
         //Lexeme.Identity.SEA_STATE
         //Lexeme.Identity.RUNWAY_STATE
-        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         //Lexeme.Identity.COLOR_CODE
         //Lexeme.Identity.REMARKS_START
         //Lexeme.Identity.REMARK

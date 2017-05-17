@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.TrendForecast;
+import fi.fmi.avi.data.metar.TrendTimeGroups;
+import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
-import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -30,8 +32,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
         WITH_40_PCT_PROBABILITY("PROB40"),
         WITH_30_PCT_PROBABILITY("PROB30"),
         AT("AT"),
-        FROM("FM"),
-        UNTIL("TL");
+        FROM("FM"), UNTIL("TL"), NO_SIGNIFICANT_CHANGES("NOSIG");
 
         private String code;
 
@@ -51,7 +52,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     }
 
     public ForecastChangeIndicator(final Priority prio) {
-        super("^(TEMPO|BECMG|PROB40|PROB30)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$", prio);
+        super("^(NOSIG|TEMPO|BECMG|PROB40|PROB30)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$", prio);
     }
 
     @Override
@@ -89,52 +90,106 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
 		@Override
 		public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints,
 				Object... specifier) throws TokenizingException {
-			TAFChangeForecast changeForecast = getAs(specifier, TAFChangeForecast.class);
-			
-			List<Lexeme> retval = new ArrayList<>();
-			
-			if (changeForecast != null) {
-				
-				switch (changeForecast.getChangeIndicator()) {
-				case BECOMING:
-					retval.add(this.getLexingFactory().createLexeme("BECMG", FORECAST_CHANGE_INDICATOR));
-					break;
-				case TEMPORARY_FLUCTUATIONS:
-					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
-					break;
-				case PROBABILITY_30:
-					retval.add(this.getLexingFactory().createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
-					break;
-				case PROBABILITY_40:
-					retval.add(this.getLexingFactory().createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
-					break;
-				case PROBABILITY_30_TEMPORARY_FLUCTUATIONS:
-					retval.add(this.getLexingFactory().createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
-					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
-					break;
-				case PROBABILITY_40_TEMPORARY_FLUCTUATIONS:
-					retval.add(this.getLexingFactory().createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
-					retval.add(this.getLexingFactory().createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
-					break;
-				case FROM:
-					retval.add(createLexeme_From(changeForecast));
-					break;
-				}
-			}
-			
-			return retval;
+            List<Lexeme> retval = new ArrayList<>();
+
+            if (msg instanceof TAF) {
+                TAFChangeForecast changeForecast = getAs(specifier, TAFChangeForecast.class);
+
+                if (changeForecast != null) {
+                    switch (changeForecast.getChangeIndicator()) {
+                        case BECOMING:
+                            retval.add(this.createLexeme("BECMG", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case TEMPORARY_FLUCTUATIONS:
+                            retval.add(this.createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case PROBABILITY_30:
+                            retval.add(this.createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case PROBABILITY_40:
+                            retval.add(this.createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case PROBABILITY_30_TEMPORARY_FLUCTUATIONS:
+                            retval.add(this.createLexeme("PROB30", FORECAST_CHANGE_INDICATOR));
+                            retval.add(this.createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case PROBABILITY_40_TEMPORARY_FLUCTUATIONS:
+                            retval.add(this.createLexeme("PROB40", FORECAST_CHANGE_INDICATOR));
+                            retval.add(this.createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
+                            break;
+                        case FROM:
+                            retval.add(createLexeme_From(changeForecast));
+                            break;
+                    }
+                }
+            } else if (msg instanceof Metar) {
+                TrendForecast trend = getAs(specifier, TrendForecast.class);
+                if (trend != null) {
+                    switch (trend.getChangeIndicator()) {
+                        case BECOMING: {
+                            retval.add(this.createLexeme("BECMG", FORECAST_CHANGE_INDICATOR));
+                            List<Lexeme> periodOfChange = createTrendTimeChangePeriods(trend.getTimeGroups());
+                            if (periodOfChange.isEmpty()) {
+                                throw new TokenizingException("No period of time for the trend of type BECOMING");
+                            }
+                            retval.addAll(periodOfChange);
+                            break;
+                        }
+                        case TEMPORARY_FLUCTUATIONS: {
+                            retval.add(this.createLexeme("TEMPO", FORECAST_CHANGE_INDICATOR));
+                            List<Lexeme> periodOfChange = createTrendTimeChangePeriods(trend.getTimeGroups());
+                            if (!periodOfChange.isEmpty()) {
+                                retval.addAll(periodOfChange);
+                            }
+                            break;
+                        }
+                        case NO_SIGNIFICANT_CHANGES:
+                            retval.add(this.createLexeme("NOSIG", FORECAST_CHANGE_INDICATOR));
+                            break;
+                    }
+                }
+            }
+
+            return retval;
 		}
 
 		private Lexeme createLexeme_From(TAFChangeForecast changeForecast) {
 			StringBuilder ret = new StringBuilder("FM");
-			ret.append(String.format("%02d%02d%02d", 
-					changeForecast.getValidityStartDayOfMonth(),
-					changeForecast.getValidityStartHour(),
-					changeForecast.getValidityStartMinute()));
-			
-			return this.getLexingFactory().createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR);
-		}
+            if (changeForecast.getValidityStartDayOfMonth() > -1) {
+                ret.append(String.format("%02d%02d%02d", changeForecast.getValidityStartDayOfMonth(), changeForecast.getValidityStartHour(),
+                        changeForecast.getValidityStartMinute()));
+            } else {
+                ret.append(String.format("%02d%02d", changeForecast.getValidityStartHour(), changeForecast.getValidityStartMinute()));
+            }
 
-	}
+            return this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR);
+        }
+
+        private List<Lexeme> createTrendTimeChangePeriods(final TrendTimeGroups timeGroups) {
+            List<Lexeme> retval = new ArrayList<>();
+            if (timeGroups != null) {
+                if (timeGroups.isSingleInstance()) {
+                    if (timeGroups.getFromHour() > -1 && timeGroups.getFromMinute() > -1) {
+                        StringBuilder ret = new StringBuilder("AT");
+                        ret.append(String.format("%02d%02d", timeGroups.getFromHour(), timeGroups.getFromMinute()));
+                        retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
+                    }
+                } else {
+                    if (timeGroups.getFromHour() > -1 && timeGroups.getFromMinute() > -1) {
+                        StringBuilder ret = new StringBuilder("FM");
+                        ret.append(String.format("%02d%02d", timeGroups.getFromHour(), timeGroups.getFromMinute()));
+                        retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
+                    }
+                    if (timeGroups.getToHour() > -1 && timeGroups.getToMinute() > -1) {
+                        StringBuilder ret = new StringBuilder("TL");
+                        ret.append(String.format("%02d%02d", timeGroups.getToHour(), timeGroups.getToMinute()));
+                        retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
+                    }
+                }
+            }
+            return retval;
+        }
+
+    }
 
 }

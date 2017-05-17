@@ -16,8 +16,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.MAX_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.parser.Lexeme.Identity.MIN_TEMPERATURE;
-import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
@@ -35,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.CloudLayer;
@@ -180,10 +179,9 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, CORRECTION, msg, TAF.class, hints);
         appendToken(retval, AERODROME_DESIGNATOR, msg, TAF.class, hints);
         appendToken(retval, ISSUE_TIME, msg, TAF.class, hints);
-        
-        boolean nil = appendToken(retval, NIL, msg, TAF.class, hints);
-        if (!nil) {
-	        TAFBaseForecast baseFct = msg.getBaseForecast();
+
+        if (AviationCodeListUser.TAFStatus.MISSING != msg.getStatus()) {
+            TAFBaseForecast baseFct = msg.getBaseForecast();
 	        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
 	        appendToken(retval, CANCELLATION, msg, TAF.class, hints, baseFct);
 	        appendToken(retval, SURFACE_WIND, msg, TAF.class,  hints, baseFct);
@@ -243,35 +241,38 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         return retval.build();
     }
 
-    private <T extends AviationWeatherMessage> boolean appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
-    	return appendCloudLayers(builder, msg, clz, layers, hints, null);
+    private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
+            final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
+        return appendCloudLayers(builder, msg, clz, layers, hints, null);
     }
-    
-    private <T extends AviationWeatherMessage> boolean appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz, final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
-    	boolean retval = false;
+
+    private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
+            final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
+        int retval = 0;
         if (layers != null) {
             for (CloudLayer layer : layers) {
-                boolean b = appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
-                retval = retval || b;
+                retval += appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
             }
         }
         return retval;
     }
-    
-    private <T extends AviationWeatherMessage> boolean appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints) throws TokenizingException {
+
+    private <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz,
+            final ParsingHints hints) throws TokenizingException {
         return appendToken(builder, id, msg, clz, null, hints);
     }
 
-    private <T extends AviationWeatherMessage> boolean appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
+    private <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz,
+            final ParsingHints hints, final Object... specifier) throws TokenizingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
-        boolean retval = false;
+        int retval = 0;
         if (rec != null) {
             List<Lexeme> list = rec.getAsLexemes(msg, clz, hints, specifier);
             if (list != null) {
             	for (Lexeme l : list) {
             		builder.append(l);
-            		retval = true;
-            	}
+                    retval++;
+                }
             }
         }
         return retval;

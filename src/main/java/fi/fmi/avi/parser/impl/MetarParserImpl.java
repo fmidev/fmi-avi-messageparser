@@ -11,7 +11,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CHANGES;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
@@ -698,7 +698,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         Lexeme.Identity[] before = { REMARKS_START, END_TOKEN };
         final List<TrendForecast> trends = new ArrayList<>();
         //Handle NOSIG:
-        findNext(NO_SIGNIFICANT_WEATHER, lexed.getFirstLexeme(), before, (nosigToken) -> {
+        findNext(NO_SIGNIFICANT_CHANGES, lexed.getFirstLexeme(), before, (nosigToken) -> {
             TrendForecast fct = new TrendForecastImpl();
             fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
             trends.add(fct);
@@ -767,6 +767,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                     case WITH_30_PCT_PROBABILITY:
                     case WITH_40_PCT_PROBABILITY:
                         result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "PROB30/40 groups not allowed in METAR"));
+                        break;
+                    case NO_SIGNIFICANT_CHANGES:
+                        fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
+                        break;
                     default:
                         break;
                 }
@@ -811,6 +815,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                             }
                             break;
                         }
+                        case NO_SIGNIFICANT_CLOUD:
+                            fct.setNoSignificantCloud(true);
+                            break;
                         case HORIZONTAL_VISIBILITY: {
                             if (prevailingVisibility == null) {
                                 MetricHorizontalVisibility.DirectionValue direction = token.getParsedValue(Lexeme.ParsedValueName.DIRECTION,
@@ -879,7 +886,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                             }
                             break;
                         }
-
+                        case NO_SIGNIFICANT_WEATHER:
+                            fct.setNoSignificantWeather(true);
+                            break;
                         default:
                             result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Illegal token " + token.getTACToken() + " within the change forecast group"));
                             break;
@@ -887,15 +896,20 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                     token = findNext(token, stopWithingGroup);
                 }
                 if (cloudLayers != null && !cloudLayers.isEmpty()) {
-                    if (cloud.getVerticalVisibility() != null) {
+                    if (fct.isNoSignificantCloud()) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Cloud layers cannot co-exist with NSC in trend"));
+                    } else if (cloud.getVerticalVisibility() != null) {
                         result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Cloud layers cannot co-exist with vertical visibility in trend"));
                     } else {
                         cloud.setLayers(cloudLayers);
                     }
                 }
+
                 if (fct.isCeilingAndVisibilityOk()) {
-                    if (cloud != null || prevailingVisibility != null || forecastWeather != null) {
-                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "CAVOK cannot co-exist with cloud, prevailing visibility or weather in trend"));
+                    if (cloud != null || prevailingVisibility != null || forecastWeather != null || fct.isNoSignificantWeather()
+                            || fct.isNoSignificantCloud()) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
+                                "CAVOK cannot co-exist with cloud, prevailing visibility, weather, NSW or NSC " + "in trend"));
                     }
                 } else {
                     fct.setCloud(cloud);
@@ -904,6 +918,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         fct.setPrevailingVisibilityOperator(visibilityOperator);
                     }
                     fct.setSurfaceWind(wind);
+                    if (fct.isNoSignificantWeather() && forecastWeather != null && !forecastWeather.isEmpty()) {
+                        result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Forecast weather cannot co-exist with NSW in trend"));
+                    }
                     fct.setForecastWeather(forecastWeather);
                 }
                 trends.add(fct);
