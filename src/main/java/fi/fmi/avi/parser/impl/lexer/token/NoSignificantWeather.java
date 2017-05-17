@@ -37,7 +37,7 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
 				TAFChangeForecast forecast = getAs(specifier, TAFChangeForecast.class);
 				
 				if (forecast != null) {
-					if (forecast.getForecastWeather() == null || forecast.getForecastWeather().isEmpty()) {
+					if (forecast.isNoSignificantWeather()) {
 						retval = this.createLexeme("NSW", NO_SIGNIFICANT_WEATHER);
 					}
 				}

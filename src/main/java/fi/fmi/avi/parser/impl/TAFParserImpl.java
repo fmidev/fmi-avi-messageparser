@@ -15,6 +15,8 @@ import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.MAX_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.MIN_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
@@ -64,6 +66,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             retval.addIssue(checkZeroOrOne(lexed, zeroOrOneAllowed));
             TAF taf = new TAFImpl();
 
+            retval.setParsedMessage(taf);
             Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK,
                     MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
 
@@ -106,6 +109,10 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 }
             });
 
+            if (AviationCodeListUser.TAFStatus.MISSING == taf.getStatus()) {
+                return retval;
+            }
+
             retval.addIssue(updateTAFValidTime(taf, lexed, hints));
 
             stopAt = new Identity[] { SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR,
@@ -121,10 +128,13 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 }
             });
 
+            if (AviationCodeListUser.TAFStatus.CANCELLATION == taf.getStatus()) {
+                return retval;
+            }
+
             retval.addIssue(updateBaseForecast(taf, lexed, hints));
             retval.addIssue(updateChangeForecasts(taf, lexed, hints));
 
-            retval.setParsedMessage(taf);
         } else {
             retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Message does not end in end token"));
         }
@@ -192,6 +202,15 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
         before = new Identity[] { CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateWeather(baseFct, lexed.getFirstLexeme(), before, hints));
+
+        findNext(NO_SIGNIFICANT_CLOUD, lexed.getFirstLexeme(), before, (match) -> {
+            CloudForecast cfct = baseFct.getCloud();
+            if (cfct != null && (cfct.getVerticalVisibility() != null || (cfct.getLayers() != null && cfct.getLayers().size() > 0))) {
+                retval.add(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Cannot have both NSC and clouds in the same change forecast"));
+            } else {
+                baseFct.setNoSignificantCloud(true);
+            }
+        });
 
         before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateClouds(baseFct, lexed.getFirstLexeme(), before, hints));
@@ -409,8 +428,25 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         before = new Identity[] { CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateWeather(fct, from, before, hints));
 
+        findNext(NO_SIGNIFICANT_WEATHER, from, before, (match) -> {
+            if (fct.getForecastWeather() != null && !fct.getForecastWeather().isEmpty()) {
+                retval.add(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Cannot have both NSW and weather in the same change forecast"));
+            } else {
+                fct.setNoSignificantWeather(true);
+            }
+        });
+
         before = new Identity[] { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateClouds(fct, from, before, hints));
+
+        findNext(NO_SIGNIFICANT_CLOUD, from, before, (match) -> {
+            CloudForecast cfct = fct.getCloud();
+            if (cfct != null && (cfct.getVerticalVisibility() != null || (cfct.getLayers() != null && cfct.getLayers().size() > 0))) {
+                retval.add(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Cannot have both NSC and clouds in the same change forecast"));
+            } else {
+                fct.setNoSignificantCloud(true);
+            }
+        });
 
         return retval;
     }
@@ -492,12 +528,6 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 retval.addAll(appendWeatherCodes(match, weather, before, hints));
                 if (!weather.isEmpty()) {
                     fct.setForecastWeather(weather);
-                }
-            }
-        }, () -> {
-            if (fct instanceof TAFBaseForecast) {
-                if (!fct.isCeilingAndVisibilityOk()) {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.MISSING_DATA, "Weather or CAVOK is missing from TAF base forecast"));
                 }
             }
         });

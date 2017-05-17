@@ -61,24 +61,33 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
             day = Integer.parseInt(match.group(4));
         }
         int hour = Integer.parseInt(match.group(5));
+
+        Lexeme.Identity kindLexemeIdentity;
+        if (TemperatureForecastType.MAXIMUM == kind) {
+            kindLexemeIdentity = MAX_TEMPERATURE;
+        } else {
+            kindLexemeIdentity = MIN_TEMPERATURE;
+        }
+        Lexeme.Status status = Lexeme.Status.OK;
+        String msg = null;
         if (timeOk(day, hour)) {
             if (day > -1) {
                 token.setParsedValue(DAY1, day);
             }
             token.setParsedValue(HOUR1, hour);
             token.setParsedValue(VALUE, value);
-            if (TemperatureForecastType.MAXIMUM == kind) {
-                token.identify(MAX_TEMPERATURE);
-            } else {
-                token.identify(MIN_TEMPERATURE);
+
+            if (ParsingHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ParsingHints.KEY_TIMEZONE_ID_POLICY)) {
+                if (match.group(6) == null) {
+                    status = Lexeme.Status.WARNING;
+                    msg = "Missing time zone ID 'Z'";
+                }
             }
         } else {
-            if (TemperatureForecastType.MAXIMUM == kind) {
-                token.identify(MAX_TEMPERATURE, Lexeme.Status.SYNTAX_ERROR, "Invalid day/hour values");
-            } else {
-                token.identify(MIN_TEMPERATURE, Lexeme.Status.SYNTAX_ERROR, "Invalid day/hour values");
-            }
+            status = Lexeme.Status.SYNTAX_ERROR;
+            msg = "Invalid day/hour values";
         }
+        token.identify(kindLexemeIdentity, status, msg);
     }
 
     public static class Reconstructor extends FactoryBasedReconstructor {

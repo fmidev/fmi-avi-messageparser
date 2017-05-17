@@ -16,6 +16,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.MAX_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
@@ -181,62 +182,69 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         appendToken(retval, ISSUE_TIME, msg, TAF.class, hints);
 
         if (AviationCodeListUser.TAFStatus.MISSING != msg.getStatus()) {
-            TAFBaseForecast baseFct = msg.getBaseForecast();
-	        appendToken(retval, VALID_TIME, msg, TAF.class, hints, baseFct);
-	        appendToken(retval, CANCELLATION, msg, TAF.class, hints, baseFct);
-	        appendToken(retval, SURFACE_WIND, msg, TAF.class,  hints, baseFct);
-	        appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
-	        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, baseFct);
-	        if (baseFct.getForecastWeather() != null) {
-	        	for (Weather weather:baseFct.getForecastWeather()) {
-	        		appendToken(retval, WEATHER, msg, TAF.class, hints, baseFct, weather);
-	        	}
-	        }
-	        CloudForecast clouds = baseFct.getCloud();
-	        if (clouds != null) {
-	        	if (clouds.getVerticalVisibility() != null) {
-	            	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", baseFct);
-	            } else {
-	                this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, baseFct);
-	            }
-	        }
-	        if (baseFct.getTemperatures() != null) {
-	        	for (TAFAirTemperatureForecast tempFct: baseFct.getTemperatures()) {
-	                appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
-	                // No MIN_TEMPERATURE needed as they are parsed together
-	        	}
-	        }
-	        
-	        if (msg.getChangeForecasts() != null) {
-	            for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
-	                appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, hints, changeFct);
-	                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, hints, changeFct);
-	                appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
-	                appendToken(retval, CAVOK, msg, TAF.class,  hints, changeFct);
-	                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class,  hints, changeFct);
-	                appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, TAF.class, hints, changeFct);
-	                if (changeFct.getForecastWeather() != null) {
-	                	for (Weather weather:changeFct.getForecastWeather()) {
-	                		appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);
-	                	}
-	                }
-	                clouds = changeFct.getCloud();
-	                if (clouds != null) {
-	                	if (clouds.getVerticalVisibility() != null) {
-	                    	this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", changeFct);
-	                    } else {
-	                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, changeFct);
-	                    }
-	                }
-	            }
-	        }
-	        if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
-	            appendToken(retval, REMARKS_START, msg, TAF.class, hints);
-	            for (String remark : msg.getRemarks()) {
-	                this.appendToken(retval, REMARK, msg, TAF.class, hints, remark);
-	            }
-	        }
-	    }
+            appendToken(retval, VALID_TIME, msg, TAF.class, hints);
+            appendToken(retval, CANCELLATION, msg, TAF.class, hints);
+            if (AviationCodeListUser.TAFStatus.CANCELLATION != msg.getStatus()) {
+                TAFBaseForecast baseFct = msg.getBaseForecast();
+                if (baseFct == null) {
+                    throw new TokenizingException("Missing base forecast");
+                }
+                appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, baseFct);
+                appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
+                appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, hints, baseFct);
+                if (baseFct.getForecastWeather() != null) {
+                    for (Weather weather : baseFct.getForecastWeather()) {
+                        appendToken(retval, WEATHER, msg, TAF.class, hints, baseFct, weather);
+                    }
+                }
+                CloudForecast clouds = baseFct.getCloud();
+                if (clouds != null) {
+                    if (clouds.getVerticalVisibility() != null) {
+                        this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", baseFct);
+                    } else {
+                        this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, baseFct);
+                    }
+                }
+                if (baseFct.getTemperatures() != null) {
+                    for (TAFAirTemperatureForecast tempFct : baseFct.getTemperatures()) {
+                        appendToken(retval, MAX_TEMPERATURE, msg, TAF.class, hints, baseFct, tempFct);
+                        // No MIN_TEMPERATURE needed as they are parsed together
+                    }
+                }
+
+                if (msg.getChangeForecasts() != null) {
+                    for (TAFChangeForecast changeFct : msg.getChangeForecasts()) {
+                        appendToken(retval, FORECAST_CHANGE_INDICATOR, msg, TAF.class, hints, changeFct);
+                        appendToken(retval, CHANGE_FORECAST_TIME_GROUP, msg, TAF.class, hints, changeFct);
+                        appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, changeFct);
+                        appendToken(retval, CAVOK, msg, TAF.class, hints, changeFct);
+                        appendToken(retval, HORIZONTAL_VISIBILITY, msg, TAF.class, hints, changeFct);
+                        appendToken(retval, NO_SIGNIFICANT_WEATHER, msg, TAF.class, hints, changeFct);
+                        if (changeFct.getForecastWeather() != null) {
+                            for (Weather weather : changeFct.getForecastWeather()) {
+                                appendToken(retval, WEATHER, msg, TAF.class, hints, changeFct, weather);
+                            }
+                        }
+                        clouds = changeFct.getCloud();
+                        if (clouds != null) {
+                            if (clouds.getVerticalVisibility() != null) {
+                                this.appendToken(retval, Identity.CLOUD, msg, TAF.class, hints, "VV", changeFct);
+                            } else {
+                                this.appendCloudLayers(retval, msg, TAF.class, clouds.getLayers(), hints, changeFct);
+                            }
+                        }
+                    }
+                }
+                if (msg.getRemarks() != null && !msg.getRemarks().isEmpty()) {
+                    appendToken(retval, REMARKS_START, msg, TAF.class, hints);
+                    for (String remark : msg.getRemarks()) {
+                        this.appendToken(retval, REMARK, msg, TAF.class, hints, remark);
+                    }
+                }
+            }
+        } else {
+            appendToken(retval, NIL, msg, TAF.class, hints);
+        }
         appendToken(retval, END_TOKEN, msg, TAF.class, hints);
         return retval.build();
     }

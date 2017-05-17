@@ -3,7 +3,6 @@ package fi.fmi.avi.parser.impl.lexer.token;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
@@ -35,11 +34,8 @@ public class NoSignificantCloud extends PrioritizedLexemeVisitor {
             if (TAF.class.isAssignableFrom(clz)) {
                 TAFChangeForecast forecast = getAs(specifier, TAFChangeForecast.class);
 
-                if (forecast != null) {
-                    CloudForecast cloud = forecast.getCloud();
-                    if (cloud == null || (cloud.getLayers() == null || cloud.getLayers().isEmpty()) && cloud.getVerticalVisibility() == null) {
-                        retval = this.createLexeme("NSC", NO_SIGNIFICANT_CLOUD);
-                    }
+                if (forecast != null && forecast.isNoSignificantCloud()) {
+                    retval = this.createLexeme("NSC", NO_SIGNIFICANT_CLOUD);
                 }
             }
             return retval;

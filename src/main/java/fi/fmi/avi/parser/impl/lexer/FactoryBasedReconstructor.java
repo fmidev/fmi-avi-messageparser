@@ -21,7 +21,7 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
 	@SuppressWarnings("unchecked")
 	protected static <T> T getAs(Object[] specifiers, final int index, Class<T> clz) {
 		T retval = null;
-		if (specifiers != null && specifiers.length > index && clz.isAssignableFrom(specifiers[index].getClass())) {
+		if (specifiers != null && specifiers.length > index && specifiers[index] != null && clz.isAssignableFrom(specifiers[index].getClass())) {
 			retval = (T) specifiers[index];
 		}
 		return retval;
