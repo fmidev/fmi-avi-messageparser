@@ -3,8 +3,13 @@ package fi.fmi.avi.parser.impl.lexer.token;
 import static fi.fmi.avi.parser.Lexeme.Identity.CANCELLATION;
 import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 
+import fi.fmi.avi.data.AviationCodeListUser;
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
 
 /**
@@ -21,5 +26,20 @@ public class Cancellation extends PrioritizedLexemeVisitor {
         if (token.getPrevious() != null && token.getPrevious().getIdentity() == VALID_TIME && "CNL".equalsIgnoreCase(token.getTACToken())) {
             token.identify(CANCELLATION);
         }
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+    	@Override
+    	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+    			Object... specifier) throws TokenizingException {
+    		Lexeme retval = null;
+            if (TAF.class.isAssignableFrom(clz)) {
+            	if (AviationCodeListUser.TAFStatus.CANCELLATION == ((TAF) msg).getStatus()) {
+                    retval = this.createLexeme("CNL", CANCELLATION);
+                }
+            }
+            
+            return retval;
+    	}
     }
 }

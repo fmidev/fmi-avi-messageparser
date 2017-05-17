@@ -114,10 +114,7 @@
 	    "value": 9000.0,
 	    "uom": "m"
 	  },
-	  
-	  "forecastWeather": [
-	  ],
-	
+      "noSignificantWeather": true,
       "cloud": {
         "layers": [
           {

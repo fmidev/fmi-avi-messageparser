@@ -8,9 +8,15 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Status;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -83,4 +89,40 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
         }
         token.identify(HORIZONTAL_VISIBILITY);
     }
+
+	public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) throws TokenizingException {
+			Lexeme retval = null;
+
+			NumericMeasure visibility = null;
+			RelationalOperator operator = null;
+			TAFForecast fct = getAs(specifier, TAFForecast.class);
+			if (fct != null) {
+				visibility = fct.getPrevailingVisibility();
+				operator = fct.getPrevailingVisibilityOperator();
+			}
+
+			if (visibility != null) {
+				String str;
+
+				int meters = visibility.getValue().intValue();
+				if (meters < 0) {
+					throw new TokenizingException("Visibility " + meters + " must be positive");
+				}
+
+				if (operator == RelationalOperator.BELOW && meters <= 50) {
+					str = "0000";
+				} else if (operator == RelationalOperator.ABOVE && meters >= 9999) {
+					str = "9999";
+				} else {
+					str = String.format("%04d", meters);
+				}
+
+				retval = this.createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY);
+			}
+			return retval;
+		}
+	}
 }

@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
  * Created by rinne on 10/02/17.
@@ -41,7 +42,7 @@ public class IssueTime extends TimeHandlingRegex {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final Object specifier) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
             StringBuilder retval = new StringBuilder();
             int date = msg.getIssueDayOfMonth();
             int hour = msg.getIssueHour();
@@ -56,7 +57,7 @@ public class IssueTime extends TimeHandlingRegex {
                     retval.append(msg.getIssueTimeZone());
                 }
             }
-            return this.getLexingFactory().createLexeme(retval.toString(), Lexeme.Identity.ISSUE_TIME);
+            return this.createLexeme(retval.toString(), Lexeme.Identity.ISSUE_TIME);
         }
     }
 

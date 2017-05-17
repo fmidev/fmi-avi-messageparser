@@ -85,8 +85,8 @@ public class AviMessageLexerTest extends AviMessageTestBase {
     public void testMetar3() throws Exception {
         LexemeSequence result = lexer.lexMessage(metar3);
         assertTokenSequenceIdentityMatch(result, METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, VARIABLE_WIND_DIRECTION, HORIZONTAL_VISIBILITY,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, NO_SIGNIFICANT_WEATHER,
-                RUNWAY_STATE, END_TOKEN);
+                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RUNWAY_STATE,
+                FORECAST_CHANGE_INDICATOR, END_TOKEN);
     }
 
     @Test

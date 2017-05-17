@@ -1,6 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
-import static junit.framework.TestCase.*;
+import static junit.framework.TestCase.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -133,7 +133,10 @@ public class AviMessageParserTest extends AviMessageTestBase {
     
     @Test
     public void testTaf12() throws Exception {
-        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf12, ParsingHints.TAF), TAF.class, ParsingHints.TAF);
+        ParsingHints hints = new ParsingHints();
+        hints.put(ParsingHints.KEY_MESSAGE_TYPE, ParsingHints.VALUE_MESSAGE_TYPE_TAF);
+        hints.put(ParsingHints.KEY_TIMEZONE_ID_POLICY, ParsingHints.VALUE_TIMEZONE_ID_POLICY_STRICT);
+        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf12, hints), TAF.class, hints);
         assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
         assertTAFEquals(readFromJSON("taf/taf12.json", TAFImpl.class), result.getParsedMessage());
     }

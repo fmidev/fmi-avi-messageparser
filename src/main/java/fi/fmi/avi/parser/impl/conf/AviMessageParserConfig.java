@@ -8,6 +8,7 @@ import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexingFactory;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
@@ -36,6 +37,7 @@ import fi.fmi.avi.parser.impl.lexer.token.IssueTime;
 import fi.fmi.avi.parser.impl.lexer.token.MetarStart;
 import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.Nil;
+import fi.fmi.avi.parser.impl.lexer.token.NoSignificantCloud;
 import fi.fmi.avi.parser.impl.lexer.token.NoSignificantWeather;
 import fi.fmi.avi.parser.impl.lexer.token.Remark;
 import fi.fmi.avi.parser.impl.lexer.token.RemarkStart;
@@ -85,10 +87,38 @@ public class AviMessageParserConfig {
     public AviMessageTACTokenizer tacTokenizer() {
         AviMessageTACTokenizerImpl s = new AviMessageTACTokenizerImpl();
         s.setLexingFactory(lexingFactory());
-        //s.addReconstructor(METAR_START, new MetarStart.Reconstructor());
-        //s.addReconstructor(TAF_START, new TAFStart.Reconstructor());
-        //s.addReconstructor(ISSUE_TIME, new IssueTime.Reconstructor());
-        //TODO: all the other Metar & TAF reconstructors
+        s.addReconstructor(Lexeme.Identity.METAR_START, new MetarStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.TAF_START, new TAFStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AMENDMENT, new Amendment.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AERODROME_DESIGNATOR, new ICAOCode.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
+        //Lexeme.Identity.AUTOMATED
+        s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CANCELLATION, new Cancellation.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
+        //Lexeme.Identity.VARIABLE_WIND_DIRECTION
+        s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.MAX_TEMPERATURE, new ForecastMaxMinTemperature.Reconstructor());
+        // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
+        s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
+        //Lexeme.Identity.RUNWAY_VISUAL_RANGE
+        //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
+        //Lexeme.Identity.AIR_PRESSURE_QNH
+        //Lexeme.Identity.RECENT_WEATHER
+        //Lexeme.Identity.WIND_SHEAR
+        //Lexeme.Identity.SEA_STATE
+        //Lexeme.Identity.RUNWAY_STATE
+        //Lexeme.Identity.COLOR_CODE
+        //Lexeme.Identity.REMARKS_START
+        //Lexeme.Identity.REMARK
         return s;
     }
 

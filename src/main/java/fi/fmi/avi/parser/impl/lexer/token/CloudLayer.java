@@ -8,9 +8,19 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.Lexeme.ParsedValueName;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -87,6 +97,68 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
 	        }
 	        token.setParsedValue(VALUE, height);
 	        token.setParsedValue(UNIT, "hft");
+        }
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) throws TokenizingException {
+            Lexeme retval = null;
+            if (TAF.class.isAssignableFrom(clz)) {
+            	fi.fmi.avi.data.CloudLayer layer = getAs(specifier, 0, fi.fmi.avi.data.CloudLayer.class);
+            	String specialValue = getAs(specifier, 0, String.class);
+            	TAFBaseForecast baseFct = getAs(specifier, 1, TAFBaseForecast.class);
+            	TAFChangeForecast changeFct = getAs(specifier, 1, TAFChangeForecast.class);
+            	if (baseFct != null || changeFct != null){
+            		NumericMeasure verVis = null;
+            		if ("VV".equals(specialValue)){
+            			if (baseFct != null) {
+            				verVis = baseFct.getCloud().getVerticalVisibility();
+            			} else {
+            				verVis = changeFct.getCloud().getVerticalVisibility();
+            			}
+            		}
+					retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
+				}
+            } else if (Metar.class.isAssignableFrom(clz)) {
+            	//TODO
+            }
+            return retval;
+        }
+        
+        private String getCloudLayerOrVerticalVisibilityToken(final fi.fmi.avi.data.CloudLayer layer, final NumericMeasure verVis) throws TokenizingException {
+        	StringBuilder sb = new StringBuilder();
+    		if (layer != null) {
+    			NumericMeasure base = layer.getBase();
+    			CloudAmount amount = layer.getAmount();
+    			fi.fmi.avi.data.AviationCodeListUser.CloudType type = layer.getCloudType();
+        		sb.append(amount.name());
+        		sb.append(String.format("%03d", getAsHectoFeet(base)));
+        		if (type != null) {
+        			sb.append(type.name());
+        		}
+    		} else if (verVis != null) {
+    			sb.append("VV");
+    			sb.append(String.format("%03d", getAsHectoFeet(verVis)));
+    		}
+    		return sb.toString();
+        }
+        
+        private long getAsHectoFeet(final NumericMeasure value) throws TokenizingException {
+        	long hftValue = -1l;
+        	if (value != null) {
+				if ("hft".equalsIgnoreCase(value.getUom())) {
+					hftValue = Math.round(value.getValue());
+				} else if ("ft".equalsIgnoreCase(value.getUom())) {
+					hftValue = Math.round(value.getValue() / 100.0);
+				} else {
+					throw new TokenizingException("Unable to reconstruct cloud layer / vertical visibility height with UoM '" + value.getUom() + "'");
+				}
+        	} else {
+        		throw new TokenizingException("Unable to reconstruct cloud layer / vertical visibility height with null value");
+        	}
+			return hftValue;
         }
     }
 }

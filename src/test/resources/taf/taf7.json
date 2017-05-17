@@ -8,8 +8,5 @@
   "validityStartDayOfMonth": -1,
   "validityStartHour": -1,
   "validityEndDayOfMonth": -1,
-  "validityEndHour": -1,
-  
-  "baseForecast": {
-  }
+  "validityEndHour": -1
 }

@@ -1,6 +1,6 @@
 package fi.fmi.avi.parser.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,8 +28,7 @@ public class AviMessageTestBase {
     protected static final String metar1 =
             "METAR EFHK 012400Z 00000KT 4500 R04R/0500D R15/0600VP1500D R22L/0275N R04L/P1500D BR FEW003 SCT050 14/13 Q1008 " + "TEMPO 2000=";
     protected static final String metar2 = "METAR KORD 201004Z 05008KT 1 1/2SM -DZ BR OVC006 03/03 A2964 RMK AO2 DZB04 P0000 T00330028=";
-    protected static final String metar3 =
-            "METAR LBBG 041600Z 12012MPS 090V150 1400 R04/P1500N R22/P1500U +SN BKN022 OVC050 M04/M07 Q1020 NOSIG " + "8849//91=";
+    protected static final String metar3 = "METAR LBBG 041600Z 12012MPS 090V150 1400 R04/P1500N R22/P1500U +SN BKN022 OVC050 M04/M07 Q1020 8849//91 NOSIG=";
     protected static final String metar4 =
             "METAR COR EFUT 111115Z 18004KT 150V240 1500 0500N R04R/1500N R15/M0050D R22L/1200N R04L/P1000U SN VV006 M08/M10 " + "Q1023 RESN TEMPO 0900=";
     protected static final String metar5 = "METAR EFTU 011350Z AUTO VRB02KT CAVOK 22/12 Q1008=";
@@ -76,7 +75,8 @@ public class AviMessageTestBase {
     protected static final String taf11 =
             "EVRA 301103Z 3012/3112 15013KT 8000 OVC008 " + "TEMPO 3012/3015 14015G26KT 5000 -RA OVC010 " + "FM301500 18012KT 9000 NSW SCT015 BKN020 "
                     + "TEMPO 3017/3103 19020G33KT 3000 -SHRA BKN012CB BKN020=";
-    protected static final String taf12 = "EETN 301130Z 3012/3112 14016G26KT 8000 BKN010 OVC015 TXM02/3015 TNM10/3103 " + "TEMPO 3012/3018 3000 RADZ BR OVC004 "
+    protected static final String taf12 =
+            "EETN 301130Z 3012/3112 14016G26KT 8000 BKN010 OVC015 TXM02/3015Z TNM10/3103Z " + "TEMPO 3012/3018 3000 RADZ BR " + "OVC004 "
             + "BECMG 3018/3020 BKN008 SCT015CB " + "TEMPO 3102/3112 3000 SHRASN BKN006 BKN015CB " + "BECMG 3104/3106 21016G30KT=";
 
     private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
