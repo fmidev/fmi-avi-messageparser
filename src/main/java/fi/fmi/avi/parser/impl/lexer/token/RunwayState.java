@@ -103,7 +103,7 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
     }
 
     public RunwayState(final Priority prio) {
-        super("^([0-9]{2})((([0-9/])([1259/])([0-9]{2}|//))|(CLRD))([0-9]{2}|//)$", prio);
+        super("^R?([0-9]{2})((([0-9/])([1259/])([0-9]{2}|//))|(CLRD))([0-9]{2}|//)$", prio);
     }
 
     @Override
