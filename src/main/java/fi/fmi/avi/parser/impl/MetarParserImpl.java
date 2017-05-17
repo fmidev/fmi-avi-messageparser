@@ -810,7 +810,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                                     }
                                     cloudLayers.add(layer);
                                 } else {
-                                    //Error
+                                    result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing base for cloud layer"));
                                 }
                             }
                             break;
