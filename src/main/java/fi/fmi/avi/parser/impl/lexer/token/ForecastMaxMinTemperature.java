@@ -68,26 +68,27 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
         } else {
             kindLexemeIdentity = MIN_TEMPERATURE;
         }
-        Lexeme.Status status = Lexeme.Status.OK;
-        String msg = null;
+        
         if (timeOk(day, hour)) {
+        	if (ParsingHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ParsingHints.KEY_TIMEZONE_ID_POLICY)) {
+                if (match.group(6) == null) {
+                	token.identify(kindLexemeIdentity,Lexeme.Status.WARNING,"Missing time zone ID 'Z'");
+                } else {
+                	token.identify(kindLexemeIdentity);
+                }
+            } else {
+            	token.identify(kindLexemeIdentity);
+            }
+        	
             if (day > -1) {
                 token.setParsedValue(DAY1, day);
             }
             token.setParsedValue(HOUR1, hour);
             token.setParsedValue(VALUE, value);
-
-            if (ParsingHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ParsingHints.KEY_TIMEZONE_ID_POLICY)) {
-                if (match.group(6) == null) {
-                    status = Lexeme.Status.WARNING;
-                    msg = "Missing time zone ID 'Z'";
-                }
-            }
         } else {
-            status = Lexeme.Status.SYNTAX_ERROR;
-            msg = "Invalid day/hour values";
+            token.identify(kindLexemeIdentity,Lexeme.Status.SYNTAX_ERROR,"Invalid day/hour values");
         }
-        token.identify(kindLexemeIdentity, status, msg);
+        
     }
 
     public static class Reconstructor extends FactoryBasedReconstructor {

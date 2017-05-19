@@ -75,11 +75,11 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
                 int toDay = Integer.parseInt(match.group(8));
                 int toHour = Integer.parseInt(match.group(9));
                 if (timeOk(fromDay, fromHour) && timeOk(toDay, toHour)) {
-                    token.setParsedValue(DAY1, fromDay);
+                	token.identify(this.getRecognizedIdentity());
+                	token.setParsedValue(DAY1, fromDay);
                     token.setParsedValue(DAY2, toDay);
                     token.setParsedValue(HOUR1, fromHour);
                     token.setParsedValue(HOUR2, toHour);
-                    token.identify(this.getRecognizedIdentity());
                 } else {
                     token.identify(this.getRecognizedIdentity(), Lexeme.Status.SYNTAX_ERROR, "Invalid date and/or time");
                 }

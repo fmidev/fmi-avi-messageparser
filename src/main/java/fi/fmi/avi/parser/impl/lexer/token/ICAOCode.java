@@ -262,9 +262,9 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
         if (token.getPrevious() == token.getFirst() || (token.hasPrevious() && token.getPrevious().getPrevious() == token.getFirst())) {
             for (String s : codeToCountryMap.keySet()) {
                 if (token.getTACToken().startsWith(s)) {
-                    token.setParsedValue(COUNTRY, codeToCountryMap.get(s));
+                	token.identify(AERODROME_DESIGNATOR);
+                	token.setParsedValue(COUNTRY, codeToCountryMap.get(s));
                     token.setParsedValue(VALUE,token.getTACToken());
-                    token.identify(AERODROME_DESIGNATOR);
                     return;
                 }
             }

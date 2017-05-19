@@ -137,7 +137,7 @@ public abstract class AbstractAviMessageParser {
         fi.fmi.avi.data.CloudLayer retval = null;
         CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
         CloudLayer.CloudType type = match.getParsedValue(Lexeme.ParsedValueName.TYPE, CloudLayer.CloudType.class);
-        Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
+        Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
         String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
         if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED != cover) {

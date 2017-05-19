@@ -23,8 +23,8 @@ public class SnowClosure extends PrioritizedLexemeVisitor {
         if ("SNOCLO".equalsIgnoreCase(token.getTACToken()) || "R/SNOCLO".equals(token.getTACToken())) {
             HashMap<RunwayStateReportType, Object> values = new HashMap<RunwayStateReportType, Object>();
             values.put(RunwayStateReportType.SNOW_CLOSURE, Boolean.TRUE);
-            token.setParsedValue(VALUE, values);
             token.identify(RUNWAY_STATE);
+            token.setParsedValue(VALUE, values);
         }
     }
 }

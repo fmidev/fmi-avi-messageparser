@@ -79,9 +79,10 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
     @Override
     public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
         if (match.group(5) != null) {
+        	token.identify(CLOUD);
         	//Amount And Height Unobservable By Auto System
         	token.setParsedValue(ParsedValueName.VALUE, SpecialValue.AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM);
-        	token.identify(CLOUD);
+        
         } else {
 	    	CloudCover cloudCover = CloudCover.forCode(match.group(2));
 	        int height = Integer.parseInt(match.group(3));

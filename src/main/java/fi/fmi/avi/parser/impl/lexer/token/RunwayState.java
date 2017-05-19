@@ -118,8 +118,6 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             values.put(RunwayStateReportType.REPETITION, Boolean.TRUE);
         } else if (runwayDesignation == RunwayStateReportType.ALL_RUNWAYS) {
             values.put(RunwayStateReportType.ALL_RUNWAYS, Boolean.TRUE);
-        } else {
-            token.setParsedValue(RUNWAY, runwayDesignation);
         }
 
         if (match.group(4) != null && match.group(5) != null && match.group(6) != null) {
@@ -181,8 +179,11 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             status = Lexeme.Status.SYNTAX_ERROR;
             msg = iae.getMessage();
         }
-        token.setParsedValue(VALUE, values);
         token.identify(RUNWAY_STATE, status, msg);
+        token.setParsedValue(VALUE, values);
+        if (runwayDesignation instanceof String) {
+        	token.setParsedValue(RUNWAY, runwayDesignation);
+        }
     }
 
     private static Object getRunwayDesignation(final int coded) {

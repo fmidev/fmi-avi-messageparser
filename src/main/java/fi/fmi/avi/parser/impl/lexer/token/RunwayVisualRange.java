@@ -30,6 +30,7 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
         String runway = match.group(1);
         RecognizingAviMessageTokenLexer.RelationalOperator belowAboveIndicator = RecognizingAviMessageTokenLexer.RelationalOperator.forCode(match.group(2));
         int visibility = Integer.parseInt(match.group(3));
+        token.identify(RUNWAY_VISUAL_RANGE);
         token.setParsedValue(RUNWAY, runway);
         token.setParsedValue(MIN_VALUE, visibility);
         if (belowAboveIndicator != null) {
@@ -54,6 +55,6 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
         } else {
             token.setParsedValue(UNIT, "m");
         }
-        token.identify(RUNWAY_VISUAL_RANGE);
+       
     }
 }

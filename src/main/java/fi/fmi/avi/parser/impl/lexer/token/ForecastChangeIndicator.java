@@ -59,9 +59,9 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
         ForecastChangeIndicatorType indicator;
         if (match.group(1) != null) {
+        	token.identify(FORECAST_CHANGE_INDICATOR);
             indicator = ForecastChangeIndicatorType.forCode(match.group(1));
             token.setParsedValue(TYPE, indicator);
-            token.identify(FORECAST_CHANGE_INDICATOR);
         } else {
             indicator = ForecastChangeIndicatorType.forCode(match.group(3));
             int day = -1;
@@ -71,13 +71,13 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
             int hour = Integer.parseInt(match.group(5));
             int minute = Integer.parseInt(match.group(6));
             if (timeOk(day, hour, minute)) {
+            	token.identify(FORECAST_CHANGE_INDICATOR);
                 if (day > -1) {
                     token.setParsedValue(DAY1, day);
                 }
                 token.setParsedValue(HOUR1, hour);
                 token.setParsedValue(MINUTE1, minute);
                 token.setParsedValue(TYPE, indicator);
-                token.identify(FORECAST_CHANGE_INDICATOR);
             } else {
                 token.identify(FORECAST_CHANGE_INDICATOR, Lexeme.Status.SYNTAX_ERROR, "Invalid time");
             }

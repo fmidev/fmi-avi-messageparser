@@ -29,10 +29,10 @@ public class IssueTime extends TimeHandlingRegex {
             int hour = Integer.parseInt(match.group(2));
             int minute = Integer.parseInt(match.group(3));
             if (timeOk(date, hour, minute)) {
-                token.setParsedValue(DAY1, Integer.valueOf(date));
+            	token.identify(ISSUE_TIME);
+            	token.setParsedValue(DAY1, Integer.valueOf(date));
                 token.setParsedValue(HOUR1, Integer.valueOf(hour));
                 token.setParsedValue(MINUTE1, Integer.valueOf(minute));
-                token.identify(ISSUE_TIME);
             } else {
                 token.identify(ISSUE_TIME, Lexeme.Status.SYNTAX_ERROR, "Invalid date & time values");
             }

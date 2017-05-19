@@ -48,12 +48,13 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
         } else {
             missingValues = true;
         }
-        token.setParsedValue(VALUE, values);
-        token.setParsedValue(UNIT, "degC");
+        
         if (missingValues) {
             token.identify(AIR_DEWPOINT_TEMPERATURE, Lexeme.Status.WARNING, "Values for air and/or dew point temperature missing");
         } else {
             token.identify(AIR_DEWPOINT_TEMPERATURE);
+            token.setParsedValue(VALUE, values);
+            token.setParsedValue(UNIT, "degC");
         }
     }
 }

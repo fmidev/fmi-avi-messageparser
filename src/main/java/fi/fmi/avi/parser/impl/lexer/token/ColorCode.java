@@ -46,7 +46,7 @@ public class ColorCode extends RegexMatchingLexemeVisitor {
         } else {
             state = ColorState.BLACK;
         }
-        token.setParsedValue(VALUE, state);
         token.identify(COLOR_CODE);
+        token.setParsedValue(VALUE, state);
     }
 }

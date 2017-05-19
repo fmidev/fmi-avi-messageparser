@@ -67,8 +67,20 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
     public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
         int visibility = Integer.parseInt(match.group(1));
         String direction = match.group(2);
+        if (direction != null) {
+        	DirectionValue dv = DirectionValue.forCode(direction);
+        	if (dv == null) {
+        		token.identify(HORIZONTAL_VISIBILITY, Status.SYNTAX_ERROR, "Invalid visibility direction value '" + direction + "'");
+        	} else {
+        		token.identify(HORIZONTAL_VISIBILITY);
+        		token.setParsedValue(DIRECTION, dv);
+        	}
+        } else {
+        	token.identify(HORIZONTAL_VISIBILITY);
+        }
+
         token.setParsedValue(UNIT, "m");
-        
+       
         if (visibility == 9999) {
             token.setParsedValue(VALUE, Double.valueOf(10000d));
             token.setParsedValue(RELATIONAL_OPERATOR, RecognizingAviMessageTokenLexer.RelationalOperator.MORE_THAN);
@@ -78,16 +90,7 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
         } else {
             token.setParsedValue(VALUE, Double.valueOf(visibility));
         }
-        if (direction != null) {
-        	DirectionValue dv = DirectionValue.forCode(direction);
-        	if (dv != null) {
-        		token.setParsedValue(DIRECTION, dv);
-        	} else {
-        		token.identify(HORIZONTAL_VISIBILITY, Status.SYNTAX_ERROR, "Invalid visibility direction value '" + direction + "'");
-        		return;
-        	}
-        }
-        token.identify(HORIZONTAL_VISIBILITY);
+        
     }
 
 	public static class Reconstructor extends FactoryBasedReconstructor {

@@ -30,10 +30,10 @@ public class VariableSurfaceWind extends RegexMatchingLexemeVisitor {
             formatOk = false;
         }
         if (formatOk) {
+            token.identify(VARIABLE_WIND_DIRECTION);
             token.setParsedValue(MIN_DIRECTION, minDirection);
             token.setParsedValue(MAX_DIRECTION, maxDirection);
             token.setParsedValue(UNIT, "deg");
-            token.identify(VARIABLE_WIND_DIRECTION);
         } else {
             token.identify(VARIABLE_WIND_DIRECTION, Lexeme.Status.SYNTAX_ERROR, "Wind directions invalid");
         }

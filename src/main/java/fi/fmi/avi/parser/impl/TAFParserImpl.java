@@ -455,7 +455,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(SURFACE_WIND, from, before, (match) -> {
             TAFSurfaceWind wind = new TAFSurfaceWindImpl();
-            Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION);
+            Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Object.class);
             Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
             Integer gustSpeed = match.getParsedValue(Lexeme.ParsedValueName.MAX_VALUE, Integer.class);
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
@@ -541,7 +541,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
             List<fi.fmi.avi.data.CloudLayer> layers = new ArrayList<>();
             while (match != null) {
                 CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
-                Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
+                Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
                 String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
                 if (value instanceof Integer) {
                     if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {

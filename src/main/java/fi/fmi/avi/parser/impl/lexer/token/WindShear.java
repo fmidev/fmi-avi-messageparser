@@ -21,11 +21,11 @@ public class WindShear extends RegexMatchingLexemeVisitor {
     @Override
     public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
         if (match.group(1) != null) {
+        	token.identify(WIND_SHEAR);
             token.setParsedValue(RUNWAY, "ALL");
-            token.identify(WIND_SHEAR);
         } else if (match.group(2) != null) {
+        	token.identify(WIND_SHEAR);
             token.setParsedValue(RUNWAY, match.group(2));
-            token.identify(WIND_SHEAR);
         } else {
             token.identify(WIND_SHEAR, Lexeme.Status.SYNTAX_ERROR, "Could not understand runway code");
         }

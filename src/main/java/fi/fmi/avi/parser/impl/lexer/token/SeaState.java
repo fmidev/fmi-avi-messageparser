@@ -63,6 +63,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
         if (match.group(5) != null) {
             waveHeight = Integer.valueOf(match.group(5));
         }
+        token.identify(SEA_STATE);
         Object[] values = new Object[3];
         if (seaSurfaceTemperature != null) {
             values[0] = seaSurfaceTemperature;
@@ -75,7 +76,6 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             values[2] = waveHeight.intValue() * 0.1;
             token.setParsedValue(Lexeme.ParsedValueName.UNIT2, "m");
         }
-        token.setParsedValue(Lexeme.ParsedValueName.VALUE, values);
-        token.identify(SEA_STATE);
+        token.setParsedValue(Lexeme.ParsedValueName.VALUE, values);     
     }
 }

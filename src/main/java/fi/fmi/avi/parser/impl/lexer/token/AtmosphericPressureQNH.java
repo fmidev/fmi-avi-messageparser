@@ -46,9 +46,9 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
             value = Integer.valueOf(match.group(2));
         }
         if (value != null) {
+            token.identify(AIR_PRESSURE_QNH);
             token.setParsedValue(UNIT, unit);
             token.setParsedValue(VALUE, value);
-            token.identify(AIR_PRESSURE_QNH);
         } else {
             token.identify(AIR_PRESSURE_QNH, Lexeme.Status.WARNING, "Missing value for air pressure");
         }

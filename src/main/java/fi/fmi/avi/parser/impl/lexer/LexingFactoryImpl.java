@@ -387,17 +387,13 @@ public class LexingFactoryImpl implements LexingFactory {
         private Lexeme next;
         private Lexeme prev;
 
-        LexemeImpl() {
-            this(null, null, Status.UNRECOGNIZED);
-        }
-
         LexemeImpl(final Lexeme lexeme) {
             this.tacToken = lexeme.getTACToken();
             this.id = lexeme.getIdentity();
             this.status = lexeme.getStatus();
             this.lexerMessage = lexeme.getLexerMessage();
             this.isSynthetic = lexeme.isSynthetic();
-            this.parsedValues = lexeme.getParsedValues();
+            this.parsedValues = new HashMap<ParsedValueName, Object>(lexeme.getParsedValues());
             this.startIndex = lexeme.getStartIndex();
             this.endIndex = lexeme.getEndIndex();
         }
@@ -452,13 +448,15 @@ public class LexingFactoryImpl implements LexingFactory {
             return this.endIndex;
         }
 
-        @Override
-        public Object getParsedValue(ParsedValueName name) {
-            return this.parsedValues.get(name);
-        }
-
         public <T> T getParsedValue(ParsedValueName name, Class<T> clz) {
-            Object val = this.getParsedValue(name);
+        	if (this.id == null) {
+        		return null;
+        	} else {
+        		if (!this.id.canStore(name)) {
+        			throw new IllegalArgumentException("Lexeme of identity " + this.id + " can never contain parsed value "+ name +", you should fix your code");
+        		}
+        	}
+            Object val = this.parsedValues.get(name);
             if (val != null){
             	if (clz.isAssignableFrom(val.getClass())) {
             		return (T) val;
@@ -515,10 +513,6 @@ public class LexingFactoryImpl implements LexingFactory {
             return !Status.UNRECOGNIZED.equals(this.status);
         }
 
-        void setIdentity(final Identity id) {
-            this.id = id;
-        }
-
         @Override
         public void identify(final Identity id) {
             identify(id, Status.OK, null);
@@ -548,12 +542,14 @@ public class LexingFactoryImpl implements LexingFactory {
 
         @Override
         public void setParsedValue(ParsedValueName name, Object value) {
-            this.parsedValues.put(name, value);
-        }
-
-        @Override
-        public void setParsedValues(Map<ParsedValueName, Object> values) {
-            this.parsedValues = values;
+        	if (this.id != null) {
+        		if (!this.id.canStore(name)) {
+        			throw new IllegalArgumentException(this.id + "can  only store " + id.getPossibleNames());
+        		}
+        		this.parsedValues.put(name, value);
+        	} else {
+        		throw new IllegalStateException("Cannot set parsed value before identifying Lexeme");
+        	}
         }
 
         @Override

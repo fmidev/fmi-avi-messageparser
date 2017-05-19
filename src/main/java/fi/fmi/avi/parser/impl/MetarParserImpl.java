@@ -317,7 +317,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 
             while (match != null) {
                 CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
-                Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE);
+                Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
                 String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
                 if (CloudLayer.SpecialValue.AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM == value) {
@@ -792,7 +792,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                             if (cloud == null) {
                                 cloud = new CloudForecastImpl();
                             }
-                            Object value = token.getParsedValue(Lexeme.ParsedValueName.VALUE);
+                            Object value = token.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
                             String unit = token.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
                             CloudLayer.CloudCover cover = token.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
                             if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED == cover) {

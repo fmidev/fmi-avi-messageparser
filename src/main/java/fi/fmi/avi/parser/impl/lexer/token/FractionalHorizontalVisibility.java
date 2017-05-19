@@ -33,6 +33,7 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
             wholePart = Integer.parseInt(s.trim());
         }
         s = match.group(3);
+        token.identify(HORIZONTAL_VISIBILITY);
         if (s != null) {
             if (wholePart == -1) {
                 wholePart = 0;
@@ -47,6 +48,6 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
         }
         String unit = match.group(4).toLowerCase();
         token.setParsedValue(UNIT, unit.toLowerCase());
-        token.identify(HORIZONTAL_VISIBILITY);
+        
     }
 }
