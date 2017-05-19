@@ -110,6 +110,12 @@ public class AviMessageTACTokenizerTest extends AviMessageTestBase {
         assertTokenSequenceMatch("TAF " + taf12, "taf/taf12.json", TAFImpl.class, hints);
     }
 
+    @Test
+    public void testTAF13() throws Exception {
+    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+        assertTokenSequenceMatch(taf13, "taf/taf13.json", TAFImpl.class, hints);
+    }
+
     private void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz, final ParsingHints hints) throws IOException, TokenizingException {
         LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz), hints);
         assertNotNull("Null sequence was produced", seq);

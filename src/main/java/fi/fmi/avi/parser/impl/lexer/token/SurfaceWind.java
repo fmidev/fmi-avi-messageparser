@@ -102,14 +102,17 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
             if (fct != null) {
                 TAFSurfaceWind wind = fct.getSurfaceWind();
                 if (wind != null) {
-                    if (!wind.getMeanWindDirection().getUom().equals("deg")) {
+                	StringBuilder builder = new StringBuilder();
+                	
+                	
+                	if (wind.isVariableDirection()) {
+                        builder.append("VRB");
+                    } else if (!wind.getMeanWindDirection().getUom().equals("deg")) {
                         throw new TokenizingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
+                    } else {
+                    	builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                     }
 
-                    StringBuilder builder = new StringBuilder();
-                    if (wind.isVariableDirection()) {
-                        builder.append("VRB");
-                    }
                     this.appendCommonWindParameters(builder, wind.getMeanWindSpeed(), wind.getMeanWindDirection(), wind.getWindGust());
                     retval = this.createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
 
@@ -140,7 +143,6 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 
         private void appendCommonWindParameters(StringBuilder builder, NumericMeasure meanSpeed, NumericMeasure meanDirection, NumericMeasure gustSpeed)
                 throws TokenizingException {
-            builder.append(String.format("%03d", meanDirection.getValue().intValue()));
             int speed = meanSpeed.getValue().intValue();
             appendSpeed(builder, speed);
 

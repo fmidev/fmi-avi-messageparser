@@ -1,0 +1,172 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 1,
+  "issueHour": 17,
+  "issueMinute": 33,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFHK",
+  "validityStartDayOfMonth": 1,
+  "validityStartHour": 18,
+  "validityEndDayOfMonth": 2,
+  "validityEndHour": 18,
+  
+  "baseForecast": {
+    "surfaceWind": {
+	  "variableDirection": true,
+	  "meanWindSpeed": {
+	    "value": 2.0,
+	    "uom": "kt"
+	  }
+	},
+	
+    "prevailingVisibility": {
+	  "value": 4000.0,
+	  "uom": "m"
+	},
+    "forecastWeather": [
+	  {
+        "code": "-SN",
+        "description": "Light precipitation of snow"
+	  }
+	],
+	"cloud": {
+	  "layers": [
+	    {
+	      "amount": "BKN",
+          "base": {
+            "value": 300.0,
+            "uom": "ft"
+          }
+	    }
+	  ]
+	}
+	
+  },
+  
+  "changeForecasts": [
+    {
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "validityStartDayOfMonth": 1,
+      "validityStartHour": 18,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 1,
+      "validityEndHour": 20,
+      
+	  "prevailingVisibility": {
+	    "value": 1500.0,
+	    "uom": "m"
+	  },
+	  
+	  "forecastWeather": [
+	    {
+          "code": "SN",
+          "description": "Precipitation of snow"
+	    }
+	  ]
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 1,
+      "validityStartHour": 20,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 1,
+      "validityEndHour": 22,
+      
+	  "prevailingVisibility": {
+	    "value": 1500.0,
+	    "uom": "m"
+	  },
+	  
+	  "forecastWeather": [
+	    {
+          "code": "BR",
+          "description": "Mist"
+	    }
+	  ]
+    },
+    {
+      "changeIndicator": "PROBABILITY_40_TEMPORARY_FLUCTUATIONS",
+      "validityStartDayOfMonth": 1,
+      "validityStartHour": 22,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 2,
+      "validityEndHour": 3,
+      
+	  "prevailingVisibility": {
+	    "value": 700.0,
+	    "uom": "m"
+	  },
+	  
+	  "forecastWeather": [
+	    {
+          "code": "FG",
+          "description": "Fog"
+	    }
+	  ]
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 2,
+      "validityStartHour": 4,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 2,
+      "validityEndHour": 6,
+      
+	  "prevailingVisibility": {
+	    "value": 5000.0,
+	    "uom": "m"
+	  },
+	  
+	  "surfaceWind": {
+	    "variableDirection": false,
+	    "meanWindDirection": {
+	      "value": 210.0,
+	      "uom": "deg"
+	    },
+	    "meanWindSpeed": {
+	      "value": 10.0,
+	      "uom": "kt"
+	    }
+	  },
+	  
+	  "cloud": {
+	    "layers": [
+	      {
+	        "amount": "BKN",
+            "base": {
+              "value": 500.0,
+              "uom": "ft"
+            }
+	      }
+	    ]
+	  }
+    },
+    {
+      "changeIndicator": "BECOMING",
+      "validityStartDayOfMonth": 2,
+      "validityStartHour": 10,
+      "validityStartMinute": -1,
+      "validityEndDayOfMonth": 2,
+      "validityEndHour": 12,
+      
+	  "prevailingVisibility": {
+	    "value": 10000.0,
+	    "uom": "m"
+	  },
+	  
+	  "prevailingVisibilityOperator": "ABOVE",
+	  
+	  "cloud": {
+	    "layers": [
+	      {
+	        "amount": "BKN",
+            "base": {
+              "value": 1000.0,
+              "uom": "ft"
+            }
+	      }
+	    ]
+	  }
+    }
+  ]
+}
