@@ -86,7 +86,7 @@ public class AviMessageTestBase {
     		+ "BECMG 0210/0212 9999 BKN010=";
     
     protected static final String taf14 =
-    		"TAF EFKU 190840Z 1916/2004 18020KT 7500 RMK HELLO WORLD WIND 700FT 13010KT=";
+    		"TAF EFKU 190840Z 1916/2004 18020KT CAVOK 7500 RMK HELLO WORLD WIND 700FT 13010KT=";
     
     private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 

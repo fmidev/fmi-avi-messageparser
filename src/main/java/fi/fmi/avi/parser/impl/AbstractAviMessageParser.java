@@ -2,6 +2,7 @@ package fi.fmi.avi.parser.impl;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
+import fi.fmi.avi.parser.ParsingResult;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
@@ -174,6 +177,22 @@ public abstract class AbstractAviMessageParser {
         return retval;
     }
 
+    protected static <T extends AviationWeatherMessage> void updateRemarks(final ParsingResult<T> result, final LexemeSequence lexed, final ParsingHints hints) {
+        final T msg = result.getParsedMessage();
+        findNext(Identity.REMARKS_START, lexed.getFirstLexeme(), null, (match) -> {
+        	List<String> remarks = new ArrayList<>();
+        	match = findNext(REMARK, match);
+        	while (match != null) {
+        		remarks.add(match.getTACToken());
+        		match = findNext(REMARK, match);
+        	}
+        	if (!remarks.isEmpty()) {
+        		msg.setRemarks(remarks);
+        	}
+        });
+    }
+
+    
     protected static boolean endsInEndToken(final LexemeSequence lexed, final ParsingHints hints) {
         if (END_TOKEN == lexed.getLastLexeme().getIdentityIfAcceptable()) {
             return true;

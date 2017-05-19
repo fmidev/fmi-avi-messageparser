@@ -127,6 +127,8 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                     }
                 }
             });
+            
+            updateRemarks(retval, lexed, hints);
 
             if (AviationCodeListUser.TAFStatus.CANCELLATION == taf.getStatus()) {
                 return retval;
