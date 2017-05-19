@@ -88,6 +88,10 @@ public class AviMessageTestBase {
     protected static final String taf14 =
     		"TAF EFKU 190840Z 1916/2004 18020KT CAVOK 7500 RMK HELLO WORLD WIND 700FT 13010KT=";
     
+    protected static final String taf15 = 
+    		"TAF EFRO 062331Z 0700/0724 20009KT CAVOK "
+    		+ "PROB30 0702/0706 1000 BCFG BKN001=";
+    
     private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 
     private static Difference deepCompareObjects(Object expected, Object actual) {
