@@ -117,7 +117,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.SEA_STATE
         //Lexeme.Identity.RUNWAY_STATE
         //Lexeme.Identity.COLOR_CODE
-        //Lexeme.Identity.REMARKS_START
+        s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
         //Lexeme.Identity.REMARK
         return s;
     }
