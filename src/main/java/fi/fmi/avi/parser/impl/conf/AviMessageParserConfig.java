@@ -175,6 +175,8 @@ public class AviMessageParserConfig {
         l.teach(new CAVOK(Priority.LOW));
         l.teach(new NoSignificantWeather(Priority.LOW));
         l.teach(new ForecastMaxMinTemperature(Priority.LOW));
+        l.teach(new RemarkStart(Priority.LOW));
+        l.teach(new Remark(Priority.NORMAL));
         return l;
     }
 
