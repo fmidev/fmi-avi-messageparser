@@ -323,7 +323,7 @@ public class AviMessageLexerTest extends AviMessageTestBase {
     public void testTAF14() throws Exception {
         LexemeSequence result = lexer.lexMessage(taf14, ParsingHints.TAF);
         assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, 
-        		VALID_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, REMARKS_START, REMARK, REMARK,
+        		VALID_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, REMARKS_START, REMARK, REMARK,
         		REMARK, REMARK, REMARK, END_TOKEN);
     }
 
