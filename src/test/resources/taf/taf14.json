@@ -1,0 +1,37 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 19,
+  "issueHour": 8,
+  "issueMinute": 40,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFKU",
+  "validityStartDayOfMonth": 19,
+  "validityStartHour": 16,
+  "validityEndDayOfMonth": 20,
+  "validityEndHour": 4,
+  
+  "baseForecast": {
+    "ceilingAndVisibilityOk": true,
+    "surfaceWind": {
+	  "variableDirection": false,
+	  "meanWindDirection": {
+	    "value": 180.0,
+	    "uom": "deg"
+	  },
+	  "meanWindSpeed": {
+	    "value": 20.0,
+	    "uom": "kt"
+	  }
+	},
+	
+    "prevailingVisibility": {
+	  "value": 7500.0,
+	  "uom": "m"
+	}
+  },
+  
+  "remarks": [
+    "HELLO", "WORLD", "WIND", "700FT", "13010KT"
+  ]
+  
+}

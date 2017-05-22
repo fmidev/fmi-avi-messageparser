@@ -7,9 +7,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.HOUR2;
 
 import java.util.regex.Matcher;
 
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Partial;
-import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fi.fmi.avi.data.AviationCodeListUser.TAFChangeIndicator;
 import fi.fmi.avi.data.AviationWeatherMessage;
@@ -26,15 +25,25 @@ import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
  */
 public abstract class TAFTimePeriod extends TimeHandlingRegex {
 	
-	protected static String encodeTimePeriod(final int startDay, final int startHour, final int endDay, final int endHour, final ParsingHints hints) {
+	private static final Logger LOG = LoggerFactory.getLogger(TAFTimePeriod.class);
+	
+	protected static String encodeTimePeriod(final int startDay, final int startHour, final int endDay, final int endHour, final ParsingHints hints)
+	{
 		String retval = null;
-		DateTimeFieldType[] dayHour = {DateTimeFieldType.dayOfMonth(), DateTimeFieldType.hourOfDay()};
-		int [] start = {startDay, startHour};
-		int [] end = {endDay, endHour};
-		Period p = new Period(new Partial(dayHour, start), new Partial(dayHour, end));
+		boolean useShortFormat = false;
+		try {
+			if (hints != null && ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hints.get(ParsingHints.KEY_VALIDTIME_FORMAT))) {
+				int numberOfHours = calculateNumberOfHours(startDay, startHour, endDay, endHour);
+				if (numberOfHours < 24) {
+					useShortFormat = true;
+				}
+			}
+		} catch(IllegalArgumentException iae) {
+			LOG.info("Unable to determine whether to use long format or not", iae);
+		}
 		if (endDay > 0) {
 			//If the valid time period is < 24h and the short format is preferred, is the short format
-			if (hints != null && ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hints.get(ParsingHints.KEY_VALIDTIME_FORMAT)) && p.toStandardHours().getHours() < 24) {
+			if (useShortFormat) {
 				retval = String.format("%02d%02d%02d",startDay,startHour,endHour);
 			} else {
 			// Otherwise produce validity in the (long) 2008 Nov TAF format
@@ -46,6 +55,49 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 		}
 		return retval;
 	}
+
+	/**
+	 * This is trickier than one might expect. There are first of all special cases where
+	 * people write numbers that look alright but are difficult for computer. Like 0700/0724
+	 * Another class of problematic timecodes is where the days roll over to the next month.
+	 * This tool has no context to determine which month and how many days there are supposed
+	 * to be in it. However because of the domain, we make the assumption that endDay is
+	 * startDay + 1 unless startDay < 28. If startDay < 28 => throw an exception as we cannot
+	 * make assumptions on the length of month.
+	 * 
+	 * @param startDay
+	 * @param startHour
+	 * @param endDay
+	 * @param endHour
+	 * @return
+	 * @throws TokenizingException
+	 */
+	static int calculateNumberOfHours(int startDay, int startHour, int endDay, int endHour)
+	{
+		// Store original parameters for exception texts
+		String dateStr = String.format("%02d%02d/%02d%02d", startDay, startHour, endDay, endHour);
+		
+		if (endHour == 24) {
+			endHour = 0;
+			endDay++;
+		}
+		
+		if (endDay < startDay) {
+			if (startDay < 28) {
+				throw new IllegalArgumentException("Unable to calculate number of hours between two time periods "+dateStr);
+			}
+			
+			// Make the assumption that startDay is the last day in that month. This
+			// assumption is based on the domain: aviation forecasts will not span more than 48 hours
+			endDay += startDay;
+		}
+		
+		int startN = startDay * 24 + startHour;
+		int endN = endDay * 24 + endHour;
+		
+		return endN - startN;
+	}
+	
 	
     public TAFTimePeriod(final Priority prio) {
         super("^(([0-9]{2})([0-9]{2})([0-9]{2}))|(([0-9]{2})([0-9]{2})/([0-9]{2})([0-9]{2}))$", prio);

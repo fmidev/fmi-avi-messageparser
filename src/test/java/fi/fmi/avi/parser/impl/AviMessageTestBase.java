@@ -79,6 +79,19 @@ public class AviMessageTestBase {
             "EETN 301130Z 3012/3112 14016G26KT 8000 BKN010 OVC015 TXM02/3015Z TNM10/3103Z " + "TEMPO 3012/3018 3000 RADZ BR " + "OVC004 "
             + "BECMG 3018/3020 BKN008 SCT015CB " + "TEMPO 3102/3112 3000 SHRASN BKN006 BKN015CB " + "BECMG 3104/3106 21016G30KT=";
 
+    protected static final String taf13 = 
+    		"TAF EFHK 011733Z 0118/0218 VRB02KT 4000 -SN BKN003 "
+    		+ "TEMPO 0118/0120 1500 SN " + "BECMG 0120/0122 1500 BR " 
+    		+ "PROB40 TEMPO 0122/0203 0700 FG " + "BECMG 0204/0206 21010KT 5000 BKN005 " 
+    		+ "BECMG 0210/0212 9999 BKN010=";
+    
+    protected static final String taf14 =
+    		"TAF EFKU 190840Z 1916/2004 18020KT CAVOK 7500 RMK HELLO WORLD WIND 700FT 13010KT=";
+    
+    protected static final String taf15 = 
+    		"TAF EFRO 062331Z 0700/0724 20009KT CAVOK "
+    		+ "PROB30 0702/0706 1000 BCFG BKN001=";
+    
     private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 
     private static Difference deepCompareObjects(Object expected, Object actual) {

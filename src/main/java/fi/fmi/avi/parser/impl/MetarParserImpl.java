@@ -13,7 +13,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CHANGES;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
-import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
@@ -931,21 +930,5 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             msg.setTrends(trends);
         }
     }
-
-    private static void updateRemarks(final ParsingResult<Metar> result, final LexemeSequence lexed, final ParsingHints hints) {
-        final Metar msg = result.getParsedMessage();
-        findNext(Identity.REMARKS_START, lexed.getFirstLexeme(), null, (match) -> {
-        	List<String> remarks = new ArrayList<>();
-        	match = findNext(REMARK, match);
-        	while (match != null) {
-        		remarks.add(match.getTACToken());
-        		match = findNext(REMARK, match);
-        	}
-        	if (!remarks.isEmpty()) {
-        		msg.setRemarks(remarks);
-        	}
-        });
-    }
-
 
 }

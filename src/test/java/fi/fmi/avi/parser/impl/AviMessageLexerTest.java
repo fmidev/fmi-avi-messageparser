@@ -306,6 +306,34 @@ public class AviMessageLexerTest extends AviMessageTestBase {
                 FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, CLOUD, CLOUD, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP,
                 HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CLOUD, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, SURFACE_WIND, END_TOKEN);
     }
+    
+    @Test
+    public void testTAF13() throws Exception {
+        LexemeSequence result = lexer.lexMessage(taf13, ParsingHints.TAF);
+        assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, 
+        		FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER,
+        		FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER,
+        		FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, WEATHER,
+        		FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, SURFACE_WIND, HORIZONTAL_VISIBILITY, CLOUD,
+        		FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, HORIZONTAL_VISIBILITY, CLOUD,
+        		END_TOKEN);
+    }
+    
+    @Test
+    public void testTAF14() throws Exception {
+        LexemeSequence result = lexer.lexMessage(taf14, ParsingHints.TAF);
+        assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, 
+        		VALID_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, REMARKS_START, REMARK, REMARK,
+        		REMARK, REMARK, REMARK, END_TOKEN);
+    }
+
+    @Test
+    public void testTAF15() throws Exception {
+        LexemeSequence result = lexer.lexMessage(taf15, ParsingHints.TAF);
+        assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME,
+        		VALID_TIME, SURFACE_WIND, CAVOK, FORECAST_CHANGE_INDICATOR, CHANGE_FORECAST_TIME_GROUP, 
+        		HORIZONTAL_VISIBILITY, WEATHER, CLOUD, END_TOKEN);
+    }
 
     private void assertTokenSequenceIdentityMatch(LexemeSequence result, Lexeme.Identity... identities) {
         Iterator<Lexeme> it = result.getLexemes();

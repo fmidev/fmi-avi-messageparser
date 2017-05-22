@@ -140,4 +140,31 @@ public class AviMessageParserTest extends AviMessageTestBase {
         assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
         assertTAFEquals(readFromJSON("taf/taf12.json", TAFImpl.class), result.getParsedMessage());
     }
+    
+    @Test
+    public void testTaf13() throws Exception {
+        ParsingHints hints = new ParsingHints();
+        hints.put(ParsingHints.KEY_MESSAGE_TYPE, ParsingHints.VALUE_MESSAGE_TYPE_TAF);
+        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf13, hints), TAF.class, hints);
+        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
+        assertTAFEquals(readFromJSON("taf/taf13.json", TAFImpl.class), result.getParsedMessage());
+    }
+    
+    @Test
+    public void testTaf14() throws Exception {
+        ParsingHints hints = new ParsingHints();
+        hints.put(ParsingHints.KEY_MESSAGE_TYPE, ParsingHints.VALUE_MESSAGE_TYPE_TAF);
+        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf14, hints), TAF.class, hints);
+        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
+        assertTAFEquals(readFromJSON("taf/taf14.json", TAFImpl.class), result.getParsedMessage());
+    }
+
+    @Test
+    public void testTaf15() throws Exception {
+        ParsingHints hints = new ParsingHints();
+        hints.put(ParsingHints.KEY_MESSAGE_TYPE, ParsingHints.VALUE_MESSAGE_TYPE_TAF);
+        ParsingResult<TAF> result = parser.parseMessage(lexer.lexMessage(taf15, hints), TAF.class, hints);
+        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
+        assertTAFEquals(readFromJSON("taf/taf15.json", TAFImpl.class), result.getParsedMessage());
+    }
 }
