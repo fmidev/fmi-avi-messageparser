@@ -448,7 +448,8 @@ public class LexingFactoryImpl implements LexingFactory {
             return this.endIndex;
         }
 
-        public <T> T getParsedValue(ParsedValueName name, Class<T> clz) {
+        @SuppressWarnings("unchecked")
+		public <T> T getParsedValue(ParsedValueName name, Class<T> clz) {
         	if (this.id == null) {
         		return null;
         	} else {
@@ -461,7 +462,7 @@ public class LexingFactoryImpl implements LexingFactory {
             	if (clz.isAssignableFrom(val.getClass())) {
             		return (T) val;
             	} else {
-            		throw new IllegalArgumentException("Cannot return value of type " + val.getClass() + " as " + clz);
+            		throw new ClassCastException("Cannot return value of type " + val.getClass() + " as " + clz);
             	}
             } else {
             	return null;
@@ -563,11 +564,6 @@ public class LexingFactoryImpl implements LexingFactory {
 
         void setEndIndex(final int index) {
             this.endIndex = index;
-        }
-
-        @Override
-        public void setTACToken(final String token) {
-            this.tacToken = token;
         }
 
         @Override
