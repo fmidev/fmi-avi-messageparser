@@ -32,10 +32,13 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 		String retval = null;
 		boolean useShortFormat = false;
 		try {
-			if (hints != null && ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hints.get(ParsingHints.KEY_VALIDTIME_FORMAT))) {
-				int numberOfHours = calculateNumberOfHours(startDay, startHour, endDay, endHour);
-				if (numberOfHours < 24) {
-					useShortFormat = true;
+			if (hints != null) {
+				Object hint = hints.get(ParsingHints.KEY_VALIDTIME_FORMAT);
+				if (ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hint)) {
+					int numberOfHours = calculateNumberOfHours(startDay, startHour, endDay, endHour);
+					if (numberOfHours < 24) {
+						useShortFormat = true;
+					}
 				}
 			}
 		} catch(IllegalArgumentException iae) {
@@ -112,6 +115,7 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
                 int fromHour = Integer.parseInt(match.group(3));
                 int toHour = Integer.parseInt(match.group(4));
                 if (timeOk(day, fromHour) && timeOk(day, toHour)) {
+                	token.identify(this.getRecognizedIdentity());
                     token.setParsedValue(DAY1, day);
                     token.setParsedValue(HOUR1, fromHour);
                     token.setParsedValue(HOUR2, toHour);

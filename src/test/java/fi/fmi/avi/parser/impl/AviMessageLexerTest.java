@@ -335,6 +335,14 @@ public class AviMessageLexerTest extends AviMessageTestBase {
         		HORIZONTAL_VISIBILITY, WEATHER, CLOUD, END_TOKEN);
     }
 
+    @Test
+    public void testTAF16() throws Exception {
+        LexemeSequence result = lexer.lexMessage(taf16, ParsingHints.TAF);
+        assertTokenSequenceIdentityMatch(result, TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, 
+        		VALID_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, REMARKS_START, REMARK, REMARK,
+        		REMARK, REMARK, REMARK, END_TOKEN);
+    }
+    
     private void assertTokenSequenceIdentityMatch(LexemeSequence result, Lexeme.Identity... identities) {
         Iterator<Lexeme> it = result.getLexemes();
         if (identities.length > 0) {

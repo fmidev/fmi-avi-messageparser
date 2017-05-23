@@ -266,11 +266,6 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz,
-            final ParsingHints hints) throws TokenizingException {
-        return appendToken(builder, id, msg, clz, null, hints);
-    }
-
-    private <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz,
             final ParsingHints hints, final Object... specifier) throws TokenizingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
         int retval = 0;
