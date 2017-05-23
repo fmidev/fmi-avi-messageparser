@@ -18,6 +18,7 @@ public class Metar7Test extends AbstractAviMessageTest {
 		return "metar/metar7.json";
 	}
 	
+	// Equivalent to Metar8 but with different colors
 	@Override
 	public String getMessage() {
 		return
