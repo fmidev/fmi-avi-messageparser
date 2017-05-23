@@ -225,7 +225,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             }
             msg.setVisibility(vis);
         }, () -> {
-            result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing horizontal visibility information in " + lexed.getTAC()));
+        	// If no horizontal visibility and no CAVOK
+        	if (!result.getParsedMessage().isCeilingAndVisibilityOk()) {
+        		result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing horizontal visibility / cavok in " + lexed.getTAC()));
+        	}
         });
     }
 
