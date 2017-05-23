@@ -39,12 +39,6 @@ public class Metar11Test extends AbstractAviMessageTest {
 	public void testTokenizer() throws TokenizingException, IOException {
 		
 	}
-
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
-	}
 	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
