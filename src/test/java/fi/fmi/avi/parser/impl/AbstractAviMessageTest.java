@@ -94,7 +94,11 @@ public abstract class AbstractAviMessageTest {
 
 	@Test
 	public void testParser() throws IOException {
-        ParsingResult<? extends AviationWeatherMessage> result = parser.parseMessage(lexer.lexMessage(getMessage(), getLexerParsingHints()), getMessageClass(), getParserParsingHints());
+		LexemeSequence lexemeSequence = lexer.lexMessage(getMessage(), getLexerParsingHints());
+		Class<? extends AviationWeatherMessage> clazz = getMessageClass();
+		ParsingHints hints = getParserParsingHints();
+		
+        ParsingResult<? extends AviationWeatherMessage> result = parser.parseMessage(lexemeSequence, clazz, hints);
         assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
         assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename(), getMessageClass()), result.getParsedMessage());
 	}
