@@ -891,6 +891,9 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         case NO_SIGNIFICANT_WEATHER:
                             fct.setNoSignificantWeather(true);
                             break;
+                        case COLOR_CODE:
+                        	// NOP
+                        	break;
                         default:
                             result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Illegal token " + token.getTACToken() + " within the change forecast group"));
                             break;
