@@ -37,15 +37,9 @@ public class Metar7Test extends AbstractAviMessageTest {
 	// Remove this overridden method once the tokenizer is working
 	@Override
 	public void testTokenizer() throws TokenizingException, IOException {
-		
+		// NOTE: the message contains color codes that are currently not stored in Metar POJOs
 	}
 
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
-	}
-	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
