@@ -18,6 +18,7 @@ public class Metar9Test extends AbstractAviMessageTest {
 		return "metar/metar9.json";
 	}
 	
+	// Almost exactly the same as Metar 10 except WS ALL RWY
 	@Override
 	public String getMessage() {
 		return

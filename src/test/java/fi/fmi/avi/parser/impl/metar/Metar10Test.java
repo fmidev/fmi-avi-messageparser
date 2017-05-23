@@ -18,6 +18,7 @@ public class Metar10Test extends AbstractAviMessageTest {
 		return "metar/metar10.json";
 	}
 	
+	// Almost exactly the same as Metar 9 except WS RWY04R
 	@Override
 	public String getMessage() {
 		return
@@ -37,12 +38,6 @@ public class Metar10Test extends AbstractAviMessageTest {
 	// Remove this overridden method once the tokenizer is working
 	@Override
 	public void testTokenizer() throws TokenizingException, IOException {
-		
-	}
-
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
 		
 	}
 	
