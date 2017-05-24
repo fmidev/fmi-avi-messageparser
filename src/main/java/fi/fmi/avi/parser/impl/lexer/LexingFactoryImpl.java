@@ -545,8 +545,8 @@ public class LexingFactoryImpl implements LexingFactory {
         public void setParsedValue(ParsedValueName name, Object value) {
         	if (this.id != null) {
         		if (!this.id.canStore(name)) {
-        			throw new IllegalArgumentException(this.id + "can  only store " + id.getPossibleNames());
-        		}
+                    throw new IllegalArgumentException(this.id + " can only store " + id.getPossibleNames());
+                }
         		this.parsedValues.put(name, value);
         	} else {
         		throw new IllegalStateException("Cannot set parsed value before identifying Lexeme");
@@ -669,7 +669,7 @@ public class LexingFactoryImpl implements LexingFactory {
             if (this.next == null) {
                 throw new NoSuchElementException("No more lexemes!");
             }
-            //return the next lexeme regardless of is it's recognized or not:
+            //return the next lexeme regardless of if it's recognized or not:
             if (this.returnRecognized == null) {
                 modificationCheck();
                 retval = this.next;
