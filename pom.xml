@@ -27,7 +27,7 @@
     <dependency>
       <groupId>fi.fmi.avi</groupId>
       <artifactId>fmi-avi-messageparser-api</artifactId>
-      <version>1.5.2-SNAPSHOT</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
     	<groupId>joda-time</groupId>
