@@ -147,7 +147,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
-            Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Integer.class);
+            Object direction = match.getParsedValue(Lexeme.ParsedValueName.DIRECTION, Object.class);
             Integer meanSpeed = match.getParsedValue(Lexeme.ParsedValueName.MEAN_VALUE, Integer.class);
             Integer gust = match.getParsedValue(Lexeme.ParsedValueName.MAX_VALUE, Integer.class);
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
