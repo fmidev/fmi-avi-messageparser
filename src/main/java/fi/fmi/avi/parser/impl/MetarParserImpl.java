@@ -746,8 +746,8 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                         break;
                     }
                     case UNTIL: {
-                        Integer toHour = changeFct.getParsedValue(ParsedValueName.HOUR2, Integer.class);
-                        Integer toMinute = changeFct.getParsedValue(ParsedValueName.MINUTE2, Integer.class);
+                        Integer toHour = changeFct.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                        Integer toMinute = changeFct.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
                         if (toHour != null) {
                             timeGroups.setToHour(toHour);
                         } else {
