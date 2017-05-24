@@ -15,7 +15,21 @@ import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 public class ColorCode extends RegexMatchingLexemeVisitor {
 
     public enum ColorState {
-        BLUE("BLU"), WHITE("WHT"), GREEN("GRN"), YELLOW1("YLO1"), YELLOW2("YLO2"), AMBER("AMB"), RED("RED"), BLACK("BLACK");
+        BLUE("BLU"),
+        WHITE("WHT"),
+        GREEN("GRN"),
+        YELLOW1("YLO1"),
+        YELLOW2("YLO2"),
+        AMBER("AMB"),
+        RED("RED"),
+        BLACK("BLACK"),
+        BLACK_BLUE("BLACKBLU"),
+        BLACK_WHITE("BLACKWHT"),
+        BLACK_GREEN("BLACKGRN"),
+        BLACK_YELLOW1("BLACKYLO1"),
+        BLACK_YELLOW2("BLACKYLO2"),
+        BLACK_AMBER("BLACKAMB"),
+        BLACK_RED("BLACKRED");
 
         private String code;
 
@@ -32,6 +46,10 @@ public class ColorCode extends RegexMatchingLexemeVisitor {
             return null;
         }
 
+        public String getCode() {
+            return this.code;
+        }
+
     }
 
     public ColorCode(final Priority prio) {
@@ -44,7 +62,7 @@ public class ColorCode extends RegexMatchingLexemeVisitor {
         if (match.group(2) == null) {
             state = ColorState.forCode(match.group(1));
         } else {
-            state = ColorState.BLACK;
+            state = ColorState.forCode(match.group(2));
         }
         token.identify(COLOR_CODE);
         token.setParsedValue(VALUE, state);
