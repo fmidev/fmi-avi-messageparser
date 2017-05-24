@@ -227,10 +227,10 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             }
             msg.setVisibility(vis);
         }, () -> {
-        	// If no horizontal visibility and no CAVOK
-        	if (!result.getParsedMessage().isCeilingAndVisibilityOk()) {
-        		result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing horizontal visibility / cavok in " + lexed.getTAC()));
-        	}
+            // If no horizontal visibility and no CAVOK
+            if (!result.getParsedMessage().isCeilingAndVisibilityOk()) {
+                result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Missing horizontal visibility / cavok in " + lexed.getTAC()));
+            }
         });
     }
 
@@ -734,68 +734,71 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                 if (BECOMING == fct.getChangeIndicator() || TEMPORARY_FLUCTUATIONS == fct.getChangeIndicator()) {
                     //Check for the possibly following FM, TL and AT tokens:
                     Lexeme token = changeFct.getNext();
-                    type = token.getParsedValue(ParsedValueName.TYPE, ForecastChangeIndicator.ForecastChangeIndicatorType.class);
-                    if (type != null) {
-                        TrendTimeGroups timeGroups = new TrendTimeGroupsImpl();
-                        switch (type) {
-                            case AT: {
-                                Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
-                                Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
-                                if (fromHour != null) {
-                                    timeGroups.setFromHour(fromHour);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend AT group " + token.getTACToken()));
+                    if (Identity.FORECAST_CHANGE_INDICATOR == token.getIdentity()) {
+                        type = token.getParsedValue(ParsedValueName.TYPE, ForecastChangeIndicator.ForecastChangeIndicatorType.class);
+                        if (type != null) {
+                            TrendTimeGroups timeGroups = new TrendTimeGroupsImpl();
+                            switch (type) {
+                                case AT: {
+                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                                    if (fromHour != null) {
+                                        timeGroups.setFromHour(fromHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend AT group " + token.getTACToken()));
+                                    }
+                                    if (fromMinute != null) {
+                                        timeGroups.setFromMinute(fromMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend AT group " + token.getTACToken()));
+                                    }
+                                    timeGroups.setSingleInstance(true);
+                                    fct.setTimeGroups(timeGroups);
+                                    break;
                                 }
-                                if (fromMinute != null) {
-                                    timeGroups.setFromMinute(fromMinute);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend AT group " + token.getTACToken()));
+                                case FROM: {
+                                    Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                                    Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                                    if (fromHour != null) {
+                                        timeGroups.setFromHour(fromHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend FM group " + token.getTACToken()));
+                                    }
+                                    if (fromMinute != null) {
+                                        timeGroups.setFromMinute(fromMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend FM group " + token.getTACToken()));
+                                    }
+                                    fct.setTimeGroups(timeGroups);
+                                    break;
                                 }
-                                timeGroups.setSingleInstance(true);
-                                fct.setTimeGroups(timeGroups);
-                                break;
+                                case UNTIL: {
+                                    Integer toHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
+                                    Integer toMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
+                                    if (toHour != null) {
+                                        timeGroups.setToHour(toHour);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend TL group " + token.getTACToken()));
+                                    }
+                                    if (toMinute != null) {
+                                        timeGroups.setToMinute(toMinute);
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend TL group " + token.getTACToken()));
+                                    }
+                                    fct.setTimeGroups(timeGroups);
+                                    break;
+                                }
+                                default: {
+                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR,
+                                            "Illegal change group '" + token.getTACToken() + "' after '" + changeFct.getTACToken() + "'"));
+                                    break;
+                                }
                             }
-                            case FROM: {
-                                Integer fromHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
-                                Integer fromMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
-                                if (fromHour != null) {
-                                    timeGroups.setFromHour(fromHour);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend FM group " + token.getTACToken()));
-                                }
-                                if (fromMinute != null) {
-                                    timeGroups.setFromMinute(fromMinute);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend FM group " + token.getTACToken()));
-                                }
-                                fct.setTimeGroups(timeGroups);
-                                break;
-                            }
-                            case UNTIL: {
-                                Integer toHour = token.getParsedValue(ParsedValueName.HOUR1, Integer.class);
-                                Integer toMinute = token.getParsedValue(ParsedValueName.MINUTE1, Integer.class);
-                                if (toHour != null) {
-                                    timeGroups.setToHour(toHour);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing hour from trend TL group " + token.getTACToken()));
-                                }
-                                if (toMinute != null) {
-                                    timeGroups.setToMinute(toMinute);
-                                } else {
-                                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing minutes from trend TL group " + token.getTACToken()));
-                                }
-                                fct.setTimeGroups(timeGroups);
-                                break;
-                            }
-                            default: {
-                                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR,
-                                        "Illegal change group '" + token.getTACToken() + "' after '" + changeFct.getTACToken() + "'"));
-                                break;
-                            }
+                            changeFct = token;
+                            token = findNext(token, stopWithingGroup);
                         }
-                        changeFct = token;
                     }
-                    token = findNext(token, stopWithingGroup);
+
                     //loop over change group tokens:
                     CloudForecast cloud = null;
                     List<fi.fmi.avi.data.CloudLayer> cloudLayers = null;
