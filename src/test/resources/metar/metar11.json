@@ -84,15 +84,42 @@
     "value": -10.0,
     "uom": "degC"
   },
-  "windShear": {
-    "allRunways": false,
-    "runwayDirectionDesignators": [
-      "04R"
-    ]
+  "seaState": {
+    "seaSurfaceTemperature": {
+      "value": -1,
+      "uom": "degC"
+    },
+    "seaSurfaceState": "CALM_RIPPLED"
   },
   "trends": [
     {
-      "changeIndicator": "TEMPORARY_FLUCTUATIONS"
+      "timeGroups": {
+        "fromHour": -1,
+        "fromMinute": -1,
+        "toHour": 15,
+        "toMinute": 30,
+        "singleInstance": false
+      },
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "forecastWeather": [
+        {
+          "code": "+SHRA",
+          "description": "Heavy showery precipitation of rain"
+        }
+      ],
+      "cloud": {
+        "layers": [
+          {
+            "amount": "BKN",
+            "base": {
+              "value": 1200.0,
+              "uom": "ft"
+            },
+            "cloudType": "CB"
+          }
+        ]
+      }
+
     }
   ]
 }
