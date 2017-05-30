@@ -66,7 +66,7 @@ public class AviMessageLexerImpl implements AviMessageLexer {
             }
             if (iterationCount == MAX_ITERATIONS) {
                 LOG.warn("Lexing result for " + result.getFirstLexeme().getIdentity() + " did not stabilize within the maximum iteration count "
-                        + +MAX_ITERATIONS + ", result may be incomplete");
+                        + MAX_ITERATIONS + ", result may be incomplete");
             }
         }
         return result;

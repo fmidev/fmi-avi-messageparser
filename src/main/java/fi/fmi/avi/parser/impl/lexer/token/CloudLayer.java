@@ -147,8 +147,8 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
         }
         
         private long getAsHectoFeet(final NumericMeasure value) throws TokenizingException {
-        	long hftValue = -1l;
-        	if (value != null) {
+            long hftValue = -1L;
+            if (value != null) {
 				if ("hft".equalsIgnoreCase(value.getUom())) {
 					hftValue = Math.round(value.getValue());
 				} else if ("ft".equalsIgnoreCase(value.getUom())) {

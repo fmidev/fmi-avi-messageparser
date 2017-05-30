@@ -168,7 +168,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
             if (endDay != null) {
                 fct.setValidityEndDayOfMonth(endDay);
-            } else {
+            } else if (startDay != null) {
                 fct.setValidityEndDayOfMonth(startDay);
             }
 
