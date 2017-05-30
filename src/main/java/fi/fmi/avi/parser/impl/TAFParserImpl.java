@@ -343,36 +343,27 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                                 updateChangeForecastContents(changeFct, type, match, hints);
                                 break;
                             case WITH_40_PCT_PROBABILITY:
-                            case WITH_30_PCT_PROBABILITY: {
-                                if (FORECAST_CHANGE_INDICATOR == next.getIdentityIfAcceptable()) {
-                                    if (ForecastChangeIndicator.ForecastChangeIndicatorType.TEMPORARY_FLUCTUATIONS == next.getParsedValue(
-                                            Lexeme.ParsedValueName.TYPE, ForecastChangeIndicator.ForecastChangeIndicatorType.class)) {
-                                        if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
-                                            changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30_TEMPORARY_FLUCTUATIONS);
-                                        } else {
-                                            changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40_TEMPORARY_FLUCTUATIONS);
-                                        }
-                                        updateChangeForecastContents(changeFct, type, next, hints);
-                                        match = next;
-                                    } else {
-                                        retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, type + " cannot be followed by " + next));
-                                    }
-                                } else {
-                                    if (ForecastChangeIndicator.ForecastChangeIndicatorType.WITH_30_PCT_PROBABILITY == type) {
-                                        changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30);
-                                    } else {
-                                        changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40);
-                                    }
-                                    updateChangeForecastContents(changeFct, type, match, hints);
-                                }
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40);
+                                updateChangeForecastContents(changeFct, type, match, hints);
                                 break;
-                            }
+                            case WITH_30_PCT_PROBABILITY:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30);
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
+                            case TEMPO_WITH_30_PCT_PROBABILITY:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_30_TEMPORARY_FLUCTUATIONS);
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
+                            case TEMPO_WITH_40_PCT_PROBABILITY:
+                                changeFct.setChangeIndicator(AviationCodeListUser.TAFChangeIndicator.PROBABILITY_40_TEMPORARY_FLUCTUATIONS);
+                                updateChangeForecastContents(changeFct, type, match, hints);
+                                break;
                             case AT:
                             case UNTIL:
                                 retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Change group " + type + " is not allowed in TAF"));
                                 break;
                             default:
-                                retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Unknonw change group " + type));
+                                retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Unknown change group " + type));
                                 break;
                         }
                         changeForecasts.add(changeFct);

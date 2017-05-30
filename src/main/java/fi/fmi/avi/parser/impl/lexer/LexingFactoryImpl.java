@@ -1,5 +1,6 @@
 package fi.fmi.avi.parser.impl.lexer;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -111,6 +112,27 @@ public class LexingFactoryImpl implements LexingFactory {
         @Override
         public List<Lexeme> getLexemes() {
             return Collections.unmodifiableList(this.lexemes);
+        }
+
+        @Override
+        public List<LexemeSequence> splitBy(Lexeme.Identity...ids) {
+            List<LexemeSequence> retval = new ArrayList<>();
+            LexemeSequenceImpl seq = new LexemeSequenceImpl();
+            for (LexemeImpl l:this.lexemes) {
+                for (Lexeme.Identity toMatch:ids) {
+                    //Do not produce empty sequences
+                    if (toMatch == l.getIdentity()  && seq.lexemes.size() > 0) {
+                        retval.add(seq);
+                        seq = new LexemeSequenceImpl();
+                        break;
+                    }
+                }
+                seq.addAsLast(l);
+            }
+            if (seq.lexemes.size() > 0) {
+                retval.add(seq);
+            }
+            return retval;
         }
 
         LexemeImpl replaceFirstWith(final LexemeImpl replacement) {
@@ -238,7 +260,7 @@ public class LexingFactoryImpl implements LexingFactory {
                         l.setStartIndex(start);
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.addAsLast(l);
-                        l = new LexemeImpl("=", Lexeme.Identity.END_TOKEN);
+                        l = new LexemeImpl("=");
                         l.setStartIndex(start + s.length() - 1);
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.addAsLast(l);
@@ -262,6 +284,11 @@ public class LexingFactoryImpl implements LexingFactory {
                         l.setStartIndex(this.getLastLexeme().getStartIndex());
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.replaceLastWith(l);
+                    } else if (("PROB30".equals(lastToken) || "PROB40".equals(lastToken)) && ("TEMPO".equals(s))) {
+                        l = new LexemeImpl(lastToken + " " + s);
+                        l.setStartIndex(this.getLastLexeme().getStartIndex());
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.replaceLastWith(l);
                     } else {
                         l = new LexemeImpl(s);
                         l.setStartIndex(start);
@@ -277,7 +304,15 @@ public class LexingFactoryImpl implements LexingFactory {
 
         private String getAsTAC() {
             if (this.lexemes != null) {
-                return this.lexemes.stream().map(LexemeImpl::getTACToken).collect(Collectors.joining(" ", "", "="));
+                StringBuilder retval = new StringBuilder();
+                retval.append(this.lexemes.stream()
+                        .map(LexemeImpl::getTACToken)
+                        .filter((str) -> !"=".equals(str))
+                        .collect(Collectors.joining(" ")));
+                if (Lexeme.Identity.END_TOKEN == this.lexemes.getLast().getIdentity()) {
+                    retval.append('=');
+                }
+                return retval.toString();
             } else {
                 return null;
             }
