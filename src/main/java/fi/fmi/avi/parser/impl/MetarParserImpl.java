@@ -537,12 +537,17 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 	        	Object breakingAction = values.get(RunwayStateReportType.BREAKING_ACTION);
 	        	Object frictionCoefficient = values.get(RunwayStateReportType.FRICTION_COEFFICIENT);
 	        	
+	        	Boolean snowClosure = (Boolean)values.get(RunwayStateReportType.SNOW_CLOSURE);
+	        	
 	        	if (repetition != null && repetition) {
 	        		rws.setRepetition(true);
 	        	} else if (allRunways != null && allRunways) {
 	        		rws.setAllRunways(true);
 	        	} else if (runway != null) {
 	        		rws.setRunwayDirectionDesignator(runway);
+	        	} else if (snowClosure != null && snowClosure.booleanValue()) {
+	        		rws.setAllRunways(true);
+	        		rws.setSnowClosure(true);
 	        	} else {
                     result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }
