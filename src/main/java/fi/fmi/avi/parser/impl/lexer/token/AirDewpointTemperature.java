@@ -4,7 +4,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.UNIT;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.parser.Lexeme;

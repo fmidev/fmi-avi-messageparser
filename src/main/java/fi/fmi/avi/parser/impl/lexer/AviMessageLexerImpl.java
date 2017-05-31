@@ -1,8 +1,9 @@
 package fi.fmi.avi.parser.impl.lexer;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,10 +56,11 @@ public class AviMessageLexerImpl implements AviMessageLexer {
                 lexemesChanged = false;
                 iterationCount++;
                 int oldHashCode;
-                Iterator<Lexeme> it = result.getUnrecognizedLexemes();
-                Lexeme lexeme = null;
-                while (it.hasNext()) {
-                    lexeme = it.next();
+                List<Lexeme> unrecognizedlexemes = result.getLexemes()
+                        .stream()
+                        .filter(l -> Lexeme.Status.UNRECOGNIZED == l.getStatus())
+                        .collect(Collectors.toList());
+                for (Lexeme lexeme : unrecognizedlexemes) {
                     oldHashCode = lexeme.hashCode();
                     lexeme.accept(tokenLexer, hints);
                     lexemesChanged = lexemesChanged || oldHashCode != lexeme.hashCode();
@@ -66,7 +68,7 @@ public class AviMessageLexerImpl implements AviMessageLexer {
             }
             if (iterationCount == MAX_ITERATIONS) {
                 LOG.warn("Lexing result for " + result.getFirstLexeme().getIdentity() + " did not stabilize within the maximum iteration count "
-                        + +MAX_ITERATIONS + ", result may be incomplete");
+                        + MAX_ITERATIONS + ", result may be incomplete");
             }
         }
         return result;

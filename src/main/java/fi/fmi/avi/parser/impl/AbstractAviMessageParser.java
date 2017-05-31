@@ -6,8 +6,8 @@ import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationWeatherMessage;
@@ -15,11 +15,11 @@ import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.impl.WeatherImpl;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
-import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
@@ -84,9 +84,11 @@ public abstract class AbstractAviMessageParser {
     protected static List<ParsingIssue> checkZeroOrOne(LexemeSequence lexed, Lexeme.Identity[] ids) {
         List<ParsingIssue> retval = new ArrayList<>();
         boolean[] oneFound = new boolean[ids.length];
-        Iterator<Lexeme> it = lexed.getRecognizedLexemes();
-        while (it.hasNext()) {
-            Lexeme l = it.next();
+        List<Lexeme> recognizedLexemes = lexed.getLexemes()
+                .stream()
+                .filter((lexeme) -> Lexeme.Status.UNRECOGNIZED != lexeme.getStatus())
+                .collect(Collectors.toList());
+        for (Lexeme l : recognizedLexemes) {
             for (int i = 0; i < ids.length; i++) {
                 if (ids[i] == l.getIdentity()) {
                     if (!oneFound[i]) {

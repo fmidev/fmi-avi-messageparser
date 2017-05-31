@@ -29,6 +29,7 @@ import fi.fmi.avi.parser.impl.lexer.token.ChangeForecastTimeGroup;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
 import fi.fmi.avi.parser.impl.lexer.token.ColorCode;
 import fi.fmi.avi.parser.impl.lexer.token.Correction;
+import fi.fmi.avi.parser.impl.lexer.token.EndToken;
 import fi.fmi.avi.parser.impl.lexer.token.ForecastChangeIndicator;
 import fi.fmi.avi.parser.impl.lexer.token.ForecastMaxMinTemperature;
 import fi.fmi.avi.parser.impl.lexer.token.FractionalHorizontalVisibility;
@@ -118,7 +119,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.RUNWAY_STATE
         //Lexeme.Identity.COLOR_CODE
         s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
-        //Lexeme.Identity.REMARK
+        s.addReconstructor(Lexeme.Identity.END_TOKEN,new EndToken.Reconstructor());
         return s;
     }
 
@@ -151,6 +152,7 @@ public class AviMessageParserConfig {
         l.teach(new Remark(Priority.NORMAL));
         l.teach(new WindShear(Priority.LOW));
         l.teach(new SeaState(Priority.LOW));
+        l.teach(new EndToken(Priority.LOW));
         return l;
     }
 
@@ -177,6 +179,7 @@ public class AviMessageParserConfig {
         l.teach(new ForecastMaxMinTemperature(Priority.LOW));
         l.teach(new RemarkStart(Priority.LOW));
         l.teach(new Remark(Priority.NORMAL));
+        l.teach(new EndToken(Priority.LOW));
         return l;
     }
 

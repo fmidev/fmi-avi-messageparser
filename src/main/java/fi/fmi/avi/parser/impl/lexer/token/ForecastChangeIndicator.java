@@ -31,6 +31,8 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
         BECOMING("BECMG"),
         WITH_40_PCT_PROBABILITY("PROB40"),
         WITH_30_PCT_PROBABILITY("PROB30"),
+        TEMPO_WITH_40_PCT_PROBABILITY("PROB40 TEMPO"),
+        TEMPO_WITH_30_PCT_PROBABILITY("PROB30 TEMPO"),
         AT("AT"),
         FROM("FM"), UNTIL("TL"), NO_SIGNIFICANT_CHANGES("NOSIG");
 
@@ -52,7 +54,8 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     }
 
     public ForecastChangeIndicator(final Priority prio) {
-        super("^(NOSIG|TEMPO|BECMG|PROB40|PROB30)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$", prio);
+        super("^(NOSIG|TEMPO|BECMG|PROB40|PROB30|PROB30 TEMPO|PROB40 TEMPO)|((AT|FM|TL)([0-9]{2})?([0-9]{2})([0-9]{2}))$",
+                prio);
     }
 
     @Override

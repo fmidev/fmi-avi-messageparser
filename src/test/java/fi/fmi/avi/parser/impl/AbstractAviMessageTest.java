@@ -1,16 +1,17 @@
 package fi.fmi.avi.parser.impl;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -105,21 +106,12 @@ public abstract class AbstractAviMessageTest {
 	
 
     protected void assertTokenSequenceIdentityMatch(LexemeSequence result, Lexeme.Identity... identities) {
-        Iterator<Lexeme> it = result.getLexemes();
-        if (identities.length > 0) {
-            assertTrue(it.hasNext());
-        }
-        try {
-            for (int i = 0; i < identities.length; i++) {
-                assertEquals("Mismatch at index " + i, identities[i], it.next().getIdentityIfAcceptable());
-            }
-        } catch (NoSuchElementException nse) {
-            fail("Lexed token sequence is shorter than expected");
-        }
-        if (it.hasNext()) {
-            fail("Lexed token sequence is longer than expected");
-        }
-    }
+		List<Lexeme> lexemes = result.getLexemes();
+		assertTrue("Token sequence size does not match", identities.length == lexemes.size());
+		for (int i = 0; i < identities.length; i++) {
+			assertEquals("Mismatch at index " + i, identities[i], lexemes.get(i).getIdentityIfAcceptable());
+		}
+	}
     
     protected void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz, final ParsingHints hints) throws IOException, TokenizingException {
         LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz), hints);

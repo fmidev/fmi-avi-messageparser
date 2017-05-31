@@ -1,15 +1,14 @@
 package fi.fmi.avi.parser.impl.lexer;
 
-import java.util.ConcurrentModificationException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Splitter;
 
@@ -72,7 +71,6 @@ public class LexingFactoryImpl implements LexingFactory {
 
         private String originalTac;
         private LinkedList<LexemeImpl> lexemes;
-        private int changeCount = 0;
 
         public LexemeSequenceImpl(final String originalTac) {
             this();
@@ -94,11 +92,6 @@ public class LexingFactoryImpl implements LexingFactory {
         }
 
         @Override
-        public int getTotalLexemeCount() {
-            return this.lexemes.size();
-        }
-
-        @Override
         public Lexeme getFirstLexeme() {
             if (this.lexemes.size() > 0) {
                 return this.lexemes.getFirst();
@@ -117,45 +110,29 @@ public class LexingFactoryImpl implements LexingFactory {
         }
 
         @Override
-        public Iterator<Lexeme> getLexemes() {
-            return new RecognitionBasedLexemeIterator(this.getFirstLexeme(), null) {
-                private final int changeCountAtStart = LexemeSequenceImpl.this.changeCount;
-
-                @Override
-                protected void modificationCheck() throws ConcurrentModificationException {
-                    if (changeCount != changeCountAtStart) {
-                        throw new ConcurrentModificationException("Lexeme sequence was modified while iterating");
-                    }
-                }
-            };
+        public List<Lexeme> getLexemes() {
+            return Collections.unmodifiableList(this.lexemes);
         }
 
         @Override
-        public Iterator<Lexeme> getUnrecognizedLexemes() {
-            return new RecognitionBasedLexemeIterator(this.getFirstLexeme(), false) {
-                private final int changeCountAtStart = LexemeSequenceImpl.this.changeCount;
-
-                @Override
-                protected void modificationCheck() throws ConcurrentModificationException {
-                    if (changeCount != changeCountAtStart) {
-                        throw new ConcurrentModificationException("Lexeme sequence was modified while iterating");
+        public List<LexemeSequence> splitBy(Lexeme.Identity...ids) {
+            List<LexemeSequence> retval = new ArrayList<>();
+            LexemeSequenceImpl seq = new LexemeSequenceImpl();
+            for (LexemeImpl l:this.lexemes) {
+                for (Lexeme.Identity toMatch:ids) {
+                    //Do not produce empty sequences
+                    if (toMatch == l.getIdentity()  && seq.lexemes.size() > 0) {
+                        retval.add(seq);
+                        seq = new LexemeSequenceImpl();
+                        break;
                     }
                 }
-            };
-        }
-
-        @Override
-        public Iterator<Lexeme> getRecognizedLexemes() {
-            return new RecognitionBasedLexemeIterator(this.getFirstLexeme(), true) {
-                private final int changeCountAtStart = LexemeSequenceImpl.this.changeCount;
-
-                @Override
-                protected void modificationCheck() throws ConcurrentModificationException {
-                    if (changeCount != changeCountAtStart) {
-                        throw new ConcurrentModificationException("Lexeme sequence was modified while iterating");
-                    }
-                }
-            };
+                seq.addAsLast(l);
+            }
+            if (seq.lexemes.size() > 0) {
+                retval.add(seq);
+            }
+            return retval;
         }
 
         LexemeImpl replaceFirstWith(final LexemeImpl replacement) {
@@ -166,7 +143,6 @@ public class LexingFactoryImpl implements LexingFactory {
                 throw new IllegalStateException("No first lexeme to replace");
             }
             LexemeImpl oldFirst = this.lexemes.removeFirst();
-            this.changeCount++;
             this.addAsFirst(replacement);
             int indexAdjustment = 0;
             if (oldFirst.isSynthetic() && !replacement.isSynthetic()) {
@@ -190,7 +166,6 @@ public class LexingFactoryImpl implements LexingFactory {
                 throw new IllegalStateException("No last lexeme to replace");
             }
             LexemeImpl oldLast = this.lexemes.removeLast();
-            this.changeCount++;
             this.addAsLast(replacement);
             return oldLast;
         }
@@ -204,7 +179,6 @@ public class LexingFactoryImpl implements LexingFactory {
                 }
                 toAdd.setPrevious(null);
                 this.lexemes.addFirst(toAdd);
-                this.changeCount++;
                 this.updateLinksToFirst();
                 if (!toAdd.isSynthetic()) {
                     //Assume a single white space token separator:
@@ -226,13 +200,11 @@ public class LexingFactoryImpl implements LexingFactory {
                 }
                 toAdd.setNext(null);
                 this.lexemes.addLast(toAdd);
-                this.changeCount++;
             }
         }
 
         LexemeImpl removeFirst() {
             LexemeImpl removed = this.lexemes.removeFirst();
-            this.changeCount++;
             if (removed != null) {
                 this.lexemes.getFirst().setPrevious(null);
                 this.updateLinksToFirst();
@@ -246,7 +218,6 @@ public class LexingFactoryImpl implements LexingFactory {
 
         LexemeImpl removeLast() {
             LexemeImpl removed = this.lexemes.removeLast();
-            this.changeCount++;
             if (removed != null) {
                 this.lexemes.getLast().setNext(null);
             }
@@ -289,7 +260,7 @@ public class LexingFactoryImpl implements LexingFactory {
                         l.setStartIndex(start);
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.addAsLast(l);
-                        l = new LexemeImpl("=", Lexeme.Identity.END_TOKEN);
+                        l = new LexemeImpl("=");
                         l.setStartIndex(start + s.length() - 1);
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.addAsLast(l);
@@ -313,6 +284,11 @@ public class LexingFactoryImpl implements LexingFactory {
                         l.setStartIndex(this.getLastLexeme().getStartIndex());
                         l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
                         this.replaceLastWith(l);
+                    } else if (("PROB30".equals(lastToken) || "PROB40".equals(lastToken)) && ("TEMPO".equals(s))) {
+                        l = new LexemeImpl(lastToken + " " + s);
+                        l.setStartIndex(this.getLastLexeme().getStartIndex());
+                        l.setEndIndex(l.getStartIndex() + l.getTACToken().length() - 1);
+                        this.replaceLastWith(l);
                     } else {
                         l = new LexemeImpl(s);
                         l.setStartIndex(start);
@@ -323,21 +299,22 @@ public class LexingFactoryImpl implements LexingFactory {
                     lastToken = s;
                     start += s.length();
                 }
-                this.changeCount++;
             }
         }
 
         private String getAsTAC() {
-            StringBuilder sb = new StringBuilder();
-            Iterator<Lexeme> it = this.getRecognizedLexemes();
-            while (it.hasNext()) {
-                sb.append(it.next().getTACToken());
-                sb.append(' ');
-            }
-            if (sb.length() > 0) {
-                return sb.substring(0, sb.length() - 1)+"=";
+            if (this.lexemes != null) {
+                StringBuilder retval = new StringBuilder();
+                retval.append(this.lexemes.stream()
+                        .map(LexemeImpl::getTACToken)
+                        .filter((str) -> !"=".equals(str))
+                        .collect(Collectors.joining(" ")));
+                if (Lexeme.Identity.END_TOKEN == this.lexemes.getLast().getIdentity()) {
+                    retval.append('=');
+                }
+                return retval.toString();
             } else {
-                return "";
+                return null;
             }
         }
 
@@ -545,8 +522,8 @@ public class LexingFactoryImpl implements LexingFactory {
         public void setParsedValue(ParsedValueName name, Object value) {
         	if (this.id != null) {
         		if (!this.id.canStore(name)) {
-        			throw new IllegalArgumentException(this.id + "can  only store " + id.getPossibleNames());
-        		}
+                    throw new IllegalArgumentException(this.id + " can only store " + id.getPossibleNames());
+                }
         		this.parsedValues.put(name, value);
         	} else {
         		throw new IllegalStateException("Cannot set parsed value before identifying Lexeme");
@@ -629,75 +606,5 @@ public class LexingFactoryImpl implements LexingFactory {
             return result;
         }
     }
-
-    private static abstract class RecognitionBasedLexemeIterator implements Iterator<Lexeme> {
-        private Boolean returnRecognized;
-        private Lexeme next;
-        private HashSet<Integer> visited = new HashSet<Integer>();
-
-        RecognitionBasedLexemeIterator(Lexeme head, Boolean returnRecognized) {
-            this.returnRecognized = returnRecognized;
-            this.next = head;
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("remove");
-        }
-
-        @Override
-        public boolean hasNext() {
-            modificationCheck();
-            if (this.returnRecognized == null) {
-                return this.next != null;
-            } else {
-                Lexeme l = this.next;
-                while (l != null && returnRecognized != l.isRecognized() && l.hasNext()) {
-                    l = l.getNext();
-                }
-                if (l == null) {
-                    return false;
-                } else {
-                    return returnRecognized == l.isRecognized();
-                }
-            }
-        }
-
-        @Override
-        public Lexeme next() {
-            Lexeme retval = null;
-            if (this.next == null) {
-                throw new NoSuchElementException("No more lexemes!");
-            }
-            //return the next lexeme regardless of is it's recognized or not:
-            if (this.returnRecognized == null) {
-                modificationCheck();
-                retval = this.next;
-                if (!this.visited.add(Integer.valueOf(System.identityHashCode(retval)))) {
-                    throw new RuntimeException("Circular reference in Lexeme sequence detected!");
-                }
-
-            } else {
-                while (returnRecognized != this.next.isRecognized() && this.next.hasNext()) {
-                    modificationCheck();
-                    this.next = this.next.getNext();
-                    if (!this.visited.add(Integer.valueOf(System.identityHashCode(this.next)))) {
-                        throw new RuntimeException("Circular reference in Lexeme sequence detected!");
-                    }
-                }
-                retval = this.next;
-                if (returnRecognized != retval.isRecognized()) {
-                    throw new NoSuchElementException("No more lexemes!");
-                }
-            }
-            this.next = this.next.getNext();
-            return retval;
-        }
-
-        protected abstract void modificationCheck() throws ConcurrentModificationException;
-
-    }
-
-    ;
 
 }
