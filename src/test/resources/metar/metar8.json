@@ -45,6 +45,7 @@
     "value": 1014.0,
     "uom": "hPa"
   },
+  "colorState": "BLACKBLU",
   "trends": [
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
@@ -68,7 +69,8 @@
             }
           }
         ]
-      }
+      },
+      "colorState": "BLACKWHT"
     }
   ]
 }
