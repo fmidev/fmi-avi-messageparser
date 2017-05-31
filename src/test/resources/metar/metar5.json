@@ -5,6 +5,7 @@
   "issueMinute": 50,
   "issueTimeZone": "UTC",
   "aerodromeDesignator": "EFTU",
+  "automatedStation": true,
   "surfaceWind": {
     "variableDirection": true,
     "meanWindSpeed": {

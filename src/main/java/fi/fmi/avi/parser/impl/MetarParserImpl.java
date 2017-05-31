@@ -6,6 +6,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity;
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.COLOR_CODE;
@@ -105,6 +106,11 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
             findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
                     () -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.NORMAL));
 
+            stopAt = new Identity[] { SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
+                WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            findNext(AUTOMATED, lexed.getFirstLexeme(), stopAt,
+            		(match) -> result.getParsedMessage().setAutomatedStation(true));
+            
             stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
                     WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
