@@ -616,7 +616,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
 	        		if (depthOfDeposit == null && depthModifier == RunwayStateReportSpecialValue.NOT_MEASURABLE) {
 	        			rws.setDepthNotMeasurable(true);
 	        			rws.setDepthOfDeposit(null);
-	        		} else if (depthOfDeposit == null) {
+	        		} else if (depthOfDeposit == null && depthModifier != RunwayStateReportSpecialValue.RUNWAY_NOT_OPERATIONAL) {
                         result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
                                 "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken()));
                     } else {
