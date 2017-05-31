@@ -35,6 +35,7 @@ import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
@@ -93,6 +94,15 @@ public abstract class AbstractAviMessageTest {
         		getTokenizerParsingHints());
 	}
 
+	public ParsingResult.ParsingStatus getExpectedParsingStatus() {
+		return ParsingResult.ParsingStatus.SUCCESS;
+	}
+	
+	// Override when necessary
+	public void assertParsingIssues(List<ParsingIssue> parsingIssues) {
+		assertEquals("No parsing issues expected", 0, parsingIssues.size());
+	}
+	
 	@Test
 	public void testParser() throws IOException {
 		LexemeSequence lexemeSequence = lexer.lexMessage(getMessage(), getLexerParsingHints());
@@ -100,7 +110,8 @@ public abstract class AbstractAviMessageTest {
 		ParsingHints hints = getParserParsingHints();
 		
         ParsingResult<? extends AviationWeatherMessage> result = parser.parseMessage(lexemeSequence, clazz, hints);
-        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
+        assertEquals("Parsing was not successful: " + result.getParsingIssues(), getExpectedParsingStatus(), result.getStatus());
+        assertParsingIssues(result.getParsingIssues());
         assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename(), getMessageClass()), result.getParsedMessage());
 	}
 	

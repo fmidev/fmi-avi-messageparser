@@ -370,15 +370,19 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
         findNext(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
             Integer[] values = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Integer[].class);
-            if (values[0] != null) {
-                msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
+            if (values == null) {
+            	result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + match.getTACToken()));
             } else {
-                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()));
-            }
-            if (values[1] != null) {
-                msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
-            } else {
-                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()));
+	            if (values[0] != null) {
+	                msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
+	            } else {
+	                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()));
+	            }
+	            if (values[1] != null) {
+	                msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
+	            } else {
+	                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()));
+	            }
             }
         }, () -> {
             result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + lexed.getTAC()));
