@@ -6,8 +6,14 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -52,5 +58,46 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
         } else {
             token.identify(AIR_PRESSURE_QNH, Lexeme.Status.WARNING, "Missing value for air pressure");
         }
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+				Object... specifier) throws TokenizingException {
+			Lexeme retval = null;
+			
+			NumericMeasure altimeter = null;
+			
+			if (clz.isAssignableFrom(Metar.class)) {
+				Metar metar = (Metar)msg;
+				
+				altimeter = metar.getAltimeterSettingQNH();
+			}
+			
+			if (altimeter != null) {
+				if (altimeter.getValue() == null) {
+					throw new TokenizingException("AltimeterSettingQNH is missing the value");
+				}
+				
+				String unit = null;
+				if ("hPa".equals(altimeter.getUom())) {
+					unit = "Q";
+				} else if ("in Hg".equals(altimeter.getUom())) {
+					unit = "A";
+				} else {
+					throw new TokenizingException("Unknown unit of measure in AltimeterSettingQNH '"+altimeter.getUom()+"'");
+				}
+				
+				StringBuilder builder = new StringBuilder();
+				builder.append(unit);
+				
+				builder.append(String.format("%04d", altimeter.getValue().intValue()));
+				
+				retval = this.createLexeme(builder.toString(), Identity.AIR_DEWPOINT_TEMPERATURE);
+			}
+			
+			return retval;
+		}
     }
 }

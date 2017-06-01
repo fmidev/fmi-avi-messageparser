@@ -6,8 +6,14 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -55,5 +61,64 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
             token.setParsedValue(VALUE, values);
             token.setParsedValue(UNIT, "degC");
         }
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+				Object... specifier) throws TokenizingException {
+			Lexeme retval = null;
+			
+			NumericMeasure air = null;
+			NumericMeasure dew = null;
+			
+			if (clz.isAssignableFrom(Metar.class)) {
+				
+				Metar metar = (Metar)msg;
+				
+				air = metar.getAirTemperature();
+				dew = metar.getDewpointTemperature();
+				
+			}
+			
+			if (air != null && dew != null) {
+				if (air.getValue() == null) {
+					throw new TokenizingException("AirTemperature exists, but no value");
+				}
+				
+				if (dew.getValue() == null) {
+					throw new TokenizingException("DewpointTemperature exists, but no value");
+				}
+				
+				if (!"degC".equals(air.getUom())) {
+					throw new TokenizingException("AirTemperature unit of measure is not degC, but '"+air.getUom()+"'");
+				}
+				
+				if (!"degC".equals(dew.getUom())) {
+					throw new TokenizingException("DewpointTemperature unit of measure is not degC, but '"+dew.getUom()+"'");
+				}
+				
+				StringBuilder builder = new StringBuilder();
+				
+				appendValue(air.getValue(), builder);
+				builder.append("/");
+				appendValue(dew.getValue(), builder);
+				
+				retval = this.createLexeme(builder.toString(), Identity.AIR_DEWPOINT_TEMPERATURE);
+			}
+			
+			return retval;
+		}
+
+		private void appendValue(Double v, StringBuilder builder) {
+			if (v < 0.0) {
+				builder.append("M");
+				v = Math.abs(v);
+			}
+			
+			int degC = v.intValue();
+			builder.append(String.format("%02d", degC));
+		}
     }
 }

@@ -2,12 +2,9 @@ package fi.fmi.avi.parser.impl.metar;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.*;
 
-import java.io.IOException;
-
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 

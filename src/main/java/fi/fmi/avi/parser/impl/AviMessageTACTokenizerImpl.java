@@ -30,6 +30,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -252,16 +253,18 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
-            final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
-        return appendCloudLayers(builder, msg, clz, layers, hints, null);
-    }
-
-    private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
-            final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
+            final List<CloudLayer> layers, final ParsingHints hints, final Object... specifier) throws TokenizingException {
         int retval = 0;
         if (layers != null) {
             for (CloudLayer layer : layers) {
-                retval += appendToken(builder, CLOUD, msg, clz, hints, layer, specifier);
+            	Object [] params = new Object[specifier.length + 1];
+            	params[0] = layer;
+            	for (int i = 0; i < specifier.length; i++) {
+            		params[i + 1] = specifier[ i ];
+            	}
+            	
+            	
+                retval += appendToken(builder, CLOUD, msg, clz, hints, params);
             }
         }
         return retval;

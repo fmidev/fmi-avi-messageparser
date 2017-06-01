@@ -111,8 +111,8 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
         s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
-        //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
-        //Lexeme.Identity.AIR_PRESSURE_QNH
+        s.addReconstructor(Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE, new AirDewpointTemperature.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AIR_PRESSURE_QNH, new AtmosphericPressureQNH.Reconstructor());
         //Lexeme.Identity.RECENT_WEATHER
         //Lexeme.Identity.WIND_SHEAR
         //Lexeme.Identity.SEA_STATE
