@@ -27,6 +27,8 @@ import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
  */
 public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 	
+	public static final int MAX_STATUE_MILE_DENOMINATOR = 16;
+	
 	public enum DirectionValue {
 		NORTH("N", 0),
 		SOUTH("S", 180),
@@ -133,23 +135,111 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 
 			if (visibility != null) {
 				String str;
-
-				int meters = visibility.getValue().intValue();
-				if (meters < 0) {
-					throw new TokenizingException("Visibility " + meters + " must be positive");
-				}
-
-				if (operator == RelationalOperator.BELOW && meters <= 50) {
-					str = "0000";
-				} else if (operator == RelationalOperator.ABOVE && meters >= 9999) {
-					str = "9999";
+				
+				if ("m".equals(visibility.getUom())) {
+					str = createMetricIntegerVisibility(visibility, operator);
+				} else if ("sm".equals(visibility.getUom())) {
+					str = createStatuteMilesVisibility(visibility, operator);
 				} else {
-					str = String.format("%04d", meters);
+					throw new TokenizingException("Unknown unit of measure '"+visibility.getUom()+"' for visibility");
 				}
-
+				
+				
+				// TODO: directional visibility
+				
 				retval = this.createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY);
 			}
 			return retval;
+		}
+
+		private String createMetricIntegerVisibility(NumericMeasure visibility, RelationalOperator operator)
+				throws TokenizingException {
+			String str;
+
+			int meters = visibility.getValue().intValue();
+			if (meters < 0) {
+				throw new TokenizingException("Visibility " + meters + " must be positive");
+			}
+
+			if (operator == RelationalOperator.BELOW && meters <= 50) {
+				str = "0000";
+			} else if (operator == RelationalOperator.ABOVE && meters >= 9999) {
+				str = "9999";
+			} else {
+				str = String.format("%04d", meters);
+			}
+
+			return str;
+		}
+		
+
+		private String createStatuteMilesVisibility(NumericMeasure visibility, RelationalOperator operator)
+				throws TokenizingException {
+			StringBuilder builder = new StringBuilder();
+			
+			int integerPart = (int)Math.floor(visibility.getValue());
+			
+			double parts = visibility.getValue() - (double)integerPart;
+			
+			if (parts > 1.0/(double)16) {
+			
+				if (integerPart > 0) {
+					builder.append(String.format("%d ", integerPart));
+				}
+				
+				
+				builder.append(findClosestFraction(parts, 16));
+			} else {
+				builder.append(String.format("%d", integerPart));
+			}
+			
+			builder.append("SM");
+			
+			return builder.toString();
+		}
+
+		public static String findClosestFraction(final double number, final int maxDenominator) {
+			if (maxDenominator < 3) {
+				throw new IllegalArgumentException("max denominator should be at least 3 to make any sense, you gave me "+maxDenominator);
+			}
+			
+			if (number >= 1.0 || number <= 0.0) {
+				throw new IllegalArgumentException("it only makes sense to find fractions for numbers between 0 and 1 (exclusive)");
+			}
+			
+			Integer currentBestNumerator = null;
+			Integer currentBestDenominator = null;
+			Double currentBestDelta = null;
+			
+			double doubleEquivalencyFactor = 0.00000001d;
+			
+			for (int denominator = 2; denominator <= maxDenominator; denominator++) {
+				
+				for (int numerator = 1; numerator < denominator; numerator++) {
+					double delta = Math.abs(number - (double)numerator/(double)denominator );
+					
+					boolean isNewBest = false;
+					
+					if (currentBestDelta == null) {
+						isNewBest = true;
+					} else if (delta < currentBestDelta && Math.abs(currentBestDelta - delta) > doubleEquivalencyFactor) {
+						isNewBest = true;
+					}
+					
+					if (isNewBest) {
+						currentBestNumerator = numerator;
+						currentBestDenominator = denominator;
+						currentBestDelta = delta;
+						/*
+						if (currentBestDelta < doubleEquivalencyFactor) {
+							break;
+						}
+						*/
+					}
+				}
+			}
+			
+			return String.format("%d/%d", currentBestNumerator, currentBestDenominator);
 		}
 	}
 }
