@@ -40,12 +40,6 @@ public class Metar16Test extends AbstractAviMessageTest {
 		
 	}
 
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
-	}
-	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
