@@ -110,7 +110,7 @@ public class AviMessageParserConfig {
         // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
-        //Lexeme.Identity.RUNWAY_VISUAL_RANGE
+        s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
         //Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE
         //Lexeme.Identity.AIR_PRESSURE_QNH
         //Lexeme.Identity.RECENT_WEATHER

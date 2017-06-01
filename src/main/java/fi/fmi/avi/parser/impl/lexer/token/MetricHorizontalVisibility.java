@@ -11,6 +11,8 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Status;
@@ -101,10 +103,32 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 
 			NumericMeasure visibility = null;
 			RelationalOperator operator = null;
-			TAFForecast fct = getAs(specifier, TAFForecast.class);
-			if (fct != null) {
-				visibility = fct.getPrevailingVisibility();
-				operator = fct.getPrevailingVisibilityOperator();
+			
+			boolean identified = false;
+			TAFForecast taf = getAs(specifier, TAFForecast.class);
+			if (taf != null) {
+				identified = true;
+				visibility = taf.getPrevailingVisibility();
+				operator = taf.getPrevailingVisibilityOperator();
+			}
+			
+			TrendForecast metarTrend = getAs(specifier, TrendForecast.class);
+			if (!identified && metarTrend != null) {
+				identified = true;
+				visibility = metarTrend.getPrevailingVisibility();
+				operator = metarTrend.getPrevailingVisibilityOperator();
+			}
+			
+			if (!identified && clz.isAssignableFrom(Metar.class)) {
+				Metar metar = (Metar)msg;
+				
+				// TODO: metar.getVisibility().getMinimumVisibility() 
+				if (metar.getVisibility() != null) {
+					identified = true;
+					
+					visibility = metar.getVisibility().getPrevailingVisibility();
+					operator = metar.getVisibility().getPrevailingVisibilityOperator();
+				}
 			}
 
 			if (visibility != null) {

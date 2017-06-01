@@ -11,8 +11,14 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.UNIT;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -56,5 +62,103 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
             token.setParsedValue(UNIT, "m");
         }
        
+    }
+    
+
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+		@Override
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
+				Object... specifier) throws TokenizingException {
+			Lexeme retval = null;
+			
+			fi.fmi.avi.data.metar.RunwayVisualRange rvr = getAs(specifier, fi.fmi.avi.data.metar.RunwayVisualRange.class);
+			if (rvr != null) {
+				StringBuilder builder = new StringBuilder();
+				
+				builder.append("R");
+				builder.append(rvr.getRunwayDirectionDesignator());
+				builder.append("/");
+				
+				NumericMeasure meanRvr = rvr.getMeanRVR();
+				String appendUnit = null;
+				if (meanRvr != null) {
+					RelationalOperator operator = rvr.getMeanRVROperator();
+					
+					appendUnit = appendVisibility(meanRvr, operator, builder);
+					
+				} else {
+					NumericMeasure min = rvr.getVaryingRVRMinimum();
+					NumericMeasure max = rvr.getVaryingRVRMaximum();
+					
+					if (max == null || max.getValue() == null) {
+						throw new TokenizingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing max RVR");
+					}
+					if (min == null || min.getValue() == null) {
+						throw new TokenizingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing min RVR");
+					}
+					
+					if (!min.getUom().equals(max.getUom())) {
+						throw new TokenizingException("Cannot tokenize RunwayVisualRange with inconsistent unit of measure for varying RVR: '"+min.getUom()+"' for min, '"+max.getUom()+"' for max");
+					}
+					
+					appendUnit = appendVisibility(min, rvr.getVaryingRVRMinimumOperator(), builder);
+					builder.append("V");
+					appendUnit = appendVisibility(max, rvr.getVaryingRVRMaximumOperator(), builder);
+				}
+				
+				if (rvr.getPastTendency() != null) {
+					switch(rvr.getPastTendency()) {
+					case DOWNWARD:
+						builder.append("D");
+						break;
+						
+					case UPWARD:
+						builder.append("U");
+						break;
+						
+					case NO_CHANGE:
+						builder.append("N");
+						break;
+					}
+				}
+				
+				if (appendUnit != null) {
+					builder.append(appendUnit);
+				}
+				
+				retval = this.createLexeme(builder.toString(), Identity.RUNWAY_VISUAL_RANGE);
+			}
+			
+			return retval;
+		}
+
+		private String appendVisibility(NumericMeasure meanRvr, RelationalOperator operator, StringBuilder builder) throws TokenizingException {
+			String appendUnit = null;
+			if (operator != null) {
+				switch (operator) {
+				case ABOVE:
+					builder.append("P");
+					break;
+				case BELOW:
+					builder.append("M");
+					break;
+				}
+			}
+			
+			Double value = meanRvr.getValue();
+			if (value == null) {
+				throw new TokenizingException("Missing value for RunwayVisualRange.meanRVR");
+			}
+			
+			
+			builder.append(String.format("%04d", value.intValue()));
+			if ("ft".equals(meanRvr.getUom())) {
+				appendUnit = "FT";
+			} else if (!"m".equals(meanRvr.getUom())) {
+				throw new TokenizingException("Unknown unit of measure '"+meanRvr.getUom()+"' for RunwayVisualRange, allowed are 'm' and 'ft'");
+			}
+			return appendUnit;
+		}
     }
 }

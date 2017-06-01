@@ -154,10 +154,12 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
                 	}
                 }
                 CloudForecast clouds = trend.getCloud();
-                if (clouds.getVerticalVisibility() != null) {
-                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV", trend);
-                } else {
-                    this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers(), hints, trend);
+                if (clouds != null) {
+	                if (clouds.getVerticalVisibility() != null) {
+	                	this.appendToken(retval, Identity.CLOUD, msg, Metar.class, hints, "VV", trend);
+	                } else {
+	                    this.appendCloudLayers(retval, msg, Metar.class, clouds.getLayers(), hints, trend);
+	                }
                 }
             }
         }
