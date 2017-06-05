@@ -1,17 +1,24 @@
 package fi.fmi.avi.parser.impl.metar;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.*;
+import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
+import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
+import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
+import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar17Test extends AbstractAviMessageTest {
+public class Metar17Test extends AbstractAviMessageTest<String, MetarImpl> {
 
 	@Override
 	public String getJsonFilename() {
@@ -27,11 +34,6 @@ public class Metar17Test extends AbstractAviMessageTest {
 	@Override
 	public String getTokenizedMessagePrefix() {
 		return "";
-	}
-	
-	@Override
-	public ParsingHints getLexerParsingHints() {
-		return ParsingHints.METAR;
 	}
 	
 	// Remove this overridden method once the tokenizer is working
@@ -53,9 +55,14 @@ public class Metar17Test extends AbstractAviMessageTest {
                 AIR_DEWPOINT_TEMPERATURE, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, END_TOKEN
 		};
 	}
-	
+
 	@Override
-	public Class<? extends AviationWeatherMessage> getMessageClass() {
+	public Class<String> getMessageInputClass() {
+		return String.class;
+	}
+
+	@Override
+	public Class<MetarImpl> getMessageOutputClass() {
 		return MetarImpl.class;
 	}
 

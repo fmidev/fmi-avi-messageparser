@@ -1,14 +1,23 @@
 package fi.fmi.avi.parser.impl.taf;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.*;
+import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
+import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
+import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
+import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
+import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
-import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Taf8Test extends AbstractAviMessageTest {
+public class Taf8Test extends AbstractAviMessageTest<String, TAFImpl> {
 
 	@Override
 	public String getJsonFilename() {
@@ -35,7 +44,13 @@ public class Taf8Test extends AbstractAviMessageTest {
 	public ParsingHints getLexerParsingHints() {
 		return ParsingHints.TAF;
 	}
-	
+
+    @Override
+    public ParsingHints getParserParsingHints() {
+        return ParsingHints.TAF;
+    }
+
+
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
@@ -46,10 +61,15 @@ public class Taf8Test extends AbstractAviMessageTest {
                 HORIZONTAL_VISIBILITY, WEATHER, CLOUD, END_TOKEN
 		};
 	}
-	
+
 	@Override
-	public Class<? extends AviationWeatherMessage> getMessageClass() {
-		return TAFImpl.class;
+    public Class<String> getMessageInputClass() {
+        return String.class;
+    }
+
+    @Override
+    public Class<TAFImpl> getMessageOutputClass() {
+        return TAFImpl.class;
 	}
 
 }

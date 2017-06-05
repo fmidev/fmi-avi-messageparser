@@ -41,7 +41,7 @@ import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = AviMessageParserConfig.class, loader = AnnotationConfigContextLoader.class)
-public abstract class AbstractAviMessageTest {
+public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage> {
 
 	private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 	
@@ -54,17 +54,19 @@ public abstract class AbstractAviMessageTest {
     @Autowired
     private AviMessageParser parser;
 
-    
-    public abstract String getMessage();
-    public abstract String getTokenizedMessagePrefix();
+	public abstract S getMessage();
+
+	public abstract String getTokenizedMessagePrefix();
     public abstract String getJsonFilename();
-    
-    public abstract Class<? extends AviationWeatherMessage> getMessageClass();
-    
-    public ParsingHints getLexerParsingHints() {
+
+	public abstract Class<S> getMessageInputClass();
+
+	public abstract Class<T> getMessageOutputClass();
+
+	public ParsingHints getLexerParsingHints() {
     	return new ParsingHints();
     }
-    
+
     public ParsingHints getParserParsingHints() {
     	return new ParsingHints();
     }
@@ -78,8 +80,11 @@ public abstract class AbstractAviMessageTest {
     
 	@Test
 	public void testLexer() {
-		LexemeSequence result = lexer.lexMessage(getMessage(), getLexerParsingHints());
-        assertTokenSequenceIdentityMatch(result, getLexerTokenSequenceIdentity());
+		Object input = getMessage();
+		if (input instanceof String) {
+			LexemeSequence result = lexer.lexMessage((String) getMessage(), getLexerParsingHints());
+			assertTokenSequenceIdentityMatch(result, getLexerTokenSequenceIdentity());
+		}
 	}
 	
 	@Test
@@ -88,16 +93,14 @@ public abstract class AbstractAviMessageTest {
 		
         assertTokenSequenceMatch(
         		expectedMessage,
-        		getJsonFilename(),
-        		getMessageClass(),
-        		getTokenizerParsingHints());
+        		getJsonFilename(), getMessageOutputClass(), getTokenizerParsingHints());
 	}
 
 	@Test
 	public void testParser() throws IOException {
-        ParsingResult<? extends AviationWeatherMessage> result = parser.parseMessage(lexer.lexMessage(getMessage(), getLexerParsingHints()), getMessageClass(), getParserParsingHints());
-        assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
-        assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename(), getMessageClass()), result.getParsedMessage());
+		ParsingResult<T> result = parser.parseMessage(getMessage(), getMessageInputClass(), getMessageOutputClass(), getParserParsingHints());
+		assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
+		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename(), getMessageOutputClass()), result.getParsedMessage());
 	}
 	
 

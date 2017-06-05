@@ -61,6 +61,7 @@ import fi.fmi.avi.data.metar.impl.TrendForecastImpl;
 import fi.fmi.avi.data.metar.impl.TrendForecastSurfaceWindImpl;
 import fi.fmi.avi.data.metar.impl.TrendTimeGroupsImpl;
 import fi.fmi.avi.data.metar.impl.WindShearImpl;
+import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.ParsedValueName;
 import fi.fmi.avi.parser.LexemeSequence;
@@ -84,15 +85,35 @@ import fi.fmi.avi.parser.impl.lexer.token.Weather;
 /**
  * Created by rinne on 13/04/17.
  */
-public class MetarParserImpl extends AbstractAviMessageParser implements AviMessageSpecificParser<Metar> {
+public class MetarTACParser extends AbstractAviMessageParser implements AviMessageSpecificParser<Metar> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MetarParserImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MetarTACParser.class);
 
     private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, WIND_SHEAR, SEA_STATE,
             REMARKS_START };
 
-    public ParsingResult<Metar> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
+    private AviMessageLexer lexer;
+
+    public void setTACLexer(final AviMessageLexer lexer) {
+        this.lexer = lexer;
+    }
+
+    public ParsingResult<Metar> parseMessage(final Object input, final ParsingHints hints) {
         ParsingResult<Metar> result = new ParsingResultImpl<>();
+        LexemeSequence lexed = null;
+        if (this.lexer == null) {
+            throw new IllegalStateException("TAC lexer not set");
+        }
+        if (input instanceof String) {
+            lexed = this.lexer.lexMessage((String) input, hints);
+            if (Identity.METAR_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
+                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Input message is not recognized as METAR"));
+                return result;
+            }
+        } else {
+            throw new IllegalArgumentException("Input cannot be of type " + input.getClass().getCanonicalName());
+        }
+
         if (endsInEndToken(lexed, hints)) {
             List<ParsingIssue> issues = checkZeroOrOne(lexed, zeroOrOneAllowed);
             if (!issues.isEmpty()) {
@@ -109,7 +130,7 @@ public class MetarParserImpl extends AbstractAviMessageParser implements AviMess
                     WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
                     (match) -> result.getParsedMessage().setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                        result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
+                        result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + input));
                     });
 
             updateMetarIssueTime(result, lexed, hints);

@@ -40,6 +40,7 @@ import fi.fmi.avi.data.taf.impl.TAFBaseForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFChangeForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.data.taf.impl.TAFSurfaceWindImpl;
+import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.ParsingHints;
@@ -54,14 +55,34 @@ import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 /**
  * Created by rinne on 25/04/17.
  */
-public class TAFParserImpl extends AbstractAviMessageParser implements AviMessageSpecificParser<TAF> {
+public class TAFTACParser extends AbstractAviMessageParser implements AviMessageSpecificParser<TAF> {
 
     private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, CORRECTION, AMENDMENT, CANCELLATION, NIL, MIN_TEMPERATURE,
             MAX_TEMPERATURE, REMARKS_START };
 
+    private AviMessageLexer lexer;
+
+    public void setTACLexer(final AviMessageLexer lexer) {
+        this.lexer = lexer;
+    }
+
     @Override
-    public ParsingResult<TAF> parseMessage(final LexemeSequence lexed, final ParsingHints hints) {
+    public ParsingResult<TAF> parseMessage(final Object input, final ParsingHints hints) {
         ParsingResult<TAF> retval = new ParsingResultImpl<>();
+        LexemeSequence lexed = null;
+        if (this.lexer == null) {
+            throw new IllegalStateException("TAC lexer not set");
+        }
+        if (input instanceof String) {
+            lexed = this.lexer.lexMessage((String) input, hints);
+            if (Identity.TAF_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
+                retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "The input message is not recognized as TAF"));
+                return retval;
+            }
+        } else {
+            throw new IllegalArgumentException("Input cannot be of type " + input.getClass().getCanonicalName());
+        }
+
         if (endsInEndToken(lexed, hints)) {
             retval.addIssue(checkZeroOrOne(lexed, zeroOrOneAllowed));
             TAF taf = new TAFImpl();
@@ -91,7 +112,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
 
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
                     (match) -> taf.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
-                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + lexed.getTAC()));
+                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + input));
                     });
 
             retval.addIssue(updateTAFIssueTime(taf, lexed, hints));
@@ -103,8 +124,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 if (match.getNext() != null) {
                     Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
                     if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
-                        retval.addIssue(
-                                new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Missing TAF message contains extra tokens after NIL: " + lexed.toString()));
+                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Missing TAF message contains extra tokens after NIL: " + input));
                     }
                 }
             });
@@ -122,8 +142,7 @@ public class TAFParserImpl extends AbstractAviMessageParser implements AviMessag
                 if (match.getNext() != null) {
                     Identity nextTokenId = match.getNext().getIdentityIfAcceptable();
                     if (END_TOKEN != nextTokenId && REMARKS_START != nextTokenId) {
-                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR,
-                                "Cancelled TAF message contains extra tokens after CNL: " + lexed.toString()));
+                        retval.addIssue(new ParsingIssue(ParsingIssue.Type.LOGICAL_ERROR, "Cancelled TAF message contains extra tokens after CNL: " + input));
                     }
                 }
             });

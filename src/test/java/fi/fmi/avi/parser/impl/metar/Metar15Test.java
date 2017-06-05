@@ -1,17 +1,26 @@
 package fi.fmi.avi.parser.impl.metar;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.*;
+import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
+import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
+import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
+import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
+import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
-import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar15Test extends AbstractAviMessageTest {
+public class Metar15Test extends AbstractAviMessageTest<String, MetarImpl> {
 
 	@Override
 	public String getJsonFilename() {
@@ -53,10 +62,15 @@ public class Metar15Test extends AbstractAviMessageTest {
                 HORIZONTAL_VISIBILITY, CLOUD, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, END_TOKEN
 		};
 	}
-	
+
 	@Override
-	public Class<? extends AviationWeatherMessage> getMessageClass() {
-		return MetarImpl.class;
+    public Class<String> getMessageInputClass() {
+        return String.class;
+    }
+
+    @Override
+    public Class<MetarImpl> getMessageOutputClass() {
+        return MetarImpl.class;
 	}
 
 }
