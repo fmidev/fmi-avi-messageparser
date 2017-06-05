@@ -1,13 +1,10 @@
 package fi.fmi.avi.parser.impl.fi.fmi.avi.parser.impl.lexer;
 
 import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,6 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
-
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 /**
