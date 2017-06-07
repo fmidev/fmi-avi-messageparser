@@ -15,14 +15,15 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar7Test extends AbstractAviMessageTest {
+public class Metar7Test extends AbstractAviMessageTest<String, Metar> {
 
 	@Override
 	public String getJsonFilename() {
@@ -45,7 +46,12 @@ public class Metar7Test extends AbstractAviMessageTest {
 	public ParsingHints getLexerParsingHints() {
 		return ParsingHints.METAR;
 	}
-	
+
+	@Override
+	public ParsingHints getParserParsingHints() {
+		return ParsingHints.METAR;
+	}
+
 	// Remove this overridden method once the tokenizer is working
 	@Override
 	public void testTokenizer() throws TokenizingException, IOException {
@@ -60,9 +66,14 @@ public class Metar7Test extends AbstractAviMessageTest {
                 END_TOKEN
 		};
 	}
-	
+
 	@Override
-	public Class<? extends AviationWeatherMessage> getMessageClass() {
+	public ParserSpecification<String, Metar> getParserSpecification() {
+		return ParserSpecification.TAC_TO_METAR;
+	}
+
+	@Override
+	public Class<? extends Metar> getTokenizerImplmentationClass() {
 		return MetarImpl.class;
 	}
 

@@ -13,8 +13,8 @@ import fi.fmi.avi.parser.LexingFactory;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
 import fi.fmi.avi.parser.impl.AviMessageTACTokenizerImpl;
-import fi.fmi.avi.parser.impl.MetarParserImpl;
-import fi.fmi.avi.parser.impl.TAFParserImpl;
+import fi.fmi.avi.parser.impl.MetarTACParser;
+import fi.fmi.avi.parser.impl.TAFTACParser;
 import fi.fmi.avi.parser.impl.lexer.AviMessageLexerImpl;
 import fi.fmi.avi.parser.impl.lexer.LexingFactoryImpl;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor.Priority;
@@ -71,17 +71,21 @@ public class AviMessageParserConfig {
     @Bean
     public AviMessageParser aviMessageParser() {
         AviMessageParserImpl p = new AviMessageParserImpl();
-        p.addMessageSpecificParser(Metar.class, metarParser());
-        p.addMessageSpecificParser(TAF.class, tafParser());
+        p.addMessageSpecificParser(String.class, Metar.class, metarTACParser());
+        p.addMessageSpecificParser(String.class, TAF.class, tafTACParser());
         return p;
     }
 
-    AviMessageSpecificParser<Metar> metarParser() {
-        return new MetarParserImpl();
+    AviMessageSpecificParser<Metar> metarTACParser() {
+        AviMessageSpecificParser<Metar> p = new MetarTACParser();
+        p.setTACLexer(aviMessageLexer());
+        return p;
     }
 
-    AviMessageSpecificParser<TAF> tafParser() {
-        return new TAFParserImpl();
+    AviMessageSpecificParser<TAF> tafTACParser() {
+        AviMessageSpecificParser<TAF> p = new TAFTACParser();
+        p.setTACLexer(aviMessageLexer());
+        return p;
     }
 
     @Bean

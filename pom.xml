@@ -9,7 +9,7 @@
     <version>0.7.3</version>
   </parent>
 
-  <description>Utility library for parsing TAC format aviation weather messages into Java objects</description>
+  <description>Utility library for parsing and serializing aviation weather messages between TAC, IWXXM and Java POJOs</description>
   <groupId>fi.fmi.avi</groupId>
   <artifactId>fmi-avi-messageparser</artifactId>
   <name>fmi-avi-messageparser</name>
@@ -29,11 +29,6 @@
       <artifactId>fmi-avi-messageparser-api</artifactId>
       <version>1.7.0-SNAPSHOT</version>
     </dependency>
-    <dependency>
-    	<groupId>joda-time</groupId>
-    	<artifactId>joda-time</artifactId>
-    	<version>2.9.9</version>
-	</dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
