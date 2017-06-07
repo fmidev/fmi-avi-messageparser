@@ -39,14 +39,14 @@ public class Taf2Test extends AbstractAviMessageTest<String, TAF> {
 				TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, CLOUD, CLOUD, END_TOKEN };
 	}
 
-	 @Override
-     public ConversionSpecification<String, TAF> getConversionSpecification() {
-         return ConversionSpecification.TAC_TO_TAF;
-     }
+    @Override
+    public ConversionSpecification<String, TAF> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_TAF;
+    }
 
-		@Override
-		public Class<? extends TAF> getTokenizerImplmentationClass() {
-			return TAFImpl.class;
-		}
+    @Override
+    public Class<? extends TAF> getTokenizerImplmentationClass() {
+        return TAFImpl.class;
+    }
 
 }

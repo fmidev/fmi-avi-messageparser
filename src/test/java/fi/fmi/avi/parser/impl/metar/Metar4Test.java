@@ -49,12 +49,6 @@ public class Metar4Test extends AbstractAviMessageTest<String, Metar> {
 
     }
 	
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
-	}
-	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
@@ -66,9 +60,9 @@ public class Metar4Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-    public ConversionSpecification<String, Metar> getConversionSpecification() {
-        return ConversionSpecification.TAC_TO_METAR;
-    }
+	public ConversionSpecification<String, Metar> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_METAR;
+	}
 
 	@Override
 	public Class<? extends Metar> getTokenizerImplmentationClass() {

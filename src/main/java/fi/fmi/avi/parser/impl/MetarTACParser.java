@@ -6,6 +6,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity;
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.COLOR_CODE;
@@ -83,9 +84,10 @@ import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 import fi.fmi.avi.parser.impl.lexer.token.Weather;
 
 /**
- * Created by rinne on 13/04/17.
+ *
+ * @author Ilkka Rinne / Spatineo Oy 2017
  */
-public class MetarTACParser extends AbstractAviMessageParser implements TACParser<Metar> {
+public class MetarTACParser extends AbstractAviMessageParser implements TACParser<String, Metar> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetarTACParser.class);
 
@@ -98,21 +100,19 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         this.lexer = lexer;
     }
 
-    public ParsingResult<Metar> parseMessage(final Object input, final ConversionHints hints) {
+    public ParsingResult<Metar> parseMessage(final String input, final ConversionHints hints) {
         ParsingResult<Metar> result = new ParsingResultImpl<>();
         LexemeSequence lexed = null;
         if (this.lexer == null) {
             throw new IllegalStateException("TAC lexer not set");
         }
-        if (input instanceof String) {
-            lexed = this.lexer.lexMessage((String) input, hints);
-            if (Identity.METAR_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
-                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Input message is not recognized as METAR"));
-                return result;
-            }
-        } else {
-            throw new IllegalArgumentException("Input cannot be of type " + input.getClass().getCanonicalName());
+
+        lexed = this.lexer.lexMessage(input, hints);
+        if (Identity.METAR_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
+            result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Input message is not recognized as METAR"));
+            return result;
         }
+
 
         if (endsInEndToken(lexed, hints)) {
             List<ParsingIssue> issues = checkZeroOrOne(lexed, zeroOrOneAllowed);
@@ -126,6 +126,10 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
             findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.CORRECTION),
                     () -> result.getParsedMessage().setStatus(AviationCodeListUser.MetarStatus.NORMAL));
 
+            stopAt = new Identity[] { SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
+                    SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
+            findNext(AUTOMATED, lexed.getFirstLexeme(), stopAt, (match) -> result.getParsedMessage().setAutomatedStation(true));
+            
             stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
                     WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
@@ -384,15 +388,19 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         findNext(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
             Integer[] values = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Integer[].class);
-            if (values[0] != null) {
-                msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
+            if (values == null) {
+                result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + match.getTACToken()));
             } else {
-                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()));
-            }
-            if (values[1] != null) {
-                msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
-            } else {
-                result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()));
+                if (values[0] != null) {
+                    msg.setAirTemperature(new NumericMeasureImpl(values[0], unit));
+                } else {
+                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing air temperature value in " + match.getTACToken()));
+                }
+                if (values[1] != null) {
+                    msg.setDewpointTemperature(new NumericMeasureImpl(values[1], unit));
+                } else {
+                    result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "Missing dewpoint temperature value in " + match.getTACToken()));
+                }
             }
         }, () -> {
             result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing air temperature and dewpoint temperature values in " + lexed.getTAC()));
@@ -556,14 +564,19 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
 	        	
 	        	Object breakingAction = values.get(RunwayStateReportType.BREAKING_ACTION);
 	        	Object frictionCoefficient = values.get(RunwayStateReportType.FRICTION_COEFFICIENT);
-	        	
-	        	if (repetition != null && repetition) {
-	        		rws.setRepetition(true);
+
+                Boolean snowClosure = (Boolean) values.get(RunwayStateReportType.SNOW_CLOSURE);
+
+                if (repetition != null && repetition) {
+                    rws.setRepetition(true);
 	        	} else if (allRunways != null && allRunways) {
 	        		rws.setAllRunways(true);
-	        	} else if (runway != null) {
-	        		rws.setRunwayDirectionDesignator(runway);
-	        	} else {
+                } else if (runway != null) {
+                    rws.setRunwayDirectionDesignator(runway);
+                } else if (snowClosure != null && snowClosure.booleanValue()) {
+                    rws.setAllRunways(true);
+                    rws.setSnowClosure(true);
+                } else {
                     result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }
 	        	if (deposit != null) {
@@ -636,7 +649,7 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
 	        		if (depthOfDeposit == null && depthModifier == RunwayStateReportSpecialValue.NOT_MEASURABLE) {
 	        			rws.setDepthNotMeasurable(true);
 	        			rws.setDepthOfDeposit(null);
-	        		} else if (depthOfDeposit == null) {
+                    } else if (depthOfDeposit == null && depthModifier != RunwayStateReportSpecialValue.RUNWAY_NOT_OPERATIONAL) {
                         result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
                                 "Missing deposit depth but depth modifier given for runway state: " + match.getTACToken()));
                     } else {
@@ -843,7 +856,9 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                     AviationCodeListUser.RelationalOperator visibilityOperator = null;
                     TrendForecastSurfaceWind wind = null;
                     List<fi.fmi.avi.data.Weather> forecastWeather = null;
+
                     AviationCodeListUser.ColorState colorState = null;
+
                     while (token != null) {
                         switch (token.getIdentity()) {
                             case CAVOK:

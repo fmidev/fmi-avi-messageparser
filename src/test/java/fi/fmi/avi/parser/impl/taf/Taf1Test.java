@@ -43,15 +43,15 @@ public class Taf1Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-	public ConversionHints getLexerConversionHints() {
+	public ConversionHints getLexerParsingHints() {
 		return ConversionHints.TAF;
 	}
 
 	@Override
-	public ConversionHints getParserConversionHints() {
+	public ConversionHints getParserParsingHints() {
 		return ConversionHints.TAF;
 	}
-	
+
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] { TAF_START, AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD,
@@ -61,15 +61,14 @@ public class Taf1Test extends AbstractAviMessageTest<String, TAF> {
                 HORIZONTAL_VISIBILITY, WEATHER, CLOUD, END_TOKEN };
 	}
 
-	 @Override
-	 public ConversionSpecification<String, TAF> getConversionSpecification() {
-		 return ConversionSpecification.TAC_TO_TAF;
-		}
+	@Override
+	public ConversionSpecification<String, TAF> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_TAF;
+	}
 
-		@Override
-		public Class<? extends TAF> getTokenizerImplmentationClass() {
-			return TAFImpl.class;
-		}
-
+	@Override
+	public Class<? extends TAF> getTokenizerImplmentationClass() {
+		return TAFImpl.class;
+	}
 
 }

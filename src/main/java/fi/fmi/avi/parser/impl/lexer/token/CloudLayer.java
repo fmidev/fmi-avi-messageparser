@@ -107,25 +107,31 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier)
                 throws SerializingException {
             Lexeme retval = null;
+            fi.fmi.avi.data.CloudLayer layer = getAs(specifier, 0, fi.fmi.avi.data.CloudLayer.class);
+            String specialValue = getAs(specifier, 0, String.class);
+
+            NumericMeasure verVis = null;
+
             if (TAF.class.isAssignableFrom(clz)) {
-            	fi.fmi.avi.data.CloudLayer layer = getAs(specifier, 0, fi.fmi.avi.data.CloudLayer.class);
-            	String specialValue = getAs(specifier, 0, String.class);
-            	TAFBaseForecast baseFct = getAs(specifier, 1, TAFBaseForecast.class);
-            	TAFChangeForecast changeFct = getAs(specifier, 1, TAFChangeForecast.class);
+                TAFBaseForecast baseFct = getAs(specifier, 1, TAFBaseForecast.class);
+                TAFChangeForecast changeFct = getAs(specifier, 1, TAFChangeForecast.class);
             	if (baseFct != null || changeFct != null){
-            		NumericMeasure verVis = null;
-            		if ("VV".equals(specialValue)){
-            			if (baseFct != null) {
+
+                    if ("VV".equals(specialValue)) {
+                        if (baseFct != null) {
             				verVis = baseFct.getCloud().getVerticalVisibility();
             			} else {
             				verVis = changeFct.getCloud().getVerticalVisibility();
             			}
             		}
-					retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
-				}
+
+                }
             } else if (Metar.class.isAssignableFrom(clz)) {
-            	//TODO
+                // No need to care about vertical visibility, it's done in AviMessageTACTokenizerImpl.tokenizeMetar()
+                verVis = null;
             }
+
+            retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
             return retval;
         }
 

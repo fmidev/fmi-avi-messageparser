@@ -30,11 +30,11 @@ public class Metar10Test extends AbstractAviMessageTest<String, Metar> {
 	public String getJsonFilename() {
 		return "metar/metar10.json";
 	}
-	
+
+	// Almost exactly the same as Metar 9 except WS RWY04R
 	@Override
 	public String getMessage() {
-		return
-				"METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS RWY04R TEMPO 0900=";
+		return "METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS RWY04R TEMPO 0900=";
 	}
 	
 	@Override
@@ -47,12 +47,6 @@ public class Metar10Test extends AbstractAviMessageTest<String, Metar> {
     public void testTokenizer() throws SerializingException, IOException {
 
     }
-
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
-	}
 	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
@@ -65,9 +59,9 @@ public class Metar10Test extends AbstractAviMessageTest<String, Metar> {
 
 	
 	@Override
-    public ConversionSpecification<String, Metar> getConversionSpecification() {
-        return ConversionSpecification.TAC_TO_METAR;
-    }
+	public ConversionSpecification<String, Metar> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_METAR;
+	}
 
 	@Override
 	public Class<? extends Metar> getTokenizerImplmentationClass() {

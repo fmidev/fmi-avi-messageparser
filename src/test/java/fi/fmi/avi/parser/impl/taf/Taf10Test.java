@@ -42,12 +42,12 @@ public class Taf10Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-    public ConversionHints getLexerConversionHints() {
+    public ConversionHints getLexerParsingHints() {
         return ConversionHints.TAF;
     }
 
     @Override
-    public ConversionHints getParserConversionHints() {
+    public ConversionHints getParserParsingHints() {
         return ConversionHints.TAF;
     }
 
@@ -62,7 +62,7 @@ public class Taf10Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
     @Override
-    public ConversionSpecification<String, TAF> getConversionSpecification() {
+    public ConversionSpecification<String, TAF> getParserSpecification() {
         return ConversionSpecification.TAC_TO_TAF;
     }
 

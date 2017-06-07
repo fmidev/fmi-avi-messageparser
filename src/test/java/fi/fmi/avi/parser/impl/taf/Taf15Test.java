@@ -47,14 +47,14 @@ public class Taf15Test extends AbstractAviMessageTest<String, TAF> {
 		};
 	}
 
-	 @Override
-     public ConversionSpecification<String, TAF> getConversionSpecification() {
-         return ConversionSpecification.TAC_TO_TAF;
-     }
+    @Override
+    public ConversionSpecification<String, TAF> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_TAF;
+    }
 
-		@Override
-		public Class<? extends TAF> getTokenizerImplmentationClass() {
-			return TAFImpl.class;
-		}
+    @Override
+    public Class<? extends TAF> getTokenizerImplmentationClass() {
+        return TAFImpl.class;
+    }
 
 }

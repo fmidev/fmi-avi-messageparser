@@ -29,11 +29,11 @@ public class Metar7Test extends AbstractAviMessageTest<String, Metar> {
 	public String getJsonFilename() {
 		return "metar/metar7.json";
 	}
-	
+
+	// Equivalent to Metar8 but with different colors
 	@Override
 	public String getMessage() {
-		return
-				"EGXE 061150Z 03010KT 9999 FEW020 17/11 Q1014 BLU TEMPO 6000 SHRA SCT020 WHT=";
+		return "EGXE 061150Z 03010KT 9999 FEW020 17/11 Q1014 BLU TEMPO 6000 SHRA SCT020 WHT=";
 	}
 	
 	@Override
@@ -42,20 +42,19 @@ public class Metar7Test extends AbstractAviMessageTest<String, Metar> {
 	}
 	
 	@Override
-	public ConversionHints getLexerConversionHints() {
+	public ConversionHints getLexerParsingHints() {
 		return ConversionHints.METAR;
 	}
-	
+
+	@Override
+	public ConversionHints getParserParsingHints() {
+		return ConversionHints.METAR;
+	}
+
 	// Remove this overridden method once the tokenizer is working
 	@Override
 	public void testTokenizer() throws SerializingException, IOException {
-		
-	}
-
-	// Remove this overridden method once the parser is working
-	@Override
-	public void testParser() throws IOException {
-		
+		// NOTE: the message contains color codes that are currently not stored in Metar POJOs
 	}
 
     @Override
@@ -67,8 +66,8 @@ public class Metar7Test extends AbstractAviMessageTest<String, Metar> {
 		};
 	}
 
-    @Override
-	public ConversionSpecification<String, Metar> getConversionSpecification() {
+	@Override
+	public ConversionSpecification<String, Metar> getParserSpecification() {
 		return ConversionSpecification.TAC_TO_METAR;
 	}
 

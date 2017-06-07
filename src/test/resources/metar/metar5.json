@@ -1,0 +1,29 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 1,
+  "issueHour": 13,
+  "issueMinute": 50,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFTU",
+  "automatedStation": true,
+  "surfaceWind": {
+    "variableDirection": true,
+    "meanWindSpeed": {
+      "value": 2.0,
+      "uom": "kt"
+    }
+  },
+  "ceilingAndVisibilityOk": true,
+  "airTemperature": {
+    "value": 22.0,
+    "uom": "degC"
+  },
+  "dewpointTemperature": {
+    "value": 12.0,
+    "uom": "degC"
+  },
+  "altimeterSettingQNH": {
+    "value": 1008.0,
+    "uom": "hPa"
+  }
+}

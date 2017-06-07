@@ -1,0 +1,89 @@
+{
+  "status": "NORMAL",
+  "issueDayOfMonth": 11,
+  "issueHour": 11,
+  "issueMinute": 11,
+  "issueTimeZone": "UTC",
+  "aerodromeDesignator": "EFHK",
+  "surfaceWind": {
+    "meanWindDirection": {
+      "value": 150.0,
+      "uom": "deg"
+    },
+    "meanWindSpeed": {
+      "value": 8.0,
+      "uom": "kt"
+    }
+  },
+  "visibility": {
+    "prevailingVisibility": {
+      "value": 700.0,
+      "uom": "m"
+    }
+  },
+  "runwayVisualRanges": [
+    {
+      "runwayDirectionDesignator": "04R",
+      "pastTendency": "NO_CHANGE",
+      "meanRVR": {
+        "value": 1500.0,
+        "uom": "m"
+      }
+    },
+    {
+      "runwayDirectionDesignator": "15",
+      "pastTendency": "UPWARD",
+      "meanRVR": {
+        "value": 1000.0,
+        "uom": "m"
+      }
+    },
+    {
+      "runwayDirectionDesignator": "22L",
+      "pastTendency": "NO_CHANGE",
+      "meanRVR": {
+        "value": 1200.0,
+        "uom": "m"
+      }
+    },
+    {
+      "runwayDirectionDesignator": "04L",
+      "pastTendency": "UPWARD",
+      "varyingRVRMaximumOperator": "ABOVE",
+      "varyingRVRMinimum": {
+        "value": 1000.0,
+        "uom": "m"
+      },
+      "varyingRVRMaximum": {
+        "value": 1500.0,
+        "uom": "m"
+      }
+    }
+  ],
+  "presentWeather": [
+    {
+      "code": "SN",
+      "description": "Precipitation of snow"
+    }
+  ],
+  "altimeterSettingQNH": {
+    "value": 1023.0,
+    "uom": "hPa"
+  },
+  "airTemperature": {
+    "value": -8.0,
+    "uom": "degC"
+  },
+  "dewpointTemperature": {
+    "value": -10.0,
+    "uom": "degC"
+  },
+  "runwayStates": [
+    {
+      "runwayDirectionDesignator": "15",
+      "deposit": "MISSING_OR_NOT_REPORTED",
+      "contamination": "MISSING_OR_NOT_REPORTED",
+      "runwayNotOperational": true
+    }
+  ]
+}

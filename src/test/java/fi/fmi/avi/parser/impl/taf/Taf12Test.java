@@ -39,7 +39,7 @@ public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	@Override
-	public ConversionHints getParserConversionHints() {
+	public ConversionHints getParserParsingHints() {
 		ConversionHints hints = new ConversionHints();
 		hints.put(ConversionHints.KEY_MESSAGE_TYPE, ConversionHints.VALUE_MESSAGE_TYPE_TAF);
 		hints.put(ConversionHints.KEY_TIMEZONE_ID_POLICY, ConversionHints.VALUE_TIMEZONE_ID_POLICY_STRICT);
@@ -53,7 +53,7 @@ public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-	public ConversionHints getLexerConversionHints() {
+	public ConversionHints getLexerParsingHints() {
 		return ConversionHints.TAF;
 	}
 	
@@ -67,15 +67,14 @@ public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 		};
 	}
 
-	 @Override
-	 public ConversionSpecification<String, TAF> getConversionSpecification() {
-		 return ConversionSpecification.TAC_TO_TAF;
-		}
+	@Override
+	public ConversionSpecification<String, TAF> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_TAF;
+	}
 
-		@Override
-		public Class<? extends TAF> getTokenizerImplmentationClass() {
-			return TAFImpl.class;
-		}
-
+	@Override
+	public Class<? extends TAF> getTokenizerImplmentationClass() {
+		return TAFImpl.class;
+	}
 
 }

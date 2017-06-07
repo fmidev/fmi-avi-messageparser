@@ -53,9 +53,10 @@ import fi.fmi.avi.parser.impl.lexer.token.MetricHorizontalVisibility;
 import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 
 /**
- * Created by rinne on 25/04/17.
+ *
+ * @author Ilkka Rinne / Spatineo Oy 2017
  */
-public class TAFTACParser extends AbstractAviMessageParser implements TACParser<TAF> {
+public class TAFTACParser extends AbstractAviMessageParser implements TACParser<String, TAF> {
 
     private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, CORRECTION, AMENDMENT, CANCELLATION, NIL, MIN_TEMPERATURE,
             MAX_TEMPERATURE, REMARKS_START };
@@ -67,20 +68,16 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
     }
 
     @Override
-    public ParsingResult<TAF> parseMessage(final Object input, final ConversionHints hints) {
+    public ParsingResult<TAF> parseMessage(final String input, final ConversionHints hints) {
         ParsingResult<TAF> retval = new ParsingResultImpl<>();
         LexemeSequence lexed = null;
         if (this.lexer == null) {
             throw new IllegalStateException("TAC lexer not set");
         }
-        if (input instanceof String) {
-            lexed = this.lexer.lexMessage((String) input, hints);
-            if (Identity.TAF_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
-                retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "The input message is not recognized as TAF"));
-                return retval;
-            }
-        } else {
-            throw new IllegalArgumentException("Input cannot be of type " + input.getClass().getCanonicalName());
+        lexed = this.lexer.lexMessage(input, hints);
+        if (Identity.TAF_START != lexed.getFirstLexeme().getIdentityIfAcceptable()) {
+            retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "The input message is not recognized as TAF"));
+            return retval;
         }
 
         if (endsInEndToken(lexed, hints)) {

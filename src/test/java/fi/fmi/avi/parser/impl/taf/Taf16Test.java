@@ -38,8 +38,8 @@ public class Taf16Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-    public ConversionHints getTokenizerConversionHints() {
-        ConversionHints hints = super.getTokenizerConversionHints();
+    public ConversionHints getTokenizerParsingHints() {
+        ConversionHints hints = super.getTokenizerParsingHints();
         hints.put(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
         return hints;
 	}
@@ -53,14 +53,14 @@ public class Taf16Test extends AbstractAviMessageTest<String, TAF> {
 		};
 	}
 
-	 @Override
-     public ConversionSpecification<String, TAF> getConversionSpecification() {
-         return ConversionSpecification.TAC_TO_TAF;
-     }
+    @Override
+    public ConversionSpecification<String, TAF> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_TAF;
+    }
 
-		@Override
-		public Class<? extends TAF> getTokenizerImplmentationClass() {
-			return TAFImpl.class;
-		}
+    @Override
+    public Class<? extends TAF> getTokenizerImplmentationClass() {
+        return TAFImpl.class;
+    }
 
 }

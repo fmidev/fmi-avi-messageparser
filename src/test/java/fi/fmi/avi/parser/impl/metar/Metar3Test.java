@@ -58,14 +58,13 @@ public class Metar3Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-    public ConversionSpecification<String, Metar> getConversionSpecification() {
-        return ConversionSpecification.TAC_TO_METAR;
-    }
+	public ConversionSpecification<String, Metar> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_METAR;
+	}
 
 	@Override
 	public Class<? extends Metar> getTokenizerImplmentationClass() {
 		return MetarImpl.class;
 	}
-
 
 }

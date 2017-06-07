@@ -11,14 +11,18 @@ import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.ParsingIssue;
+import fi.fmi.avi.parser.ParsingResult.ParsingStatus;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
@@ -41,22 +45,40 @@ public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
 	}
 	
 	@Override
-    public ConversionHints getLexerConversionHints() {
+    public ConversionHints getLexerParsingHints() {
         return ConversionHints.METAR;
     }
-	
+
+    @Override
+    public ConversionHints getParserParsingHints() {
+        return ConversionHints.METAR;
+    }
+
 	// Remove this overridden method once the tokenizer is working
 	@Override
     public void testTokenizer() throws SerializingException, IOException {
 
     }
 
-	// Remove this overridden method once the parser is working
 	@Override
-	public void testParser() throws IOException {
-		
-	}
-	
+    public ParsingStatus getExpectedParsingStatus() {
+        return ParsingStatus.WITH_ERRORS;
+    }
+
+    @Override
+    public void assertParsingIssues(List<ParsingIssue> parsingIssues) {
+        assertEquals(2, parsingIssues.size());
+
+        ParsingIssue issue = parsingIssues.get(0);
+        assertEquals(ParsingIssue.Type.MISSING_DATA, issue.getType());
+        assertEquals("Missing air temperature and dewpoint temperature values in /////", issue.getMessage());
+
+        issue = parsingIssues.get(1);
+        assertEquals(ParsingIssue.Type.MISSING_DATA, issue.getType());
+        assertEquals("Missing air pressure value: Q////", issue.getMessage());
+
+    }
+
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
@@ -66,7 +88,7 @@ public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-    public ConversionSpecification<String, Metar> getConversionSpecification() {
+    public ConversionSpecification<String, Metar> getParserSpecification() {
         return ConversionSpecification.TAC_TO_METAR;
     }
 
@@ -74,6 +96,5 @@ public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
 	public Class<? extends Metar> getTokenizerImplmentationClass() {
 		return MetarImpl.class;
 	}
-
 
 }

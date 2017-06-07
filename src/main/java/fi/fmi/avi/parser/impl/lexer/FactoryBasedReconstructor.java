@@ -57,8 +57,8 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
 	public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
 			throws SerializingException {
 		List<Lexeme> retval = new ArrayList<>();
-    	Lexeme lexeme = getAsLexeme(msg, clz, hints, specifier);
-    	if (lexeme != null) {
+		Lexeme lexeme = getAsLexeme(msg, clz, hints, specifier);
+		if (lexeme != null) {
     		retval.add(lexeme);
     	}
     	return retval;
@@ -76,5 +76,5 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
 	 */
 	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier) throws SerializingException {
 		return null;
-    }
+	}
 }

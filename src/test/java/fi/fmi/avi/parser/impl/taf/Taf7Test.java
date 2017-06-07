@@ -38,7 +38,7 @@ public class Taf7Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	@Override
-    public ConversionSpecification<String, TAF> getConversionSpecification() {
+    public ConversionSpecification<String, TAF> getParserSpecification() {
         return ConversionSpecification.TAC_TO_TAF;
     }
 

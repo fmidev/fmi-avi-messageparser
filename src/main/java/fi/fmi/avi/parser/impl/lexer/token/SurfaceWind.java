@@ -132,9 +132,13 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                     StringBuilder builder = new StringBuilder();
                     if (wind.isVariableDirection()) {
                         builder.append("VRB");
+                    } else if (!wind.getMeanWindDirection().getUom().equals("deg")) {
+                        throw new SerializingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
+                    } else {
+                        builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                     }
                     this.appendCommonWindParameters(builder, wind.getMeanWindSpeed(), wind.getMeanWindDirection(), wind.getWindGust());
-
+                    retval = this.createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
                     //Note: the extreme wind directions token is created by the VariableSurfaceWind.Reconstructor
                 }
             }
