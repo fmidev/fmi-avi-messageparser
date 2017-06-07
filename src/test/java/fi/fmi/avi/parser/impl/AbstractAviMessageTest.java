@@ -16,6 +16,7 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -31,14 +32,14 @@ import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.ConversionHints;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParserSpecification;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -51,7 +52,8 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
     private AviMessageLexer lexer;
 
     @Autowired
-    private AviMessageTACTokenizer tokenizer;
+	@Qualifier("tacTokenizer")
+	private AviMessageTACTokenizer tokenizer;
 
     @Autowired
     private AviMessageParser parser;
@@ -62,23 +64,23 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 
 	public abstract String getJsonFilename();
 
-	public abstract ParserSpecification<S, T> getParserSpecification();
+	public abstract ConversionSpecification<S, T> getParserSpecification();
 
 	public abstract Class<? extends T> getTokenizerImplmentationClass();
 
-	public ParsingHints getLexerParsingHints() {
-		return new ParsingHints();
+	public ConversionHints getLexerParsingHints() {
+		return new ConversionHints();
+	}
+
+	public ConversionHints getParserParsingHints() {
+		return new ConversionHints();
 	}
     
-    public ParsingHints getParserParsingHints() {
-    	return new ParsingHints();
-    }
-    
     public abstract Identity[] getLexerTokenSequenceIdentity();
-    
-    public ParsingHints getTokenizerParsingHints() {
-    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
-    	return hints;
+
+	public ConversionHints getTokenizerParsingHints() {
+		ConversionHints hints = new ConversionHints(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+		return hints;
     }
     
 	@Test
@@ -91,7 +93,7 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	}
 	
 	@Test
-	public void testTokenizer() throws TokenizingException, IOException {
+	public void testTokenizer() throws SerializingException, IOException {
 		String expectedMessage = getTokenizedMessagePrefix() + getMessage();
         assertTokenSequenceMatch(expectedMessage, getJsonFilename(), getTokenizerParsingHints());
 	}
@@ -122,7 +124,8 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 		}
 	}
 
-	protected void assertTokenSequenceMatch(final String expected, final String fileName, final ParsingHints hints) throws IOException, TokenizingException {
+	protected void assertTokenSequenceMatch(final String expected, final String fileName, final ConversionHints hints)
+			throws IOException, SerializingException {
 		LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName), hints);
 		assertNotNull("Null sequence was produced", seq);
 		assertEquals(expected, seq.getTAC());

@@ -9,10 +9,10 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -26,7 +26,7 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         Integer airTemp = null;
         Integer dewPointTemp = null;
         if (!"//".equals(match.group(2))) {
@@ -66,9 +66,9 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
-				Object... specifier) throws TokenizingException {
-			Lexeme retval = null;
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+                throws SerializingException {
+            Lexeme retval = null;
 			
 			NumericMeasure air = null;
 			NumericMeasure dew = null;
@@ -84,20 +84,20 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
 			
 			if (air != null && dew != null) {
 				if (air.getValue() == null) {
-					throw new TokenizingException("AirTemperature exists, but no value");
-				}
+                    throw new SerializingException("AirTemperature exists, but no value");
+                }
 				
 				if (dew.getValue() == null) {
-					throw new TokenizingException("DewpointTemperature exists, but no value");
-				}
+                    throw new SerializingException("DewpointTemperature exists, but no value");
+                }
 				
 				if (!"degC".equals(air.getUom())) {
-					throw new TokenizingException("AirTemperature unit of measure is not degC, but '"+air.getUom()+"'");
-				}
+                    throw new SerializingException("AirTemperature unit of measure is not degC, but '" + air.getUom() + "'");
+                }
 				
 				if (!"degC".equals(dew.getUom())) {
-					throw new TokenizingException("DewpointTemperature unit of measure is not degC, but '"+dew.getUom()+"'");
-				}
+                    throw new SerializingException("DewpointTemperature unit of measure is not degC, but '" + dew.getUom() + "'");
+                }
 				
 				StringBuilder builder = new StringBuilder();
 				

@@ -14,10 +14,10 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
@@ -32,7 +32,7 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         String runway = match.group(1);
         RecognizingAviMessageTokenLexer.RelationalOperator belowAboveIndicator = RecognizingAviMessageTokenLexer.RelationalOperator.forCode(match.group(2));
         int visibility = Integer.parseInt(match.group(3));
@@ -68,9 +68,9 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
-				Object... specifier) throws TokenizingException {
-			Lexeme retval = null;
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+                throws SerializingException {
+            Lexeme retval = null;
 			
 			fi.fmi.avi.data.metar.RunwayVisualRange rvr = getAs(specifier, fi.fmi.avi.data.metar.RunwayVisualRange.class);
 			if (rvr != null) {
@@ -92,15 +92,17 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
 					NumericMeasure max = rvr.getVaryingRVRMaximum();
 					
 					if (max == null || max.getValue() == null) {
-						throw new TokenizingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing max RVR");
-					}
+                        throw new SerializingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing max RVR");
+                    }
 					if (min == null || min.getValue() == null) {
-						throw new TokenizingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing min RVR");
-					}
+                        throw new SerializingException("Cannot tokenize RunwayVisualRange with varying RVR, but missing min RVR");
+                    }
 					
 					if (!min.getUom().equals(max.getUom())) {
-						throw new TokenizingException("Cannot tokenize RunwayVisualRange with inconsistent unit of measure for varying RVR: '"+min.getUom()+"' for min, '"+max.getUom()+"' for max");
-					}
+                        throw new SerializingException(
+                                "Cannot tokenize RunwayVisualRange with inconsistent unit of measure for varying RVR: '" + min.getUom() + "' for min, '"
+                                        + max.getUom() + "' for max");
+                    }
 					
 					appendUnit = appendVisibility(min, rvr.getVaryingRVRMinimumOperator(), builder);
 					builder.append("V");
@@ -133,8 +135,8 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
 			return retval;
 		}
 
-		private String appendVisibility(NumericMeasure meanRvr, RelationalOperator operator, StringBuilder builder) throws TokenizingException {
-			String appendUnit = null;
+        private String appendVisibility(NumericMeasure meanRvr, RelationalOperator operator, StringBuilder builder) throws SerializingException {
+            String appendUnit = null;
 			if (operator != null) {
 				switch (operator) {
 				case ABOVE:
@@ -148,16 +150,16 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
 			
 			Double value = meanRvr.getValue();
 			if (value == null) {
-				throw new TokenizingException("Missing value for RunwayVisualRange.meanRVR");
-			}
+                throw new SerializingException("Missing value for RunwayVisualRange.meanRVR");
+            }
 			
 			
 			builder.append(String.format("%04d", value.intValue()));
 			if ("ft".equals(meanRvr.getUom())) {
 				appendUnit = "FT";
 			} else if (!"m".equals(meanRvr.getUom())) {
-				throw new TokenizingException("Unknown unit of measure '"+meanRvr.getUom()+"' for RunwayVisualRange, allowed are 'm' and 'ft'");
-			}
+                throw new SerializingException("Unknown unit of measure '" + meanRvr.getUom() + "' for RunwayVisualRange, allowed are 'm' and 'ft'");
+            }
 			return appendUnit;
 		}
     }

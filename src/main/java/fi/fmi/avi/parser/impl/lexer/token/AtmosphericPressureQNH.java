@@ -9,10 +9,10 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -45,7 +45,7 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         PressureMeasurementUnit unit = PressureMeasurementUnit.forCode(match.group(1));
         Integer value = null;
         if (!"////".equals(match.group(2))) {
@@ -63,9 +63,9 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
-				Object... specifier) throws TokenizingException {
-			Lexeme retval = null;
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+                throws SerializingException {
+            Lexeme retval = null;
 			
 			NumericMeasure altimeter = null;
 			
@@ -77,8 +77,8 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
 			
 			if (altimeter != null) {
 				if (altimeter.getValue() == null) {
-					throw new TokenizingException("AltimeterSettingQNH is missing the value");
-				}
+                    throw new SerializingException("AltimeterSettingQNH is missing the value");
+                }
 				
 				String unit = null;
 				if ("hPa".equals(altimeter.getUom())) {
@@ -86,8 +86,8 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
 				} else if ("in Hg".equals(altimeter.getUom())) {
 					unit = "A";
 				} else {
-					throw new TokenizingException("Unknown unit of measure in AltimeterSettingQNH '"+altimeter.getUom()+"'");
-				}
+                    throw new SerializingException("Unknown unit of measure in AltimeterSettingQNH '" + altimeter.getUom() + "'");
+                }
 				
 				StringBuilder builder = new StringBuilder();
 				builder.append(unit);

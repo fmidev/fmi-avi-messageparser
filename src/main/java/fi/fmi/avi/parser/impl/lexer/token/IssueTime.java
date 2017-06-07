@@ -9,8 +9,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.MINUTE1;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -23,7 +23,7 @@ public class IssueTime extends TimeHandlingRegex {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         if (token.hasPrevious() && token.getPrevious().getIdentity() == AERODROME_DESIGNATOR) {
             int date = Integer.parseInt(match.group(1));
             int hour = Integer.parseInt(match.group(2));
@@ -42,7 +42,7 @@ public class IssueTime extends TimeHandlingRegex {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             StringBuilder retval = new StringBuilder();
             int date = msg.getIssueDayOfMonth();
             int hour = msg.getIssueHour();

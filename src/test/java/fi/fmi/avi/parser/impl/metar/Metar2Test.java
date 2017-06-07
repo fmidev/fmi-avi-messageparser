@@ -15,8 +15,8 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Metar2Test extends AbstractAviMessageTest<String, Metar> {
@@ -46,8 +46,8 @@ public class Metar2Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-	public ParserSpecification<String, Metar> getParserSpecification() {
-		return ParserSpecification.TAC_TO_METAR;
+	public ConversionSpecification<String, Metar> getParserSpecification() {
+		return ConversionSpecification.TAC_TO_METAR;
 	}
 
 	@Override

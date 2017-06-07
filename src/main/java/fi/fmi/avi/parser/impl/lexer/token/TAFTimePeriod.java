@@ -14,10 +14,10 @@ import fi.fmi.avi.data.AviationCodeListUser.TAFChangeIndicator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -26,15 +26,15 @@ import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 public abstract class TAFTimePeriod extends TimeHandlingRegex {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(TAFTimePeriod.class);
-	
-	protected static String encodeTimePeriod(final int startDay, final int startHour, final int endDay, final int endHour, final ParsingHints hints)
+
+	protected static String encodeTimePeriod(final int startDay, final int startHour, final int endDay, final int endHour, final ConversionHints hints)
 	{
 		String retval = null;
 		boolean useShortFormat = false;
 		try {
 			if (hints != null) {
-				Object hint = hints.get(ParsingHints.KEY_VALIDTIME_FORMAT);
-				if (ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hint)) {
+				Object hint = hints.get(ConversionHints.KEY_VALIDTIME_FORMAT);
+				if (ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT.equals(hint)) {
 					int numberOfHours = calculateNumberOfHours(startDay, startHour, endDay, endHour);
 					if (numberOfHours < 24) {
 						useShortFormat = true;
@@ -73,7 +73,7 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 	 * @param endDay
 	 * @param endHour
 	 * @return
-	 * @throws TokenizingException
+	 * @throws SerializingException
 	 */
 	static int calculateNumberOfHours(int startDay, int startHour, int endDay, int endHour)
 	{
@@ -107,8 +107,8 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
-        if (token.hasPrevious() && token.getPrevious().getIdentity() == this.getRequiredPreceedingIdentity()) {
+	public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
+		if (token.hasPrevious() && token.getPrevious().getIdentity() == this.getRequiredPreceedingIdentity()) {
             if (match.group(1) != null) {
                 //old 24h TAF, just one day field
                 int day = Integer.parseInt(match.group(2));
@@ -151,8 +151,8 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints,
-				Object... specifier) throws TokenizingException {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+				throws SerializingException {
 			Lexeme retval = null;
 			if (TAF.class.isAssignableFrom(clz)) {
 				TAFChangeForecast forecast = getAs(specifier, TAFChangeForecast.class);

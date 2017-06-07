@@ -14,10 +14,10 @@ import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Status;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
@@ -68,7 +68,7 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         int visibility = Integer.parseInt(match.group(1));
         String direction = match.group(2);
         if (direction != null) {
@@ -100,8 +100,9 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) throws TokenizingException {
-			Lexeme retval = null;
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, Object... specifier)
+                throws SerializingException {
+            Lexeme retval = null;
 
 			NumericMeasure visibility = null;
 			RelationalOperator operator = null;
@@ -141,8 +142,8 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 				} else if ("sm".equals(visibility.getUom())) {
 					str = createStatuteMilesVisibility(visibility, operator);
 				} else {
-					throw new TokenizingException("Unknown unit of measure '"+visibility.getUom()+"' for visibility");
-				}
+                    throw new SerializingException("Unknown unit of measure '" + visibility.getUom() + "' for visibility");
+                }
 				
 				
 				// TODO: directional visibility
@@ -152,14 +153,13 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 			return retval;
 		}
 
-		private String createMetricIntegerVisibility(NumericMeasure visibility, RelationalOperator operator)
-				throws TokenizingException {
-			String str;
+		private String createMetricIntegerVisibility(NumericMeasure visibility, RelationalOperator operator) throws SerializingException {
+            String str;
 
 			int meters = visibility.getValue().intValue();
 			if (meters < 0) {
-				throw new TokenizingException("Visibility " + meters + " must be positive");
-			}
+                throw new SerializingException("Visibility " + meters + " must be positive");
+            }
 
 			if (operator == RelationalOperator.BELOW && meters <= 50) {
 				str = "0000";
@@ -173,9 +173,8 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 		}
 		
 
-		private String createStatuteMilesVisibility(NumericMeasure visibility, RelationalOperator operator)
-				throws TokenizingException {
-			StringBuilder builder = new StringBuilder();
+		private String createStatuteMilesVisibility(NumericMeasure visibility, RelationalOperator operator) throws SerializingException {
+            StringBuilder builder = new StringBuilder();
 			
 			int integerPart = (int)Math.floor(visibility.getValue());
 			

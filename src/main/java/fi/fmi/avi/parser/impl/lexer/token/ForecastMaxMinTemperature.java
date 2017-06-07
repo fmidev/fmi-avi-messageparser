@@ -14,9 +14,9 @@ import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -49,7 +49,7 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         TemperatureForecastType kind = TemperatureForecastType.forCode(match.group(1));
         boolean isNegative = match.group(2) != null;
         int value = Integer.parseInt(match.group(3));
@@ -70,7 +70,7 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
         }
         
         if (timeOk(day, hour)) {
-        	if (ParsingHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ParsingHints.KEY_TIMEZONE_ID_POLICY)) {
+            if (ConversionHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ConversionHints.KEY_TIMEZONE_ID_POLICY)) {
                 if (match.group(6) == null) {
                 	token.identify(kindLexemeIdentity,Lexeme.Status.WARNING,"Missing time zone ID 'Z'");
                 } else {
@@ -93,9 +93,9 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
 
     public static class Reconstructor extends FactoryBasedReconstructor {
     	@Override
-    	public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints,
-    			Object... specifier) throws TokenizingException {
-    		List<Lexeme> retval = new ArrayList<>();
+        public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+                throws SerializingException {
+            List<Lexeme> retval = new ArrayList<>();
     		
     		if (TAF.class.isAssignableFrom(clz)) {
     			
@@ -106,8 +106,9 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
 
     					if (temp.getMaxTemperature() != null) {
     						if (!"degC".equals(temp.getMaxTemperature().getUom())) {
-    							throw new TokenizingException("Unsupported unit of measurement for maximum temperature: '"+temp.getMaxTemperature().getUom()+"'");
-    						}
+                                throw new SerializingException(
+                                        "Unsupported unit of measurement for maximum temperature: '" + temp.getMaxTemperature().getUom() + "'");
+                            }
     						
     						String s = formatTemp("TX", 
     								temp.getMaxTemperature().getValue(), 
@@ -119,8 +120,9 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
     					
     					if (temp.getMinTemperature() != null) {
     						if (!"degC".equals(temp.getMinTemperature().getUom())) {
-    							throw new TokenizingException("Unsupported unit of measurement for minimum temperature: '"+temp.getMaxTemperature().getUom()+"'");
-    						}
+                                throw new SerializingException(
+                                        "Unsupported unit of measurement for minimum temperature: '" + temp.getMaxTemperature().getUom() + "'");
+                            }
     						
     						String s = formatTemp("TN", 
     								temp.getMinTemperature().getValue(), 

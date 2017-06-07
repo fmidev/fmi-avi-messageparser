@@ -16,9 +16,9 @@ import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
 import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.data.taf.TAFSurfaceWind;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -51,7 +51,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         boolean formatOk = true;
         int direction = -1, mean, gustValue = -1;
         String unit;
@@ -95,7 +95,8 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) throws TokenizingException {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, Object... specifier)
+                throws SerializingException {
             Lexeme retval = null;
 
             TAFForecast fct = getAs(specifier, TAFForecast.class);
@@ -108,7 +109,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                 	if (wind.isVariableDirection()) {
                         builder.append("VRB");
                     } else if (!wind.getMeanWindDirection().getUom().equals("deg")) {
-                        throw new TokenizingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
+                        throw new SerializingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
                     } else {
                     	builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                     }
@@ -132,7 +133,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                     if (wind.isVariableDirection()) {
                         builder.append("VRB");
                     } else if (!wind.getMeanWindDirection().getUom().equals("deg")) {
-                        throw new TokenizingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
+                        throw new SerializingException("Mean wind direction unit is not 'deg': " + wind.getMeanWindDirection().getUom());
                     } else {
                     	builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                     }
@@ -146,13 +147,13 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
 		}
 
         private void appendCommonWindParameters(StringBuilder builder, NumericMeasure meanSpeed, NumericMeasure meanDirection, NumericMeasure gustSpeed)
-                throws TokenizingException {
+                throws SerializingException {
             int speed = meanSpeed.getValue().intValue();
             appendSpeed(builder, speed);
 
             if (gustSpeed != null) {
                 if (!gustSpeed.getUom().equals(gustSpeed.getUom())) {
-                    throw new TokenizingException(
+                    throw new SerializingException(
                             "Wind gust speed unit '" + gustSpeed.getUom() + "' is not the same as mean wind speed unit '" + meanSpeed.getUom() + "'");
                 }
                 builder.append("G");
@@ -162,10 +163,10 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
             builder.append(meanSpeed.getUom().toUpperCase());
         }
 
-		private void appendSpeed(StringBuilder builder, int speed) throws TokenizingException {
-			if (speed < 0 || speed >= 1000) {
-				throw new TokenizingException("Wind speed value " + speed + " is not withing acceptable range [0,1000]");
-			}
+        private void appendSpeed(StringBuilder builder, int speed) throws SerializingException {
+            if (speed < 0 || speed >= 1000) {
+                throw new SerializingException("Wind speed value " + speed + " is not withing acceptable range [0,1000]");
+            }
 			builder.append(String.format("%02d", speed));
 		}
 	}

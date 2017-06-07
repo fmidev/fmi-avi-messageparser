@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Splitter;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.LexemeVisitor;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParsingHints;
 
 /**
  * Created by rinne on 10/02/17.
@@ -26,7 +26,7 @@ import fi.fmi.avi.parser.ParsingHints;
 public class LexingFactoryImpl implements LexingFactory {
 
     @Override
-    public LexemeSequence createLexemeSequence(final String input, final ParsingHints hints) {
+    public LexemeSequence createLexemeSequence(final String input, final ConversionHints hints) {
         LexemeSequenceImpl result = new LexemeSequenceImpl(input);
         appendArtifialStartTokenIfNecessary(input, result, hints);
         return result;
@@ -52,12 +52,12 @@ public class LexingFactoryImpl implements LexingFactory {
         return new LexemeImpl(token, identity, status);
     }
 
-    private static void appendArtifialStartTokenIfNecessary(final String input, final LexemeSequenceImpl result, final ParsingHints hints) {
-        if (hints != null && hints.containsKey(ParsingHints.KEY_MESSAGE_TYPE)) {
+    private static void appendArtifialStartTokenIfNecessary(final String input, final LexemeSequenceImpl result, final ConversionHints hints) {
+        if (hints != null && hints.containsKey(ConversionHints.KEY_MESSAGE_TYPE)) {
             LexemeImpl artificialStartToken = null;
-            if (hints.get(ParsingHints.KEY_MESSAGE_TYPE) == ParsingHints.VALUE_MESSAGE_TYPE_METAR && !input.startsWith("METAR ")) {
+            if (hints.get(ConversionHints.KEY_MESSAGE_TYPE) == ConversionHints.VALUE_MESSAGE_TYPE_METAR && !input.startsWith("METAR ")) {
                 artificialStartToken = new LexemeImpl("METAR", Lexeme.Identity.METAR_START);
-            } else if (hints.get(ParsingHints.KEY_MESSAGE_TYPE) == ParsingHints.VALUE_MESSAGE_TYPE_TAF && !input.startsWith("TAF ")) {
+            } else if (hints.get(ConversionHints.KEY_MESSAGE_TYPE) == ConversionHints.VALUE_MESSAGE_TYPE_TAF && !input.startsWith("TAF ")) {
                 artificialStartToken = new LexemeImpl("TAF", Lexeme.Identity.TAF_START);
             }
             if (artificialStartToken != null) {
@@ -544,7 +544,7 @@ public class LexingFactoryImpl implements LexingFactory {
         }
 
         @Override
-        public void accept(final LexemeVisitor visitor, final ParsingHints hints) {
+        public void accept(final LexemeVisitor visitor, final ConversionHints hints) {
             //Always acccept:
             if (visitor != null) {
                 visitor.visit(this, hints);

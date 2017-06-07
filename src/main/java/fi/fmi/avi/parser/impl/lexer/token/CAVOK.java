@@ -7,8 +7,8 @@ import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
 
@@ -21,7 +21,7 @@ public class CAVOK extends PrioritizedLexemeVisitor {
     }
 
     @Override
-    public void visit(final Lexeme token, final ParsingHints hints) {
+    public void visit(final Lexeme token, final ConversionHints hints) {
         if ("CAVOK".equalsIgnoreCase(token.getTACToken())) {
             token.identify(CAVOK);
         }
@@ -30,7 +30,7 @@ public class CAVOK extends PrioritizedLexemeVisitor {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             Lexeme retval = null;
             if (Metar.class.isAssignableFrom(clz)) {
                 Metar m = (Metar) msg;

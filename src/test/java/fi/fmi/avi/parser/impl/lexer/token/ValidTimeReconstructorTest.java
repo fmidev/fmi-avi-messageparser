@@ -1,7 +1,9 @@
 package fi.fmi.avi.parser.impl.lexer.token;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
@@ -9,27 +11,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.LexingFactoryImpl;
 import fi.fmi.avi.parser.impl.lexer.TACTokenReconstructor;
 
 public class ValidTimeReconstructorTest {
 
 	TACTokenReconstructor reconstructor;
-	ParsingHints hints;
+	ConversionHints hints;
 	
 	@Before
 	public void setUp() throws Exception {
 		reconstructor = new ValidTime.Reconstructor();
 		reconstructor.setLexingFactory(new LexingFactoryImpl());
-		hints = new ParsingHints();
+		hints = new ConversionHints();
 	}
 
 	@Test
-	public void testValidityLongDateFormat() throws TokenizingException
+	public void testValidityLongDateFormat() throws SerializingException
 	{
 		TAF msg = mock(TAF.class);
 		
@@ -41,11 +43,11 @@ public class ValidTimeReconstructorTest {
 	}
 
 	@Test
-	public void testValidityShortDateFormat() throws TokenizingException
+	public void testValidityShortDateFormat() throws SerializingException
 	{
 		TAF msg = mock(TAF.class);
-		
-		hints.put(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+
+		hints.put(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
 		injectValidity(msg, 7, 2, 7, 24);
 		
 		
@@ -56,11 +58,11 @@ public class ValidTimeReconstructorTest {
 
 
 	@Test
-	public void testValidityShortDateFormatNextDay() throws TokenizingException
+	public void testValidityShortDateFormatNextDay() throws SerializingException
 	{
 		TAF msg = mock(TAF.class);
-		
-		hints.put(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+
+		hints.put(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
 		injectValidity(msg, 7, 18, 8, 10);
 		
 		
@@ -71,11 +73,11 @@ public class ValidTimeReconstructorTest {
 
 
 	@Test
-	public void testValidityShortDateFormatTooLongPeriod() throws TokenizingException
+	public void testValidityShortDateFormatTooLongPeriod() throws SerializingException
 	{
 		TAF msg = mock(TAF.class);
-		
-		hints.put(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+
+		hints.put(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
 		injectValidity(msg, 7, 18, 8, 20);
 		
 		

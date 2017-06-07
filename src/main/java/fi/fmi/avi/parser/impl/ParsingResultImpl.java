@@ -9,7 +9,8 @@ import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 
 /**
- * Created by rinne on 21/04/17.
+ *
+ * @author Ilkka Rinne / Spatineo Oy 2017
  */
 public class ParsingResultImpl<T extends AviationWeatherMessage> implements ParsingResult<T> {
 

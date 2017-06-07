@@ -5,8 +5,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.RUNWAY;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -19,7 +19,7 @@ public class WindShear extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         if (match.group(1) != null) {
         	token.identify(WIND_SHEAR);
             token.setParsedValue(RUNWAY, "ALL");

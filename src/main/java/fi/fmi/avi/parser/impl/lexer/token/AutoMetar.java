@@ -4,8 +4,8 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
 
@@ -18,7 +18,7 @@ public class AutoMetar extends PrioritizedLexemeVisitor {
     }
 
     @Override
-    public void visit(final Lexeme token, final ParsingHints hints) {
+    public void visit(final Lexeme token, final ConversionHints hints) {
         if ("AUTO".equalsIgnoreCase(token.getTACToken())) {
             token.identify(AUTOMATED);
         }
@@ -27,13 +27,17 @@ public class AutoMetar extends PrioritizedLexemeVisitor {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
         @Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ParsingHints hints, final Object... specifier) {
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             if (Metar.class.isAssignableFrom(clz)) {
-                return this.createLexeme("AUTO", Lexeme.Identity.AUTOMATED);
+                Metar m = (Metar) msg;
+                if (m.isAutomatedStation()) {
+                    return this.createLexeme("AUTO", Lexeme.Identity.AUTOMATED);
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }
-
         }
     }
 }

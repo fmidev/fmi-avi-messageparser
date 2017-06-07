@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 
 /**
  * Created by rinne on 01/03/17.
@@ -54,8 +54,9 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
 	}
 
     @Override
-    public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints, Object... specifier) throws TokenizingException {
-    	List<Lexeme> retval = new ArrayList<>();
+    public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+            throws SerializingException {
+        List<Lexeme> retval = new ArrayList<>();
     	Lexeme lexeme = getAsLexeme(msg, clz, hints, specifier);
     	if (lexeme != null) {
     		retval.add(lexeme);
@@ -71,9 +72,9 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
      * @param hints
      * @param specifier
      * @return
-     * @throws TokenizingException
+     * @throws SerializingException
      */
-    public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ParsingHints hints, Object... specifier) throws TokenizingException {
-    	return null;
+    public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier) throws SerializingException {
+        return null;
     }
 }

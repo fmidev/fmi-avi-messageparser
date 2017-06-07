@@ -7,16 +7,19 @@ import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
+import fi.fmi.avi.parser.AviMessageSerializer;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
+import fi.fmi.avi.parser.impl.AviMessageSerializerImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
-import fi.fmi.avi.parser.impl.AviMessageTACTokenizerImpl;
 import fi.fmi.avi.parser.impl.MetarTACParser;
+import fi.fmi.avi.parser.impl.MetarTACSerializer;
 import fi.fmi.avi.parser.impl.TACParser;
 import fi.fmi.avi.parser.impl.TAFTACParser;
+import fi.fmi.avi.parser.impl.TAFTACSerializer;
 import fi.fmi.avi.parser.impl.lexer.AviMessageLexerImpl;
 import fi.fmi.avi.parser.impl.lexer.LexingFactoryImpl;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor.Priority;
@@ -73,38 +76,44 @@ public class AviMessageParserConfig {
     @Bean
     public AviMessageParser aviMessageParser() {
         AviMessageParserImpl p = new AviMessageParserImpl();
-        p.addMessageSpecificParser(ParserSpecification.TAC_TO_METAR, metarTACParser());
-        p.addMessageSpecificParser(ParserSpecification.TAC_TO_TAF, tafTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_METAR, metarTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_TAF, tafTACParser());
         return p;
     }
 
-    AviMessageSpecificParser<Metar> metarTACParser() {
-        TACParser<Metar> p = new MetarTACParser();
+    AviMessageSpecificParser<String, Metar> metarTACParser() {
+        TACParser<String, Metar> p = new MetarTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
     }
 
-    AviMessageSpecificParser<TAF> tafTACParser() {
-        TACParser<TAF> p = new TAFTACParser();
+    AviMessageSpecificParser<String, TAF> tafTACParser() {
+        TACParser<String, TAF> p = new TAFTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
     }
 
     @Bean
+    public AviMessageSerializer aviMessageSerializer() {
+        AviMessageSerializerImpl s = new AviMessageSerializerImpl();
+        s.addMessageSpecificSerializer(ConversionSpecification.METAR_TO_TAC, metarTACSerializer());
+        s.addMessageSpecificSerializer(ConversionSpecification.TAF_TO_TAC, tafTACSerializer());
+        return s;
+    }
+
+    @Bean
     public AviMessageTACTokenizer tacTokenizer() {
-        AviMessageTACTokenizerImpl s = new AviMessageTACTokenizerImpl();
+        return (AviMessageTACTokenizer) aviMessageSerializer();
+    }
+
+    MetarTACSerializer metarTACSerializer() {
+        MetarTACSerializer s = new MetarTACSerializer();
         s.setLexingFactory(lexingFactory());
         s.addReconstructor(Lexeme.Identity.METAR_START, new MetarStart.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.TAF_START, new TAFStart.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.AMENDMENT, new Amendment.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AERODROME_DESIGNATOR, new ICAOCode.Reconstructor());
         s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AUTOMATED, new AutoMetar.Reconstructor());
-
-        s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.CANCELLATION, new Cancellation.Reconstructor());
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
         //Lexeme.Identity.VARIABLE_WIND_DIRECTION
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
@@ -113,8 +122,6 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.MAX_TEMPERATURE, new ForecastMaxMinTemperature.Reconstructor());
-        // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
         s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
@@ -125,6 +132,33 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.SEA_STATE
         //Lexeme.Identity.RUNWAY_STATE
         //Lexeme.Identity.COLOR_CODE
+        s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.END_TOKEN, new EndToken.Reconstructor());
+        return s;
+    }
+
+    TAFTACSerializer tafTACSerializer() {
+        TAFTACSerializer s = new TAFTACSerializer();
+        s.setLexingFactory(lexingFactory());
+        s.addReconstructor(Lexeme.Identity.TAF_START, new TAFStart.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AMENDMENT, new Amendment.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.AERODROME_DESIGNATOR, new ICAOCode.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CANCELLATION, new Cancellation.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.MAX_TEMPERATURE, new ForecastMaxMinTemperature.Reconstructor());
+        // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
+        s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
         s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
         s.addReconstructor(Lexeme.Identity.END_TOKEN,new EndToken.Reconstructor());
         return s;
