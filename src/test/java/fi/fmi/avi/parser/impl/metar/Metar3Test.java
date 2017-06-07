@@ -17,12 +17,14 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.TokenizingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar3Test extends AbstractAviMessageTest<String, MetarImpl> {
+public class Metar3Test extends AbstractAviMessageTest<String, Metar> {
 
 	@Override
 	public String getJsonFilename() {
@@ -55,14 +57,15 @@ public class Metar3Test extends AbstractAviMessageTest<String, MetarImpl> {
 		};
 	}
 
-    @Override
-    public Class<String> getMessageInputClass() {
-        return String.class;
-    }
-
-    @Override
-    public Class<MetarImpl> getMessageOutputClass() {
-        return MetarImpl.class;
+	@Override
+	public ParserSpecification<String, Metar> getParserSpecification() {
+		return ParserSpecification.TAC_TO_METAR;
 	}
+
+	@Override
+	public Class<? extends Metar> getTokenizerImplmentationClass() {
+		return MetarImpl.class;
+	}
+
 
 }

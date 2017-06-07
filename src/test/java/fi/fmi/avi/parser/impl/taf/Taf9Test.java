@@ -12,12 +12,14 @@ import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
+import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Taf9Test extends AbstractAviMessageTest {
+public class Taf9Test extends AbstractAviMessageTest<String, TAF> {
 
 	@Override
 	public String getJsonFilename() {
@@ -64,12 +66,12 @@ public class Taf9Test extends AbstractAviMessageTest {
 	}
 
 	@Override
-	public Class<String> getMessageInputClass() {
-		return String.class;
+	public ParserSpecification<String, TAF> getParserSpecification() {
+		return ParserSpecification.TAC_TO_TAF;
 	}
 
 	@Override
-	public Class<TAFImpl> getMessageOutputClass() {
+	public Class<? extends TAF> getTokenizerImplmentationClass() {
 		return TAFImpl.class;
 	}
 

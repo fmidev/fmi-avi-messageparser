@@ -28,12 +28,14 @@ import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
+import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.TokenizingException;
@@ -59,10 +61,10 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	public abstract String getTokenizedMessagePrefix();
     public abstract String getJsonFilename();
 
-	public abstract Class<S> getMessageInputClass();
+	public abstract ParserSpecification<S, T> getParserSpecification();
 
-	public abstract Class<T> getMessageOutputClass();
-
+	public abstract Class<? extends T> getTokenizerImplmentationClass();
+	
 	public ParsingHints getLexerParsingHints() {
     	return new ParsingHints();
     }
@@ -90,17 +92,16 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	@Test
 	public void testTokenizer() throws TokenizingException, IOException {
 		String expectedMessage = getTokenizedMessagePrefix() + getMessage();
-		
         assertTokenSequenceMatch(
         		expectedMessage,
-        		getJsonFilename(), getMessageOutputClass(), getTokenizerParsingHints());
+        		getJsonFilename(), getTokenizerParsingHints());
 	}
 
 	@Test
 	public void testParser() throws IOException {
-		ParsingResult<T> result = parser.parseMessage(getMessage(), getMessageInputClass(), getMessageOutputClass(), getParserParsingHints());
+		ParsingResult<T> result = parser.parseMessage(getMessage(), getParserSpecification(), getParserParsingHints());
 		assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
-		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename(), getMessageOutputClass()), result.getParsedMessage());
+		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename()), result.getParsedMessage());
 	}
 	
 
@@ -112,18 +113,18 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 		}
 	}
     
-    protected void assertTokenSequenceMatch(final String expected, final String fileName, Class<? extends AviationWeatherMessage> clz, final ParsingHints hints) throws IOException, TokenizingException {
-        LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName, clz), hints);
+    protected void assertTokenSequenceMatch(final String expected, final String fileName, final ParsingHints hints) throws IOException, TokenizingException {
+        LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName), hints);
         assertNotNull("Null sequence was produced", seq);
         assertEquals(expected, seq.getTAC());
     }
     
-    protected <T extends AviationWeatherMessage> T readFromJSON(String fileName, Class<T> clz) throws IOException {
+    protected  T readFromJSON(String fileName) throws IOException {
         T retval = null;
         ObjectMapper om = new ObjectMapper();
         InputStream is = AbstractAviMessageTest.class.getClassLoader().getResourceAsStream(fileName);
         if (is != null) {
-            retval = om.readValue(is, clz);
+            retval = om.readValue(is, getTokenizerImplmentationClass());
         } else {
             throw new FileNotFoundException("Resource '" + fileName + "' could not be loaded");
         }
