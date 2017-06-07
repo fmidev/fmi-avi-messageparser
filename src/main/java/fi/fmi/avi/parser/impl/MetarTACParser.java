@@ -85,7 +85,7 @@ import fi.fmi.avi.parser.impl.lexer.token.Weather;
 /**
  * Created by rinne on 13/04/17.
  */
-public class MetarTACParser extends AbstractAviMessageParser implements AviMessageSpecificParser<Metar> {
+public class MetarTACParser extends AbstractAviMessageParser implements TACParser<Metar> {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetarTACParser.class);
 
