@@ -33,5 +33,5 @@ public class AviMessageParserImpl implements AviMessageParser {
     public <T extends AviationWeatherMessage, S> void addMessageSpecificParser(ParserSpecification<S, T> spec, AviMessageSpecificParser<T> parser) {
         this.parsers.put(spec, parser);
     }
-    
+
 }
