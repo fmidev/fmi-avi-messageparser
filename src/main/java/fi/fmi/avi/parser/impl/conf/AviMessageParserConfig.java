@@ -99,7 +99,8 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.AERODROME_DESIGNATOR, new ICAOCode.Reconstructor());
         s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NIL, new Nil.Reconstructor());
-        //Lexeme.Identity.AUTOMATED
+        s.addReconstructor(Lexeme.Identity.AUTOMATED, new AutoMetar.Reconstructor());
+
         s.addReconstructor(Lexeme.Identity.VALID_TIME, new ValidTime.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CANCELLATION, new Cancellation.Reconstructor());
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
