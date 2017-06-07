@@ -30,8 +30,8 @@ public class AviMessageParserImpl implements AviMessageParser {
         throw new IllegalArgumentException("Unable to parse message using specification " + spec);
     }
 
-    public <T extends AviationWeatherMessage, S> void addMessageSpecificParser(Class<S> inputClz, Class<T> outputClz, AviMessageSpecificParser<T> parser) {
-        this.parsers.put(new ParserSpecification<S, T>(inputClz, outputClz), parser);
+    public <T extends AviationWeatherMessage, S> void addMessageSpecificParser(ParserSpecification<S, T> spec, AviMessageSpecificParser<T> parser) {
+        this.parsers.put(spec, parser);
     }
-
+    
 }
