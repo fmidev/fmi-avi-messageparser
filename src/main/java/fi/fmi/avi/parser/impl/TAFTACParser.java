@@ -55,7 +55,7 @@ import fi.fmi.avi.parser.impl.lexer.token.SurfaceWind;
 /**
  * Created by rinne on 25/04/17.
  */
-public class TAFTACParser extends AbstractAviMessageParser implements AviMessageSpecificParser<TAF> {
+public class TAFTACParser extends AbstractAviMessageParser implements TACParser<TAF> {
 
     private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, VALID_TIME, CORRECTION, AMENDMENT, CANCELLATION, NIL, MIN_TEMPERATURE,
             MAX_TEMPERATURE, REMARKS_START };

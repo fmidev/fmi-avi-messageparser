@@ -14,6 +14,7 @@ import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
 import fi.fmi.avi.parser.impl.AviMessageTACTokenizerImpl;
 import fi.fmi.avi.parser.impl.MetarTACParser;
+import fi.fmi.avi.parser.impl.TACParser;
 import fi.fmi.avi.parser.impl.TAFTACParser;
 import fi.fmi.avi.parser.impl.lexer.AviMessageLexerImpl;
 import fi.fmi.avi.parser.impl.lexer.LexingFactoryImpl;
@@ -77,13 +78,13 @@ public class AviMessageParserConfig {
     }
 
     AviMessageSpecificParser<Metar> metarTACParser() {
-        AviMessageSpecificParser<Metar> p = new MetarTACParser();
+        TACParser<Metar> p = new MetarTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
     }
 
     AviMessageSpecificParser<TAF> tafTACParser() {
-        AviMessageSpecificParser<TAF> p = new TAFTACParser();
+        TACParser<TAF> p = new TAFTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
     }
