@@ -28,17 +28,16 @@ import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.ConversionHints;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParserSpecification;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingResult;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,45 +60,44 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	public abstract String getTokenizedMessagePrefix();
     public abstract String getJsonFilename();
 
-	public abstract ParserSpecification<S, T> getParserSpecification();
+	public abstract ConversionSpecification<S, T> getConversionSpecification();
 
 	public abstract Class<? extends T> getTokenizerImplmentationClass();
-	
-	public ParsingHints getLexerParsingHints() {
-    	return new ParsingHints();
-    }
 
-    public ParsingHints getParserParsingHints() {
-    	return new ParsingHints();
-    }
+	public ConversionHints getLexerConversionHints() {
+		return new ConversionHints();
+	}
+
+	public ConversionHints getParserConversionHints() {
+		return new ConversionHints();
+	}
     
     public abstract Identity[] getLexerTokenSequenceIdentity();
-    
-    public ParsingHints getTokenizerParsingHints() {
-    	ParsingHints hints = new ParsingHints(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
-    	return hints;
+
+	public ConversionHints getTokenizerConversionHints() {
+		ConversionHints hints = new ConversionHints(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_LONG);
+		return hints;
     }
     
 	@Test
 	public void testLexer() {
 		Object input = getMessage();
 		if (input instanceof String) {
-			LexemeSequence result = lexer.lexMessage((String) getMessage(), getLexerParsingHints());
+			LexemeSequence result = lexer.lexMessage((String) getMessage(), getLexerConversionHints());
 			assertTokenSequenceIdentityMatch(result, getLexerTokenSequenceIdentity());
 		}
 	}
 	
 	@Test
-	public void testTokenizer() throws TokenizingException, IOException {
+	public void testTokenizer() throws SerializingException, IOException {
 		String expectedMessage = getTokenizedMessagePrefix() + getMessage();
         assertTokenSequenceMatch(
-        		expectedMessage,
-        		getJsonFilename(), getTokenizerParsingHints());
+        		expectedMessage, getJsonFilename(), getTokenizerConversionHints());
 	}
 
 	@Test
 	public void testParser() throws IOException {
-		ParsingResult<T> result = parser.parseMessage(getMessage(), getParserSpecification(), getParserParsingHints());
+		ParsingResult<T> result = parser.parseMessage(getMessage(), getConversionSpecification(), getParserConversionHints());
 		assertEquals("Parsing was not successful: " + result.getParsingIssues(), ParsingResult.ParsingStatus.SUCCESS, result.getStatus());
 		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename()), result.getParsedMessage());
 	}
@@ -112,9 +110,10 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 			assertEquals("Mismatch at index " + i, identities[i], lexemes.get(i).getIdentityIfAcceptable());
 		}
 	}
-    
-    protected void assertTokenSequenceMatch(final String expected, final String fileName, final ParsingHints hints) throws IOException, TokenizingException {
-        LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName), hints);
+
+	protected void assertTokenSequenceMatch(final String expected, final String fileName, final ConversionHints hints)
+			throws IOException, SerializingException {
+		LexemeSequence seq = tokenizer.tokenizeMessage(readFromJSON(fileName), hints);
         assertNotNull("Null sequence was produced", seq);
         assertEquals(expected, seq.getTAC());
     }

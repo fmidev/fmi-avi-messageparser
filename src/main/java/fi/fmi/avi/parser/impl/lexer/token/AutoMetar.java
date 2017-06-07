@@ -2,8 +2,8 @@ package fi.fmi.avi.parser.impl.lexer.token;
 
 import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
 
 /**
@@ -15,7 +15,7 @@ public class AutoMetar extends PrioritizedLexemeVisitor {
     }
 
     @Override
-    public void visit(final Lexeme token, final ParsingHints hints) {
+    public void visit(final Lexeme token, final ConversionHints hints) {
         if ("AUTO".equalsIgnoreCase(token.getTACToken())) {
             token.identify(AUTOMATED);
         }

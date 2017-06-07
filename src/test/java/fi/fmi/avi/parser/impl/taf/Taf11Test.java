@@ -15,9 +15,9 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
+import fi.fmi.avi.parser.ConversionHints;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.ParserSpecification;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Taf11Test extends AbstractAviMessageTest<String, TAF> {
@@ -42,14 +42,14 @@ public class Taf11Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-	public ParsingHints getLexerParsingHints() {
-		return ParsingHints.TAF;
+	public ConversionHints getLexerConversionHints() {
+		return ConversionHints.TAF;
 	}
 
     @Override
-    public ParsingHints getParserParsingHints() {
-        return ParsingHints.TAF;
-    }
+	public ConversionHints getParserConversionHints() {
+		return ConversionHints.TAF;
+	}
 
     @Override
 	public Identity[] getLexerTokenSequenceIdentity() {
@@ -62,8 +62,8 @@ public class Taf11Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
     @Override
-   	public ParserSpecification<String, TAF> getParserSpecification() {
-   		return ParserSpecification.TAC_TO_TAF;
+	public ConversionSpecification<String, TAF> getConversionSpecification() {
+		return ConversionSpecification.TAC_TO_TAF;
    	}
 
    	@Override

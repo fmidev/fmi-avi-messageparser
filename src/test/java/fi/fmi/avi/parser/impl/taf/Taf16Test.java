@@ -13,9 +13,9 @@ import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
 
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
+import fi.fmi.avi.parser.ConversionHints;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.ParserSpecification;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Taf16Test extends AbstractAviMessageTest<String, TAF> {
@@ -38,10 +38,10 @@ public class Taf16Test extends AbstractAviMessageTest<String, TAF> {
 	}
 	
 	@Override
-	public ParsingHints getTokenizerParsingHints() {
-		ParsingHints hints = super.getTokenizerParsingHints();
-        hints.put(ParsingHints.KEY_VALIDTIME_FORMAT, ParsingHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
-		return hints;
+    public ConversionHints getTokenizerConversionHints() {
+        ConversionHints hints = super.getTokenizerConversionHints();
+        hints.put(ConversionHints.KEY_VALIDTIME_FORMAT, ConversionHints.VALUE_VALIDTIME_FORMAT_PREFER_SHORT);
+        return hints;
 	}
 	
 	@Override
@@ -54,9 +54,9 @@ public class Taf16Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	 @Override
-		public ParserSpecification<String, TAF> getParserSpecification() {
-			return ParserSpecification.TAC_TO_TAF;
-		}
+     public ConversionSpecification<String, TAF> getConversionSpecification() {
+         return ConversionSpecification.TAC_TO_TAF;
+     }
 
 		@Override
 		public Class<? extends TAF> getTokenizerImplmentationClass() {

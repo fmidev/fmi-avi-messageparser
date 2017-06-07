@@ -5,8 +5,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.HashMap;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.PrioritizedLexemeVisitor;
 import fi.fmi.avi.parser.impl.lexer.token.RunwayState.RunwayStateReportType;
 
@@ -19,7 +19,7 @@ public class SnowClosure extends PrioritizedLexemeVisitor {
     }
 
     @Override
-    public void visit(final Lexeme token, final ParsingHints hints) {
+    public void visit(final Lexeme token, final ConversionHints hints) {
         if ("SNOCLO".equalsIgnoreCase(token.getTACToken()) || "R/SNOCLO".equals(token.getTACToken())) {
             HashMap<RunwayStateReportType, Object> values = new HashMap<RunwayStateReportType, Object>();
             values.put(RunwayStateReportType.SNOW_CLOSURE, Boolean.TRUE);

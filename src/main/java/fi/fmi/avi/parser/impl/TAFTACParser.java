@@ -41,9 +41,9 @@ import fi.fmi.avi.data.taf.impl.TAFChangeForecastImpl;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
 import fi.fmi.avi.data.taf.impl.TAFSurfaceWindImpl;
 import fi.fmi.avi.parser.AviMessageLexer;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
@@ -67,7 +67,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
     }
 
     @Override
-    public ParsingResult<TAF> parseMessage(final Object input, final ParsingHints hints) {
+    public ParsingResult<TAF> parseMessage(final Object input, final ConversionHints hints) {
         ParsingResult<TAF> retval = new ParsingResultImpl<>();
         LexemeSequence lexed = null;
         if (this.lexer == null) {
@@ -162,7 +162,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateTAFIssueTime(final TAF fct, final LexemeSequence lexed, final ParsingHints hints) {
+    private List<ParsingIssue> updateTAFIssueTime(final TAF fct, final LexemeSequence lexed, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         Identity[] before = new Identity[] { NIL, VALID_TIME, CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE,
                 MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
@@ -170,7 +170,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateTAFValidTime(final TAF fct, final LexemeSequence lexed, final ParsingHints hints) {
+    private List<ParsingIssue> updateTAFValidTime(final TAF fct, final LexemeSequence lexed, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         Identity[] before = new Identity[] { CANCELLATION, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, CAVOK, MIN_TEMPERATURE, MAX_TEMPERATURE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
@@ -208,7 +208,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateBaseForecast(final TAF fct, final LexemeSequence lexed, final ParsingHints hints) {
+    private List<ParsingIssue> updateBaseForecast(final TAF fct, final LexemeSequence lexed, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         TAFBaseForecast baseFct = new TAFBaseForecastImpl();
 
@@ -242,7 +242,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateTemperatures(final TAFBaseForecast baseFct, final Lexeme from, final ParsingHints hints) {
+    private List<ParsingIssue> updateTemperatures(final TAFBaseForecast baseFct, final Lexeme from, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         List<TAFAirTemperatureForecast> temps = new ArrayList<>();
         TAFAirTemperatureForecast airTemperatureForecast;
@@ -321,7 +321,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateChangeForecasts(final TAF fct, final LexemeSequence lexed, final ParsingHints hints) {
+    private List<ParsingIssue> updateChangeForecasts(final TAF fct, final LexemeSequence lexed, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         Identity[] stopAt = { REMARKS_START };
         findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), stopAt, (match) -> {
@@ -402,7 +402,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
     }
 
     private List<ParsingIssue> updateChangeForecastContents(final TAFChangeForecast fct, final ForecastChangeIndicator.ForecastChangeIndicatorType type,
-            final Lexeme from, final ParsingHints hints) {
+            final Lexeme from, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, WEATHER, CLOUD, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         if (ForecastChangeIndicator.ForecastChangeIndicatorType.FROM != type) {
@@ -463,7 +463,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateForecastSurfaceWind(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateForecastSurfaceWind(final TAFForecast fct, final Lexeme from, final Identity[] before, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(SURFACE_WIND, from, before, (match) -> {
             TAFSurfaceWind wind = new TAFSurfaceWindImpl();
@@ -498,7 +498,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateVisibility(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateVisibility(final TAFForecast fct, final Lexeme from, final Identity[] before, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(HORIZONTAL_VISIBILITY, from, before, (match) -> {
             Double distance = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Double.class);
@@ -532,7 +532,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateWeather(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateWeather(final TAFForecast fct, final Lexeme from, final Identity[] before, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(WEATHER, from, before, (match) -> {
             if (match != null) {
@@ -546,7 +546,7 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
         return retval;
     }
 
-    private List<ParsingIssue> updateClouds(final TAFForecast fct, final Lexeme from, final Identity[] before, final ParsingHints hints) {
+    private List<ParsingIssue> updateClouds(final TAFForecast fct, final Lexeme from, final Identity[] before, final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(CLOUD, from, before, (match) -> {
             CloudForecast cloud = new CloudForecastImpl();

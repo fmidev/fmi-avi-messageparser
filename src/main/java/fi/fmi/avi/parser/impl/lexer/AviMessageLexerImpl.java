@@ -9,10 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.fmi.avi.parser.AviMessageLexer;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParsingHints;
 
 /**
  * Created by rinne on 21/12/16.
@@ -43,7 +43,7 @@ public class AviMessageLexerImpl implements AviMessageLexer {
     }
 
     @Override
-    public LexemeSequence lexMessage(final String input, final ParsingHints hints) {
+    public LexemeSequence lexMessage(final String input, final ConversionHints hints) {
         if (this.factory == null) {
             throw new IllegalStateException("LexingFactory not injected");
         }

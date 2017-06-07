@@ -49,13 +49,13 @@ import fi.fmi.avi.data.taf.TAFAirTemperatureForecast;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.TACTokenReconstructor;
 
 /**
@@ -81,12 +81,12 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     @Override
-    public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg) throws TokenizingException {
+    public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg) throws SerializingException {
         return this.tokenizeMessage(msg, null);
     }
 
     @Override
-    public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg, final ParsingHints hints) throws TokenizingException {
+    public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg, final ConversionHints hints) throws SerializingException {
         if (msg instanceof Metar) {
             return tokenizeMetar((Metar) msg, hints);
         } else if (msg instanceof TAF) {
@@ -96,7 +96,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
         }
     }
 
-    private LexemeSequence tokenizeMetar(final Metar msg, final ParsingHints hints) throws TokenizingException {
+    private LexemeSequence tokenizeMetar(final Metar msg, final ConversionHints hints) throws SerializingException {
         LexemeSequenceBuilder retval = this.factory.createLexemeSequenceBuilder();
         appendToken(retval, METAR_START, msg, Metar.class, hints);
         appendToken(retval, CORRECTION, msg, Metar.class, hints);
@@ -172,7 +172,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
 
     }
 
-    private LexemeSequence tokenizeTAF(final TAF msg, final ParsingHints hints) throws TokenizingException {
+    private LexemeSequence tokenizeTAF(final TAF msg, final ConversionHints hints) throws SerializingException {
         LexemeSequenceBuilder retval = this.factory.createLexemeSequenceBuilder();
 
         appendToken(retval, TAF_START, msg, TAF.class, hints);
@@ -187,7 +187,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
             if (AviationCodeListUser.TAFStatus.CANCELLATION != msg.getStatus()) {
                 TAFBaseForecast baseFct = msg.getBaseForecast();
                 if (baseFct == null) {
-                    throw new TokenizingException("Missing base forecast");
+                    throw new SerializingException("Missing base forecast");
                 }
                 appendToken(retval, SURFACE_WIND, msg, TAF.class, hints, baseFct);
                 appendToken(retval, CAVOK, msg, TAF.class, hints, baseFct);
@@ -250,12 +250,12 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
-            final List<CloudLayer> layers, final ParsingHints hints) throws TokenizingException {
+            final List<CloudLayer> layers, final ConversionHints hints) throws SerializingException {
         return appendCloudLayers(builder, msg, clz, layers, hints, null);
     }
 
     private <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
-            final List<CloudLayer> layers, final ParsingHints hints, final Object specifier) throws TokenizingException {
+            final List<CloudLayer> layers, final ConversionHints hints, final Object specifier) throws SerializingException {
         int retval = 0;
         if (layers != null) {
             for (CloudLayer layer : layers) {
@@ -266,7 +266,7 @@ public class AviMessageTACTokenizerImpl implements AviMessageTACTokenizer {
     }
 
     private <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Identity id, final T msg, final Class<T> clz,
-            final ParsingHints hints, final Object... specifier) throws TokenizingException {
+            final ConversionHints hints, final Object... specifier) throws SerializingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
         int retval = 0;
         if (rec != null) {

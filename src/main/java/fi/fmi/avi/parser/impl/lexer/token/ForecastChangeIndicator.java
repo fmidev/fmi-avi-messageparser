@@ -16,9 +16,9 @@ import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.metar.TrendTimeGroups;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -59,7 +59,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         ForecastChangeIndicatorType indicator;
         if (match.group(1) != null) {
         	token.identify(FORECAST_CHANGE_INDICATOR);
@@ -91,8 +91,8 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
     public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ParsingHints hints,
-				Object... specifier) throws TokenizingException {
+        public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, ConversionHints hints, Object... specifier)
+                throws SerializingException {
             List<Lexeme> retval = new ArrayList<>();
 
             if (msg instanceof TAF) {
@@ -133,7 +133,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
                             retval.add(this.createLexeme("BECMG", FORECAST_CHANGE_INDICATOR));
                             List<Lexeme> periodOfChange = createTrendTimeChangePeriods(trend.getTimeGroups());
                             if (periodOfChange.isEmpty()) {
-                                throw new TokenizingException("No period of time for the trend of type BECOMING");
+                                throw new SerializingException("No period of time for the trend of type BECOMING");
                             }
                             retval.addAll(periodOfChange);
                             break;

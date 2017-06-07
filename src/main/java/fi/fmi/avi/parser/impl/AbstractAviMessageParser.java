@@ -14,10 +14,10 @@ import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.impl.CloudLayerImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.impl.WeatherImpl;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult;
 import fi.fmi.avi.parser.impl.lexer.token.CloudLayer;
@@ -103,7 +103,7 @@ public abstract class AbstractAviMessageParser {
     }
 
     protected static List<ParsingIssue> updateIssueTime(final AviationWeatherMessage msg, final LexemeSequence lexed, final Lexeme.Identity[] before,
-            final ParsingHints hints) {
+            final ConversionHints hints) {
         List<ParsingIssue> retval = new ArrayList<>();
         findNext(ISSUE_TIME, lexed.getFirstLexeme(), before, (match) -> {
             Integer day = match.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
@@ -122,7 +122,7 @@ public abstract class AbstractAviMessageParser {
     }
 
     protected static List<ParsingIssue> appendWeatherCodes(final Lexeme source, List<fi.fmi.avi.data.Weather> target, Lexeme.Identity[] before,
-            final ParsingHints hints) {
+            final ConversionHints hints) {
         Lexeme l = source;
         List<ParsingIssue> issues = new ArrayList<>();
         while (l != null) {
@@ -179,7 +179,8 @@ public abstract class AbstractAviMessageParser {
         return retval;
     }
 
-    protected static <T extends AviationWeatherMessage> void updateRemarks(final ParsingResult<T> result, final LexemeSequence lexed, final ParsingHints hints) {
+    protected static <T extends AviationWeatherMessage> void updateRemarks(final ParsingResult<T> result, final LexemeSequence lexed,
+            final ConversionHints hints) {
         final T msg = result.getParsedMessage();
         findNext(Identity.REMARKS_START, lexed.getFirstLexeme(), null, (match) -> {
         	List<String> remarks = new ArrayList<>();
@@ -194,8 +195,7 @@ public abstract class AbstractAviMessageParser {
         });
     }
 
-    
-    protected static boolean endsInEndToken(final LexemeSequence lexed, final ParsingHints hints) {
+    protected static boolean endsInEndToken(final LexemeSequence lexed, final ConversionHints hints) {
         if (END_TOKEN == lexed.getLastLexeme().getIdentityIfAcceptable()) {
             return true;
         } else {

@@ -17,10 +17,10 @@ import java.io.IOException;
 
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.parser.ConversionHints;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.ParserSpecification;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
@@ -42,13 +42,13 @@ public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
 	}
 	
 	@Override
-	public ParsingHints getLexerParsingHints() {
-		return ParsingHints.METAR;
+	public ConversionHints getLexerConversionHints() {
+		return ConversionHints.METAR;
 	}
 	
 	// Remove this overridden method once the tokenizer is working
 	@Override
-	public void testTokenizer() throws TokenizingException, IOException {
+	public void testTokenizer() throws SerializingException, IOException {
 		
 	}
 
@@ -68,8 +68,8 @@ public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-	public ParserSpecification<String, Metar> getParserSpecification() {
-		return ParserSpecification.TAC_TO_METAR;
+	public ConversionSpecification<String, Metar> getConversionSpecification() {
+		return ConversionSpecification.TAC_TO_METAR;
 	}
 
 	@Override

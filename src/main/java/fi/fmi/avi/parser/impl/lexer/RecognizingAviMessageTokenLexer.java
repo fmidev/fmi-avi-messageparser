@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeVisitor;
-import fi.fmi.avi.parser.ParsingHints;
 
 /**
  * Created by rinne on 01/02/17.
@@ -59,7 +59,7 @@ public class RecognizingAviMessageTokenLexer implements LexemeVisitor {
     }
 
     @Override
-    public void visit(final Lexeme token, final ParsingHints hints) {
+    public void visit(final Lexeme token, final ConversionHints hints) {
         if (!token.isRecognized() && visitors != null) {
             for (LexemeVisitor v : visitors) {
                 token.accept(v, hints);

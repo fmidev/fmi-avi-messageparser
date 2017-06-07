@@ -8,9 +8,9 @@ import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
+import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexingFactory;
-import fi.fmi.avi.parser.ParserSpecification;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
 import fi.fmi.avi.parser.impl.AviMessageTACTokenizerImpl;
@@ -73,8 +73,8 @@ public class AviMessageParserConfig {
     @Bean
     public AviMessageParser aviMessageParser() {
         AviMessageParserImpl p = new AviMessageParserImpl();
-        p.addMessageSpecificParser(ParserSpecification.TAC_TO_METAR, metarTACParser());
-        p.addMessageSpecificParser(ParserSpecification.TAC_TO_TAF, tafTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_METAR, metarTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_TAF, tafTACParser());
         return p;
     }
 

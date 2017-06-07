@@ -1,7 +1,7 @@
 package fi.fmi.avi.parser.impl;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.parser.ParsingHints;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ParsingResult;
 
 /**
@@ -9,5 +9,5 @@ import fi.fmi.avi.parser.ParsingResult;
  */
 public interface AviMessageSpecificParser<T extends AviationWeatherMessage> {
 
-    ParsingResult<T> parseMessage(Object input, ParsingHints hints);
+    ParsingResult<T> parseMessage(Object input, ConversionHints hints);
 }

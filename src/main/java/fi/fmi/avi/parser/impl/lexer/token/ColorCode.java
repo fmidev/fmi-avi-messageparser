@@ -5,8 +5,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -57,7 +57,7 @@ public class ColorCode extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
+    public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
         ColorState state;
         if (match.group(2) == null) {
             state = ColorState.forCode(match.group(1));

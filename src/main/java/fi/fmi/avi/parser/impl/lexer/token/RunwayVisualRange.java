@@ -11,8 +11,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.UNIT;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
 import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
@@ -26,8 +26,8 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
     }
 
     @Override
-    public void visitIfMatched(final Lexeme token, final Matcher match, final ParsingHints hints) {
-        String runway = match.group(1);
+	public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
+		String runway = match.group(1);
         RecognizingAviMessageTokenLexer.RelationalOperator belowAboveIndicator = RecognizingAviMessageTokenLexer.RelationalOperator.forCode(match.group(2));
         int visibility = Integer.parseInt(match.group(3));
         token.identify(RUNWAY_VISUAL_RANGE);

@@ -2,9 +2,9 @@ package fi.fmi.avi.parser.impl.lexer.token;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.ParsingHints;
-import fi.fmi.avi.parser.TokenizingException;
+import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 
 /**
@@ -29,7 +29,8 @@ public class ValidTime extends TAFTimePeriod {
 	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ParsingHints hints, Object... specifier) throws TokenizingException {
+		public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, Object... specifier)
+				throws SerializingException {
 			Lexeme retval = null;
 			if (TAF.class.isAssignableFrom(clz)) {
 				TAF taf = (TAF) msg;
