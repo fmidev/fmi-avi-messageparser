@@ -69,11 +69,11 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
     }
     
     public enum SpecialValue {
-    	AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM;
+        AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM, CLOUD_BASE_BELOW_AERODROME;
     }
 
     public CloudLayer(final Priority prio) {
-        super("^(([A-Z]{3}|VV)([0-9]{3})(CB|TCU)?)|(/{6})$", prio);
+        super("^(([A-Z]{3}|VV)([0-9]{3}|/{3})(CB|TCU)?)|(/{6})$", prio);
     }
 
     @Override
@@ -85,18 +85,21 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
         
         } else {
 	    	CloudCover cloudCover = CloudCover.forCode(match.group(2));
-	        int height = Integer.parseInt(match.group(3));
-	        
 	        if (cloudCover != null) {
 	            token.identify(Lexeme.Identity.CLOUD);
 	            token.setParsedValue(COVER, cloudCover);
 	        } else {
 	            token.identify(CLOUD, Lexeme.Status.SYNTAX_ERROR, "Unknown cloud cover " + match.group(2));
 	        }
-	        if (match.group(4) != null) {
+            if ("///".equals(match.group(3))) {
+                token.setParsedValue(VALUE, SpecialValue.CLOUD_BASE_BELOW_AERODROME);
+            } else {
+                token.setParsedValue(VALUE, Integer.parseInt(match.group(3)));
+            }
+            if (match.group(4) != null) {
 	            token.setParsedValue(TYPE, CloudType.forCode(match.group(4)));
 	        }
-	        token.setParsedValue(VALUE, height);
+
 	        token.setParsedValue(UNIT, "hft");
         }
     }
@@ -127,7 +130,7 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
 
                 }
             } else if (Metar.class.isAssignableFrom(clz)) {
-                // No need to care about vertical visibility, it's done in AviMessageTACTokenizerImpl.tokenizeMetar()
+                // No need to care about vertical visibility, it's done in MetarTACSerializer.tokenizeMessage()
                 verVis = null;
             }
 
@@ -139,11 +142,16 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             StringBuilder sb = new StringBuilder();
     		if (layer != null) {
     			NumericMeasure base = layer.getBase();
-    			CloudAmount amount = layer.getAmount();
+
+                CloudAmount amount = layer.getAmount();
     			fi.fmi.avi.data.AviationCodeListUser.CloudType type = layer.getCloudType();
         		sb.append(amount.name());
-        		sb.append(String.format("%03d", getAsHectoFeet(base)));
-        		if (type != null) {
+                if (base == null || base.getValue() == null) {
+                    sb.append("///");
+                } else {
+                    sb.append(String.format("%03d", getAsHectoFeet(base)));
+                }
+                if (type != null) {
         			sb.append(type.name());
         		}
     		} else if (verVis != null) {

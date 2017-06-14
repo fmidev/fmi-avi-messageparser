@@ -871,13 +871,17 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                                 Object value = token.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
                                 String unit = token.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
                                 CloudLayer.CloudCover cover = token.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
-                                if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED == cover) {
-                                    int height = ((Integer) value).intValue();
-                                    if ("hft".equals(unit)) {
-                                        height = height * 100;
-                                        unit = "ft";
+                                if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {
+                                    if (value instanceof Integer) {
+                                        int height = ((Integer) value).intValue();
+                                        if ("hft".equals(unit)) {
+                                            height = height * 100;
+                                            unit = "ft";
+                                        }
+                                        cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
+                                    } else {
+                                        result.addIssue(new ParsingIssue(Type.MISSING_DATA, "Missing value for vertical visibility"));
                                     }
-                                    cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
                                 } else {
                                     fi.fmi.avi.data.CloudLayer layer = getCloudLayer(token);
                                     if (layer != null) {

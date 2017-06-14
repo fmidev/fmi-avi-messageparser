@@ -552,26 +552,28 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                 CloudLayer.CloudCover cover = match.getParsedValue(Lexeme.ParsedValueName.COVER, CloudLayer.CloudCover.class);
                 Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
                 String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
-                if (value instanceof Integer) {
-                    if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {
-                        int height = ((Integer) value).intValue();
+                if (CloudLayer.CloudCover.SKY_OBSCURED == cover) {
+                    Integer height;
+                    if (value instanceof Integer) {
+                        height = (Integer) value;
                         if ("hft".equals(unit)) {
                             height = height * 100;
                             unit = "ft";
                         }
-                        cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
                     } else {
-                        fi.fmi.avi.data.CloudLayer layer = getCloudLayer(match);
-                        if (layer != null) {
-                            layers.add(layer);
-                        } else {
-                            retval.add(
-                                    new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Could not parse token " + match.getTACToken() + " as cloud " + "layer"));
-                        }
+                        retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()));
+                        height = null;
                     }
+                    cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
                 } else {
-                    retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Cloud layer height is not an integer in " + match.getTACToken()));
+                    fi.fmi.avi.data.CloudLayer layer = getCloudLayer(match);
+                    if (layer != null) {
+                        layers.add(layer);
+                    } else {
+                        retval.add(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Could not parse token " + match.getTACToken() + " as cloud " + "layer"));
+                    }
                 }
+
                 match = findNext(CLOUD, match, before);
             }
             if (!layers.isEmpty()) {

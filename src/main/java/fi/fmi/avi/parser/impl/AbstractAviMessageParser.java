@@ -234,7 +234,7 @@ public abstract class AbstractAviMessageParser {
         Object value = match.getParsedValue(Lexeme.ParsedValueName.VALUE, Object.class);
         String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
 
-        if (value instanceof Integer && CloudLayer.CloudCover.SKY_OBSCURED != cover) {
+        if (CloudLayer.CloudCover.SKY_OBSCURED != cover) {
             retval = new CloudLayerImpl();
             switch (cover) {
                 case FEW:
@@ -258,11 +258,15 @@ public abstract class AbstractAviMessageParser {
             } else if (CloudLayer.CloudType.CUMULONIMBUS == type) {
                 retval.setCloudType(fi.fmi.avi.data.AviationCodeListUser.CloudType.CB);
             }
-            Integer height = (Integer) value;
-            if ("hft".equals(unit)) {
-                retval.setBase(new NumericMeasureImpl(height * 100, "ft"));
-            } else {
-                retval.setBase(new NumericMeasureImpl(height, unit));
+            if (value instanceof Integer) {
+                Integer height = (Integer) value;
+                if ("hft".equals(unit)) {
+                    retval.setBase(new NumericMeasureImpl(height * 100, "ft"));
+                } else {
+                    retval.setBase(new NumericMeasureImpl(height, unit));
+                }
+            } else if (CloudLayer.SpecialValue.CLOUD_BASE_BELOW_AERODROME == value) {
+                retval.setBase(null);
             }
         }
         return retval;
