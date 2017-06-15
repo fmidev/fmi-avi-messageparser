@@ -5,8 +5,11 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.RUNWAY;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -29,5 +32,35 @@ public class WindShear extends RegexMatchingLexemeVisitor {
         } else {
             token.identify(WIND_SHEAR, Lexeme.Status.SYNTAX_ERROR, "Could not understand runway code");
         }
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
+            Lexeme retval = null;
+            
+            if (clz.isAssignableFrom(Metar.class)) {
+            	Metar metar = (Metar)msg;
+            	
+            	fi.fmi.avi.data.metar.WindShear windShear = metar.getWindShear();
+            	
+            	StringBuilder str = new StringBuilder("WS");
+            	if (windShear.isAllRunways()) {
+            		str.append(" ALL RWY");
+            	} else {
+            		for (String rwy : windShear.getRunwayDirectionDesignators()) {
+            			str.append(" ");
+            			str.append(rwy);
+            		}
+            	}
+            	
+            	retval = createLexeme(str.toString(), WIND_SHEAR);
+            }
+            
+            
+        	return retval;
+        }
+
     }
 }
