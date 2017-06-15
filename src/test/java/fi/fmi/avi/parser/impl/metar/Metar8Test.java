@@ -13,14 +13,11 @@ import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
-import java.io.IOException;
-
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
@@ -52,12 +49,6 @@ public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
         return ConversionHints.METAR;
     }
 
-	// Remove this overridden method once the tokenizer is working
-	@Override
-    public void testTokenizer() throws SerializingException, IOException {
-        // NOTE: the message contains color codes that are currently not stored in Metar POJOs
-	}
-	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
