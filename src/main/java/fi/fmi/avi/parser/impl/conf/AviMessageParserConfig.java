@@ -118,7 +118,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.VARIABLE_WIND_DIRECTION, new VariableSurfaceWind.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
@@ -127,7 +127,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE, new AirDewpointTemperature.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_PRESSURE_QNH, new AtmosphericPressureQNH.Reconstructor());
-        //Lexeme.Identity.RECENT_WEATHER
+        s.addReconstructor(Lexeme.Identity.RECENT_WEATHER, new Weather.Reconstructor(true));
         //Lexeme.Identity.WIND_SHEAR
         //Lexeme.Identity.SEA_STATE
         s.addReconstructor(Lexeme.Identity.RUNWAY_STATE, new RunwayState.Reconstructor());
@@ -151,7 +151,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());

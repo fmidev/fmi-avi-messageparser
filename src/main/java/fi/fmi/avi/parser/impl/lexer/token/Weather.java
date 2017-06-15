@@ -478,7 +478,12 @@ public class Weather extends RegexMatchingLexemeVisitor {
     }
     
     public static class Reconstructor extends FactoryBasedReconstructor {
-
+    	private final boolean recentWeather;
+    	
+    	public Reconstructor(boolean recentWeather) {
+    		this.recentWeather = recentWeather;
+		}
+    	
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier)
                 throws SerializingException {
@@ -492,7 +497,11 @@ public class Weather extends RegexMatchingLexemeVisitor {
                 }
             } else if (Metar.class.isAssignableFrom(clz)) {
             	fi.fmi.avi.data.Weather weather = getAs(specifier, fi.fmi.avi.data.Weather.class);
-                retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+            	if (recentWeather) {
+            		retval = this.createLexeme("RE"+weather.getCode(), Lexeme.Identity.RECENT_WEATHER);
+            	} else {
+            		retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
+            	}
             }
             return retval;
         }
