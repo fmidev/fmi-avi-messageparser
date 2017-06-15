@@ -5,8 +5,12 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -66,5 +70,33 @@ public class ColorCode extends RegexMatchingLexemeVisitor {
         }
         token.identify(COLOR_CODE);
         token.setParsedValue(VALUE, state);
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
+            Lexeme retval = null;
+            
+            fi.fmi.avi.data.AviationCodeListUser.ColorState color = null;
+            
+            if (clz.isAssignableFrom(Metar.class)) {
+            	Metar metar = (Metar)msg;
+            	
+            	TrendForecast trend = getAs(specifier, TrendForecast.class);
+            	if (trend == null) {
+            		color = metar.getColorState();
+            	} else {
+            		color = trend.getColorState();
+            	}
+            }
+            
+            if (color != null) {
+            	retval = this.createLexeme(color.name(), COLOR_CODE);
+            }
+            
+        	return retval;
+        }
+
     }
 }

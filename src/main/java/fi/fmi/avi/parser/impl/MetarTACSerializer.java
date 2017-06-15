@@ -6,6 +6,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
 import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
+import static fi.fmi.avi.parser.Lexeme.Identity.COLOR_CODE;
 import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
@@ -37,6 +38,7 @@ import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.SerializingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
 
 /**
  * Created by rinne on 07/06/17.
@@ -103,6 +105,9 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
                 appendToken(retval, RUNWAY_STATE, input, Metar.class, hints, state);
             }
         }
+        
+        appendToken(retval, COLOR_CODE, input, Metar.class, hints);
+        
         appendToken(retval, NO_SIGNIFICANT_WEATHER, input, Metar.class, hints);
         if (input.getTrends() != null) {
             for (TrendForecast trend : input.getTrends()) {
@@ -124,6 +129,7 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
                         this.appendCloudLayers(retval, input, Metar.class, clouds.getLayers(), hints, trend);
                     }
                 }
+                appendToken(retval, COLOR_CODE, input, Metar.class, hints, trend);
             }
         }
         if (input.getRemarks() != null && !input.getRemarks().isEmpty()) {
