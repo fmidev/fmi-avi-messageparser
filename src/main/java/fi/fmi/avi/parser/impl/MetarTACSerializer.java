@@ -20,6 +20,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
@@ -33,6 +34,7 @@ import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.SerializingException;
@@ -65,6 +67,7 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
         appendToken(retval, ISSUE_TIME, input, Metar.class, hints);
         appendToken(retval, AUTOMATED, input, Metar.class, hints);
         appendToken(retval, SURFACE_WIND, input, Metar.class, hints);
+        appendToken(retval, VARIABLE_WIND_DIRECTION, input, Metar.class, hints);
         appendToken(retval, CAVOK, input, Metar.class, hints);
         appendToken(retval, HORIZONTAL_VISIBILITY, input, Metar.class, hints);
         if (input.getRunwayVisualRanges() != null) {

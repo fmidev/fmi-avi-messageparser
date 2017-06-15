@@ -115,7 +115,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AUTOMATED, new AutoMetar.Reconstructor());
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
-        //Lexeme.Identity.VARIABLE_WIND_DIRECTION
+        s.addReconstructor(Lexeme.Identity.VARIABLE_WIND_DIRECTION, new VariableSurfaceWind.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
         s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
