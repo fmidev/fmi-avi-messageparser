@@ -6,6 +6,8 @@ import static fi.fmi.avi.parser.Lexeme.ParsedValueName.RELATIONAL_OPERATOR;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.UNIT;
 import static fi.fmi.avi.parser.Lexeme.ParsedValueName.VALUE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
@@ -100,12 +102,15 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 	public static class Reconstructor extends FactoryBasedReconstructor {
 
 		@Override
-        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, Object... specifier)
+        public <T extends AviationWeatherMessage> List<Lexeme> getAsLexemes(T msg, Class<T> clz, final ConversionHints hints, Object... specifier)
                 throws SerializingException {
-            Lexeme retval = null;
+            List<Lexeme> retval = new ArrayList<Lexeme>();
 
 			NumericMeasure visibility = null;
 			RelationalOperator operator = null;
+			
+			NumericMeasure minimumVisibilityDistance = null;
+			NumericMeasure minimumVisibilityDirection = null;
 			
 			boolean identified = false;
 			TAFForecast taf = getAs(specifier, TAFForecast.class);
@@ -131,6 +136,9 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 					
 					visibility = metar.getVisibility().getPrevailingVisibility();
 					operator = metar.getVisibility().getPrevailingVisibilityOperator();
+					
+					minimumVisibilityDistance = metar.getVisibility().getMinimumVisibility();
+					minimumVisibilityDirection = metar.getVisibility().getMinimumVisibilityDirection();
 				}
 			}
 
@@ -145,12 +153,68 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
                     throw new SerializingException("Unknown unit of measure '" + visibility.getUom() + "' for visibility");
                 }
 				
+				retval.add(this.createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY));
 				
-				// TODO: directional visibility
+				if (minimumVisibilityDistance != null) {
+					String tmp = createMinimumVisibilityString(minimumVisibilityDistance, minimumVisibilityDirection);
+					retval.add(this.createLexeme(tmp, Lexeme.Identity.HORIZONTAL_VISIBILITY));
+				}
 				
-				retval = this.createLexeme(str, Lexeme.Identity.HORIZONTAL_VISIBILITY);
 			}
 			return retval;
+		}
+
+		private String createMinimumVisibilityString(NumericMeasure distance, NumericMeasure direction) throws SerializingException {
+			if (distance == null || direction == null) {
+				throw new SerializingException("Both visibility and direction need to be set for minimum visibility. Cannot serialize");
+			}
+			
+			if (!"deg".equals(direction.getUom())) {
+				throw new SerializingException("Minimum visibility direction must be in degrees, but unit is "+direction.getUom()+" instead");
+			}
+			
+			if (!"m".equals(distance.getUom())) {
+				throw new SerializingException("Minimum visibility distance must be in meters, but unit is "+distance.getUom()+" instead");
+			}
+			
+			int meters = distance.getValue().intValue();
+			if (meters < 0 || meters >= 10000) {
+				throw new SerializingException("Minimum visibility distance must be 0 to 9999 meters, but is "+distance.getValue());
+			}
+			
+			// Allow 5 degrees slack, so 40-50 deg => 45 == NE
+			final int slack = 5;
+			
+			int deg = direction.getValue().intValue();
+			if (deg < 0 || deg > 360) {
+				throw new SerializingException("Minimum visibilty direction must be within 0...360");
+			}
+			if (deg >= (360-slack)) {
+				deg -= 360;
+			}
+			
+			String compass;
+			if (deg <= 0 + slack) {
+				compass = "N";
+			} else if (deg >= 45-slack && deg <= 45+slack) {
+				compass = "NE";
+			} else if (deg >= 90-slack && deg <= 90+slack) {
+				compass = "E";
+			} else if (deg >= 135-slack && deg <= 135+slack) {
+				compass = "SE";
+			} else if (deg >= 180-slack && deg <= 180+slack) {
+				compass = "S";
+			} else if (deg >= 225-slack && deg <= 225+slack) {
+				compass = "SW";
+			} else if (deg >= 270-slack && deg <= 270+slack) {
+				compass = "W";
+			} else if (deg >= 315-slack && deg <= 315+slack) {
+				compass = "NW";
+			} else {
+				throw new SerializingException("Minimum visibility direction ("+direction.getValue()+") is not within "+slack+" degrees of a cardinal or intercardinal direction");
+			}
+			
+			return String.format("%04d%s", meters, compass);
 		}
 
 		private String createMetricIntegerVisibility(NumericMeasure visibility, RelationalOperator operator) throws SerializingException {
