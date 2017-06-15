@@ -128,7 +128,7 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
 				}
             } else if (Metar.class.isAssignableFrom(clz)) {
             	Metar metar = (Metar)msg;
-            	if (specialValue.equals("VV")) {
+            	if ("VV".equals(specialValue)) {
             		verVis = metar.getClouds().getVerticalVisibility();
             	}
             }
