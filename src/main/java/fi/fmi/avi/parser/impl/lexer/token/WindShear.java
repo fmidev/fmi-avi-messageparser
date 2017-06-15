@@ -39,18 +39,27 @@ public class WindShear extends RegexMatchingLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             Lexeme retval = null;
+            fi.fmi.avi.data.metar.WindShear windShear = null;
             
             if (clz.isAssignableFrom(Metar.class)) {
             	Metar metar = (Metar)msg;
             	
-            	fi.fmi.avi.data.metar.WindShear windShear = metar.getWindShear();
-            	
+            	windShear = metar.getWindShear();
+            }
+            
+            if (windShear != null) {
             	StringBuilder str = new StringBuilder("WS");
             	if (windShear.isAllRunways()) {
             		str.append(" ALL RWY");
             	} else {
+            		
+            		boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
+            		
             		for (String rwy : windShear.getRunwayDirectionDesignators()) {
             			str.append(" ");
+            			if (annex3_16th) {
+            				str.append("RWY");
+            			}
             			str.append(rwy);
             		}
             	}
