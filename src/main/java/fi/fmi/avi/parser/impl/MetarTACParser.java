@@ -581,60 +581,16 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                     result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }
 	        	if (deposit != null) {
-		        	switch(deposit) {
-					case CLEAR_AND_DRY:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.CLEAR_AND_DRY);
-						break;
-					case COMPACTED_OR_ROLLED_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.COMPACT_OR_ROLLED_SNOW);
-						break;
-					case DAMP:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DAMP);
-						break;
-					case DRY_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DRY_SNOW);
-						break;
-					case FROZEN_RUTS_OR_RIDGES:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.FROZEN_RUTS_OR_RIDGES);
-						break;
-					case ICE:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.ICE);
-						break;
-					case NOT_REPORTED:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.MISSING_OR_NOT_REPORTED);
-						break;
-					case RIME_OR_FROST_COVERED:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.RIME_AND_FROST_COVERED);
-						break;
-					case SLUSH:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.SLUSH);
-						break;
-					case WET:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_WITH_WATER_PATCHES);
-						break;
-					case WET_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_SNOW);
-						break;
-		        	}
+	        		AviationCodeListUser.RunwayDeposit value = fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertRunwayStateDepositToAPI(deposit);
+	        		if (value != null) {
+	        			rws.setDeposit(value);
+	        		}
 	        	}
 	        	
 	        	if (contamination != null) {
-	        		switch(contamination) {
-	        		case LESS_OR_EQUAL_TO_10PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_LESS_THAN_10);
-						break;
-					case FROM_11_TO_25PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_11_25);
-						break;
-					case FROM_26_TO_50PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_26_50);
-						break;
-					case FROM_51_TO_100PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_51_100);
-						break;
-					case NOT_REPORTED:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.MISSING_OR_NOT_REPORTED);
-						break;
+	        		AviationCodeListUser.RunwayContamination value = fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertRunwayStateContaminationToAPI(contamination);
+	        		if (value != null) {
+	        			rws.setContamination(value);
 	        		}
 	        	}
 	        	
@@ -682,26 +638,10 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                 }
 		        	
 				if (breakingAction instanceof fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction) {
-					BreakingAction action;
-					switch((fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction)breakingAction) {
-					case POOR:
-						action = BreakingAction.POOR;
-						break;
-					case MEDIUM_POOR:
-						action = BreakingAction.MEDIUM_POOR;
-						break;
-					case MEDIUM:
-						action = BreakingAction.MEDIUM;
-						break;
-					case MEDIUM_GOOD:
-						action = BreakingAction.MEDIUM_GOOD;
-						break;
-					case GOOD:
-						action = BreakingAction.GOOD;
-						break;
-					default:
-						action = null;
-					}
+					BreakingAction action = 
+							fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertBreakingActionToAPI(
+									(fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction)breakingAction);
+
 					rws.setBreakingAction(action);
 				} else if (breakingAction instanceof RunwayStateReportSpecialValue) {
 					switch((RunwayStateReportSpecialValue)breakingAction) {

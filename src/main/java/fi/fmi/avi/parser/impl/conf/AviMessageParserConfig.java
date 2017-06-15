@@ -130,7 +130,7 @@ public class AviMessageParserConfig {
         //Lexeme.Identity.RECENT_WEATHER
         //Lexeme.Identity.WIND_SHEAR
         //Lexeme.Identity.SEA_STATE
-        //Lexeme.Identity.RUNWAY_STATE
+        s.addReconstructor(Lexeme.Identity.RUNWAY_STATE, new RunwayState.Reconstructor());
         //Lexeme.Identity.COLOR_CODE
         s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
         s.addReconstructor(Lexeme.Identity.END_TOKEN, new EndToken.Reconstructor());

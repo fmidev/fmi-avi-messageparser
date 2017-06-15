@@ -34,7 +34,6 @@ import fi.fmi.avi.data.metar.RunwayVisualRange;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.SerializingException;
