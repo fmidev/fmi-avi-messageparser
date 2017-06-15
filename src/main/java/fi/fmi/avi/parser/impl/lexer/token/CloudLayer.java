@@ -127,8 +127,10 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
 					
 				}
             } else if (Metar.class.isAssignableFrom(clz)) {
-            	// No need to care about vertical visibility, it's done in AviMessageTACTokenizerImpl.tokenizeMetar()
-            	verVis = null;
+            	Metar metar = (Metar)msg;
+            	if (specialValue.equals("VV")) {
+            		verVis = metar.getClouds().getVerticalVisibility();
+            	}
             }
             
             retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
