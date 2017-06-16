@@ -661,6 +661,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
 				
 				if (frictionCoefficient != null && frictionCoefficient instanceof Number) {
 					rws.setEstimatedSurfaceFriction(((Number)frictionCoefficient).doubleValue());
+				} else if (frictionCoefficient == RunwayStateReportSpecialValue.MEASUREMENT_UNRELIABLE) {
+					rws.setEstimatedSurfaceFrictionUnreliable(true);
 				}
 				
 	        	states.add(rws);

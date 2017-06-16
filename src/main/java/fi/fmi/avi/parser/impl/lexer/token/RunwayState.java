@@ -371,15 +371,15 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 		private String getFrictionCoefficient(fi.fmi.avi.data.metar.RunwayState state) throws SerializingException {
 			fi.fmi.avi.data.AviationCodeListUser.BreakingAction action = state.getBreakingAction();
 			Double friction = state.getEstimatedSurfaceFriction();
-			
-			if (state.isRunwayNotOperational()) {
-				return "//";
-			}
-			
+
 			if (state.isEstimatedSurfaceFrictionUnreliable()) {
 				return "99";
 			}
-			
+
+			if (state.isRunwayNotOperational()) {
+				return "//";
+			}
+
 			if (action != null) {
 				BreakingAction tmp = convertAPIToBreakingAction(action);
 				if (tmp == null) {
@@ -408,6 +408,10 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 				return "//";
 			}
 
+			if (state.isRunwayNotOperational()) {
+				return "99";
+			}
+			
 			if (measure == null) {
 				throw new SerializingException("Depth is measurable, but depthOfDeposit is null. Unable to serialize");
 			}

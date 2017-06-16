@@ -83,7 +83,8 @@
       "runwayDirectionDesignator": "15",
       "deposit": "MISSING_OR_NOT_REPORTED",
       "contamination": "MISSING_OR_NOT_REPORTED",
-      "runwayNotOperational": true
+      "runwayNotOperational": true,
+      "estimatedSurfaceFrictionUnreliable": true
     }
   ]
 }
