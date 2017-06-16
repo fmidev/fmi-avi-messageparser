@@ -129,7 +129,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.AIR_PRESSURE_QNH, new AtmosphericPressureQNH.Reconstructor());
         s.addReconstructor(Lexeme.Identity.RECENT_WEATHER, new Weather.Reconstructor(true));
         s.addReconstructor(Lexeme.Identity.WIND_SHEAR, new WindShear.Reconstructor());
-        //Lexeme.Identity.SEA_STATE
+        s.addReconstructor(Lexeme.Identity.SEA_STATE, new SeaState.Reconstructor());
         s.addReconstructor(Lexeme.Identity.RUNWAY_STATE, new RunwayState.Reconstructor());
         s.addReconstructor(Lexeme.Identity.COLOR_CODE, new ColorCode.Reconstructor());
         s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());

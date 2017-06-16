@@ -4,8 +4,13 @@ import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 
 import java.util.regex.Matcher;
 
+import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
+import fi.fmi.avi.parser.SerializingException;
+import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 
 /**
@@ -32,6 +37,10 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             this.code = code;
         }
 
+        public char getCode() {
+        	return code;
+        }
+        
         public static SeaSurfaceState forCode(final char code) {
             for (SeaSurfaceState w : values()) {
                 if (w.code == code) {
@@ -53,7 +62,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             seaSurfaceTemperature = Integer.valueOf(match.group(2));
         }
         if (seaSurfaceTemperature != null && match.group(1) != null) {
-            seaSurfaceTemperature = Integer.valueOf(seaSurfaceTemperature.intValue() * -1);
+            seaSurfaceTemperature *= -1;
         }
         SeaSurfaceState state = null;
         if (match.group(4) != null) {
@@ -77,5 +86,75 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             token.setParsedValue(Lexeme.ParsedValueName.UNIT2, "m");
         }
         token.setParsedValue(Lexeme.ParsedValueName.VALUE, values);     
+    }
+    
+    public static class Reconstructor extends FactoryBasedReconstructor {
+
+        @Override
+        public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) throws SerializingException {
+            Lexeme retval = null;
+
+            if (clz.isAssignableFrom(Metar.class)) {
+            	Metar metar = (Metar)msg;
+            	
+            	fi.fmi.avi.data.metar.SeaState state = metar.getSeaState();
+            	
+            	if (state != null) {
+            		StringBuilder builder = new StringBuilder("W");
+            		
+            		NumericMeasure temp = state.getSeaSurfaceTemperature();
+            		if (temp == null) {
+            			builder.append("//");
+            		} else {
+            			if ("degC".equals(temp.getUom())) {
+            				int value = temp.getValue().intValue();
+            				if (value < 0) {
+            					builder.append("M");
+            					value *= -1;
+            				}
+            				builder.append(String.format("%02d/", value));
+            				
+            			} else {
+            				throw new SerializingException("Sea state temperature must be in degC, cannot serialize");
+            			}
+            		}
+            		
+            		NumericMeasure waveHeight = state.getSignificantWaveHeight();
+            		
+            		if (state.getSeaSurfaceState() != null && waveHeight != null) {
+            			throw new SerializingException("Sea state can only contain either surface state or wave height, not both");
+            		}
+            		
+            		if (state.getSeaSurfaceState() == null && waveHeight == null) {
+            			throw new SerializingException("Sea state has to contain either surface state or wave height");
+            		}
+            		
+            		if (state.getSeaSurfaceState() != null) {
+            			// Sea surface state
+            			//builder.append(String.format("S%c", state.getSeaSurfaceState().getCode()));
+            			builder.append("S"+state.getSeaSurfaceState().getCode());
+            			
+            		} else {
+            			// Significant wave height
+            			if (!"m".equals(waveHeight.getUom())) {
+            				throw new SerializingException("Sea state wave height must be in meters");
+            			}
+            			
+            			int height = (int)Math.round(waveHeight.getValue() / 0.1);
+            			
+            			if (height < 0 || height > 999) {
+            				throw new SerializingException("Sea state wave height must be between 0 and 100 meters, it was "+waveHeight.getValue());
+            			}
+            			
+            			builder.append(String.format("W%d", height));
+            		}
+            		
+            		
+            		retval = createLexeme(builder.toString(), SEA_STATE);
+            	}
+            }
+            
+            return retval;
+        }
     }
 }
