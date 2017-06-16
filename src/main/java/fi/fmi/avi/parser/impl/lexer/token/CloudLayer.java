@@ -133,13 +133,18 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             	}
             }
             
-            retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
+            String str = getCloudLayerOrVerticalVisibilityToken(layer, verVis);
+            if (str != null) {
+            	retval = this.createLexeme(str, Identity.CLOUD);
+            }
+            
             return retval;
         }
 
         private String getCloudLayerOrVerticalVisibilityToken(final fi.fmi.avi.data.CloudLayer layer, final NumericMeasure verVis) throws SerializingException {
-            StringBuilder sb = new StringBuilder();
+            String ret = null;
     		if (layer != null) {
+    			StringBuilder sb = new StringBuilder();
     			NumericMeasure base = layer.getBase();
     			CloudAmount amount = layer.getAmount();
     			fi.fmi.avi.data.AviationCodeListUser.CloudType type = layer.getCloudType();
@@ -148,11 +153,15 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
         		if (type != null) {
         			sb.append(type.name());
         		}
+        		ret = sb.toString();
+        		
     		} else if (verVis != null) {
+    			StringBuilder sb = new StringBuilder();
     			sb.append("VV");
     			sb.append(String.format("%03d", getAsHectoFeet(verVis)));
+    			ret = sb.toString();
     		}
-    		return sb.toString();
+    		return ret;
         }
 
         private long getAsHectoFeet(final NumericMeasure value) throws SerializingException {
