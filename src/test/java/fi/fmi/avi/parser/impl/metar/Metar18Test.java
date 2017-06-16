@@ -25,7 +25,7 @@ public class Metar18Test extends AbstractAviMessageTest<String, Metar> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar10.json";
+		return "metar/metar18.json";
 	}
 	
 	// Almost exactly the same as Metar 10 except wind shear is presented as described in the 19th ed. of Annex 3 
