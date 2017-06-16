@@ -332,41 +332,52 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             }
             
             if (state != null) {
-            	StringBuilder builder = new StringBuilder();
+            	String str = buildRunwayStateToken(state);
             	
-            	// Runway designator
-            	builder.append(getRunwayDesignator(state));
-            	
-            	if (state.isCleared()) {
-            		builder.append("CLRD");
-            	} else {
-	            	// Deposit
-	            	RunwayStateDeposit deposit = convertAPIToRunwayStateDeposit(state.getDeposit());
-	            	if (deposit == null) {
-	            		throw new SerializingException("RunwayState deposit ("+state.getDeposit()+") missing or unable to convert it");
-	            	}
-	            	builder.append(deposit.code);
-	            	
-	            	// Contamination
-	            	RunwayStateContamination contamination = convertAPIToRunwayStateContamination(state.getContamination());
-	            	if (contamination == null) {
-	            		throw new SerializingException("RunwayState contamination ("+state.getContamination()+") missing or unable to convert it");
-	            	}
-	            	builder.append(contamination.code);
-	            	
-	            	// Depth of deposit
-	            	builder.append(getDepthOfDeposit(state));
-	            	
-            	}
-            	
-            	// Friction coefficient - appending it after CLRD is not 100% as spec, but we have real world test cases where this is done
-            	builder.append(getFrictionCoefficient(state));
-            	
-            	retval = this.createLexeme(builder.toString(), RUNWAY_STATE);
+            	retval = this.createLexeme(str, RUNWAY_STATE);
             }
             
             return retval;
     	}
+
+		private String buildRunwayStateToken(fi.fmi.avi.data.metar.RunwayState state)
+				throws SerializingException {
+			StringBuilder builder = new StringBuilder();
+			
+			if (state.isSnowClosure()) {
+				builder.append("R/SNOCLO");
+			} else {
+				
+				// Runway designator
+				builder.append(getRunwayDesignator(state));
+				
+				if (state.isCleared()) {
+					builder.append("CLRD");
+				} else {
+			    	// Deposit
+			    	RunwayStateDeposit deposit = convertAPIToRunwayStateDeposit(state.getDeposit());
+			    	if (deposit == null) {
+			    		throw new SerializingException("RunwayState deposit ("+state.getDeposit()+") missing or unable to convert it");
+			    	}
+			    	builder.append(deposit.code);
+			    	
+			    	// Contamination
+			    	RunwayStateContamination contamination = convertAPIToRunwayStateContamination(state.getContamination());
+			    	if (contamination == null) {
+			    		throw new SerializingException("RunwayState contamination ("+state.getContamination()+") missing or unable to convert it");
+			    	}
+			    	builder.append(contamination.code);
+			    	
+			    	// Depth of deposit
+			    	builder.append(getDepthOfDeposit(state));
+			    	
+				}
+				
+				// Friction coefficient - appending it after CLRD is not 100% as spec, but we have real world test cases where this is done
+				builder.append(getFrictionCoefficient(state));
+			}
+			return builder.toString();
+		}
 
 		private String getFrictionCoefficient(fi.fmi.avi.data.metar.RunwayState state) throws SerializingException {
 			fi.fmi.avi.data.AviationCodeListUser.BreakingAction action = state.getBreakingAction();
