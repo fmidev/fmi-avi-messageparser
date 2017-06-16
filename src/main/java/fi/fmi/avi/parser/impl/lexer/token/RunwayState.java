@@ -337,24 +337,29 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             	// Runway designator
             	builder.append(getRunwayDesignator(state));
             	
-            	// Deposit
-            	RunwayStateDeposit deposit = convertAPIToRunwayStateDeposit(state.getDeposit());
-            	if (deposit == null) {
-            		throw new SerializingException("RunwayState deposit ("+state.getDeposit()+") missing or unable to convert it");
+            	if (state.isCleared()) {
+            		builder.append("CLRD");
+            	} else {
+	            	// Deposit
+	            	RunwayStateDeposit deposit = convertAPIToRunwayStateDeposit(state.getDeposit());
+	            	if (deposit == null) {
+	            		throw new SerializingException("RunwayState deposit ("+state.getDeposit()+") missing or unable to convert it");
+	            	}
+	            	builder.append(deposit.code);
+	            	
+	            	// Contamination
+	            	RunwayStateContamination contamination = convertAPIToRunwayStateContamination(state.getContamination());
+	            	if (contamination == null) {
+	            		throw new SerializingException("RunwayState contamination ("+state.getContamination()+") missing or unable to convert it");
+	            	}
+	            	builder.append(contamination.code);
+	            	
+	            	// Depth of deposit
+	            	builder.append(getDepthOfDeposit(state));
+	            	
             	}
-            	builder.append(deposit.code);
             	
-            	// Contamination
-            	RunwayStateContamination contamination = convertAPIToRunwayStateContamination(state.getContamination());
-            	if (contamination == null) {
-            		throw new SerializingException("RunwayState contamination ("+state.getContamination()+") missing or unable to convert it");
-            	}
-            	builder.append(contamination.code);
-            	
-            	// Depth of deposit
-            	builder.append(getDepthOfDeposit(state));
-            	
-            	// Friction coefficient
+            	// Friction coefficient - appending it after CLRD is not 100% as spec, but we have real world test cases where this is done
             	builder.append(getFrictionCoefficient(state));
             	
             	retval = this.createLexeme(builder.toString(), RUNWAY_STATE);
