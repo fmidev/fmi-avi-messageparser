@@ -15,7 +15,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CHANGES;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
@@ -694,12 +693,6 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         final Metar msg = result.getParsedMessage();
         Lexeme.Identity[] before = { REMARKS_START, END_TOKEN };
         final List<TrendForecast> trends = new ArrayList<>();
-        //Handle NOSIG:
-        findNext(NO_SIGNIFICANT_CHANGES, lexed.getFirstLexeme(), before, (nosigToken) -> {
-            TrendForecast fct = new TrendForecastImpl();
-            fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
-            trends.add(fct);
-        });
         findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (changeFct) -> {
             //loop over change forecasts:
             Lexeme.Identity[] stopWithingGroup = { FORECAST_CHANGE_INDICATOR, REMARKS_START, END_TOKEN };
