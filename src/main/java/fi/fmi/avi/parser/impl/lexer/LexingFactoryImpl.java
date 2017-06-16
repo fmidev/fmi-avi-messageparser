@@ -246,7 +246,10 @@ public class LexingFactoryImpl implements LexingFactory {
             if (this.originalTac != null && this.originalTac.length() > 0) {
                 Pattern horVisFractionNumberPart1Pattern = Pattern.compile("^[0-9]*$");
                 Pattern horVisFractionNumberPart2Pattern = Pattern.compile("^[0-9]*/[0-9]*[A-Z]{2}$");
-                Pattern windShearRunwayPattern = Pattern.compile("^RWY([0-9]{2})?[LRC]?$");
+                // Windshear token for a particular runway has changed between 16th and 19th edition of Annex 3
+                //  16th = "WS RWYnn[LRC]"
+                //  19th = "WS Rnn[LRC]"
+                Pattern windShearRunwayPattern = Pattern.compile("^R(?:WY)?([0-9]{2})?[LRC]?$");
                 Splitter byWhiteSpace = Splitter.onPattern("\\s").trimResults().omitEmptyStrings();
                 Iterable<String> tokens = byWhiteSpace.split(originalTac);
                 String lastToken = null;

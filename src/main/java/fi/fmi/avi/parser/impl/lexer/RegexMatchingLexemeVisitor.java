@@ -22,6 +22,10 @@ public abstract class RegexMatchingLexemeVisitor extends PrioritizedLexemeVisito
         this.pattern = Pattern.compile(pattern);
     }
 
+    public Pattern getPattern() {
+		return pattern;
+	}
+    
     @Override
     public final void visit(final Lexeme token, final ConversionHints hints) {
         Matcher m = this.pattern.matcher(token.getTACToken());

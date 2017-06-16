@@ -18,7 +18,7 @@ import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
 public class WindShear extends RegexMatchingLexemeVisitor {
 
     public WindShear(final Priority prio) {
-        super("^WS\\s(ALL\\s)?RWY([0-9]{2}[LRC]?)?$", prio);
+        super("^WS\\s(ALL\\s)?(?:RWY|R(?:WY)?([0-9]{2}[LRC]?))$", prio);
     }
 
     @Override
@@ -56,9 +56,10 @@ public class WindShear extends RegexMatchingLexemeVisitor {
             		boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
             		
             		for (String rwy : windShear.getRunwayDirectionDesignators()) {
-            			str.append(" ");
             			if (annex3_16th) {
-            				str.append("RWY");
+            				str.append(" RWY");
+            			} else {
+            				str.append(" R");
             			}
             			str.append(rwy);
             		}
