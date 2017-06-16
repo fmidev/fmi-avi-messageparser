@@ -139,6 +139,12 @@
         "fromMinute": 51,
         "toHour": -1,
         "toMinute": -1
+      },
+      "cloud": {
+        "verticalVisibility": {
+          "value": 4000.0,
+          "uom": "ft"
+        }
       }
     }
   ]

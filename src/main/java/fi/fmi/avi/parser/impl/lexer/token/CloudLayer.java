@@ -12,6 +12,7 @@ import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -129,7 +130,13 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             } else if (Metar.class.isAssignableFrom(clz)) {
             	Metar metar = (Metar)msg;
             	if ("VV".equals(specialValue)) {
-            		verVis = metar.getClouds().getVerticalVisibility();
+            		TrendForecast trend = getAs(specifier, TrendForecast.class);
+            		
+            		if (trend == null) {
+            			verVis = metar.getClouds().getVerticalVisibility();
+            		} else {
+            			verVis = trend.getCloud().getVerticalVisibility();
+            		}
             	}
             }
             
