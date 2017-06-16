@@ -531,13 +531,13 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                     }
                 }
             }
-            if (values[2] instanceof Integer) {
+            if (values[2] instanceof Number) {
             	if (values[1] != null) {
                     result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
                             "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken()));
                 } else {
                     String heightUnit = match.getParsedValue(Lexeme.ParsedValueName.UNIT2, String.class);
-                    ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[2], heightUnit));
+                    ss.setSignificantWaveHeight(new NumericMeasureImpl( ((Number) values[2]).doubleValue(), heightUnit));
                 }
             }
             msg.setSeaState(ss);

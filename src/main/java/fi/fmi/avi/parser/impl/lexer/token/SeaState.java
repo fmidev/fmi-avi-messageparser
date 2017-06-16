@@ -52,7 +52,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
     }
 
     public SeaState(final Priority prio) {
-        super("^W(M?)([0-9]{2}|//)/(S([0-9]|/)|H([0-9]{2}))$", prio);
+        super("^W(M?)([0-9]{2}|//)/(S([0-9]|/)|H([0-9]{1,3}))$", prio);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             values[1] = state;
         }
         if (waveHeight != null) {
-            values[2] = waveHeight.intValue() * 0.1;
+            values[2] = (double)waveHeight.intValue() * 0.1;
             token.setParsedValue(Lexeme.ParsedValueName.UNIT2, "m");
         }
         token.setParsedValue(Lexeme.ParsedValueName.VALUE, values);     
@@ -146,7 +146,7 @@ public class SeaState extends RegexMatchingLexemeVisitor {
             				throw new SerializingException("Sea state wave height must be between 0 and 100 meters, it was "+waveHeight.getValue());
             			}
             			
-            			builder.append(String.format("W%d", height));
+            			builder.append(String.format("H%d", height));
             		}
             		
             		

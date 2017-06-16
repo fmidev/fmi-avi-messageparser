@@ -105,7 +105,10 @@
       "value": -1,
       "uom": "degC"
     },
-    "seaSurfaceState": "CALM_RIPPLED"
+    "significantWaveHeight": {
+      "value": 1.4,
+      "uom": "m"
+    }
   },
   "trends": [
     {
