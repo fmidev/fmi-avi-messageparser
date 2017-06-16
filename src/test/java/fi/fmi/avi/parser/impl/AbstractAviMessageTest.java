@@ -68,6 +68,17 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 
 	public abstract Class<? extends T> getTokenizerImplmentationClass();
 
+	/**
+	 * The tokenized POJO needs to be equal to this message. By default it returns what getMessage() returns.
+	 * Override this if the reconstructed message is to be expected to be a bit different from the original.
+	 *  
+	 * @see testTokenizer
+	 * @see getMessage
+	 */
+	public S getCanonicalMessage() {
+		return getMessage();
+	}
+	
 	public ConversionHints getLexerParsingHints() {
 		return new ConversionHints();
 	}
@@ -94,7 +105,7 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	
 	@Test
 	public void testTokenizer() throws SerializingException, IOException {
-		String expectedMessage = getTokenizedMessagePrefix() + getMessage();
+		String expectedMessage = getTokenizedMessagePrefix() + getCanonicalMessage();
         assertTokenSequenceMatch(expectedMessage, getJsonFilename(), getTokenizerParsingHints());
 	}
 

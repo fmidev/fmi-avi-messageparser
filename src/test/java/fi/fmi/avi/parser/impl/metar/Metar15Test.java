@@ -13,7 +13,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.util.List;
 
 import fi.fmi.avi.data.metar.Metar;
@@ -23,7 +22,6 @@ import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult.ParsingStatus;
-import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
@@ -40,6 +38,12 @@ public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
 	}
 	
 	@Override
+	public String getCanonicalMessage() {
+		return
+				"EFKK 091050Z AUTO 01009KT 340V040 9999 FEW012 BKN046=";
+	}
+	
+	@Override
 	public String getTokenizedMessagePrefix() {
 		return "METAR ";
 	}
@@ -52,12 +56,6 @@ public class Metar15Test extends AbstractAviMessageTest<String, Metar> {
 	@Override
     public ConversionHints getParserParsingHints() {
         return ConversionHints.METAR;
-    }
-
-	// Remove this overridden method once the tokenizer is working
-	@Override
-    public void testTokenizer() throws SerializingException, IOException {
-
     }
 
 	@Override
