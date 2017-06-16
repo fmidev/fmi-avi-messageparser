@@ -10,6 +10,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
@@ -34,7 +35,8 @@ public class Metar19Test extends AbstractAviMessageTest<String, Metar> {
 		return
 				"METAR EFHK 111111Z 15008G20KT 0700 R04R/M1500VP2000N R15/P1000VM3000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 " + "WM01/H14 99//9999 " +
 				"BECMG AT0927 25018G25MPS CAVOK " +
-				"TEMPO FM1051 VV040=";
+				"TEMPO FM1051 VV040 "+
+				"TEMPO FM1130 NSC=";
 	}
 	
 	@Override
@@ -49,7 +51,9 @@ public class Metar19Test extends AbstractAviMessageTest<String, Metar> {
                 RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 SEA_STATE, RUNWAY_STATE,
                 FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, SURFACE_WIND, CAVOK,
-                FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, CLOUD, END_TOKEN
+                FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, CLOUD,
+                FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, NO_SIGNIFICANT_CLOUD,
+                END_TOKEN
 		};
 	}
 

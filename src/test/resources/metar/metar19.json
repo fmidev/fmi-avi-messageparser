@@ -160,6 +160,17 @@
           "uom": "ft"
         }
       }
+    },
+    {
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "timeGroups": {
+        "singleInstance": false,
+        "fromHour": 11,
+        "fromMinute": 30,
+        "toHour": -1,
+        "toMinute": -1
+      },
+      "noSignificantCloud": true
     }
   ]
 }

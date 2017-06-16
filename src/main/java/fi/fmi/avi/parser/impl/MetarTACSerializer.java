@@ -121,6 +121,7 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
                         appendToken(retval, WEATHER, input, Metar.class, hints, trend, weather);
                     }
                 }
+                appendToken(retval, Identity.NO_SIGNIFICANT_CLOUD, input, Metar.class, hints, trend);
                 CloudForecast clouds = trend.getCloud();
                 if (clouds != null) {
                     if (clouds.getVerticalVisibility() != null) {

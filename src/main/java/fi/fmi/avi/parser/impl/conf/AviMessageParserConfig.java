@@ -172,6 +172,7 @@ public class AviMessageParserConfig {
         l.teach(new ICAOCode(Priority.LOW));
         l.teach(new IssueTime(Priority.LOW));
         l.teach(new CloudLayer(Priority.HIGH));
+        l.teach(new NoSignificantCloud(Priority.LOW));
         l.teach(new Weather(Priority.NORMAL));
         l.teach(new SurfaceWind(Priority.LOW));
         l.teach(new VariableSurfaceWind(Priority.LOW));
