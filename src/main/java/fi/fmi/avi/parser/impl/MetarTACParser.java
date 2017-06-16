@@ -930,6 +930,7 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                         }
                     }
 
+                    fct.setSurfaceWind(wind);
                     if (fct.isCeilingAndVisibilityOk()) {
                         if (cloud != null || prevailingVisibility != null || forecastWeather != null || fct.isNoSignificantWeather()
                                 || fct.isNoSignificantCloud()) {
@@ -942,7 +943,6 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
                         if (visibilityOperator != null) {
                             fct.setPrevailingVisibilityOperator(visibilityOperator);
                         }
-                        fct.setSurfaceWind(wind);
                         if (fct.isNoSignificantWeather() && forecastWeather != null && !forecastWeather.isEmpty()) {
                             result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Forecast weather cannot co-exist with NSW in trend"));
                         }

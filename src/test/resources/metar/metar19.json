@@ -129,6 +129,20 @@
         "toHour": -1,
         "toMinute": -1
       },
+      "surfaceWind": {
+        "meanWindDirection": {
+          "value": 250.0,
+          "uom": "deg"
+        },
+        "meanWindSpeed": {
+          "value": 18.0,
+          "uom": "mps"
+        },
+        "windGust": {
+          "value": 25.0,
+          "uom": "mps"
+        }
+      },
       "ceilingAndVisibilityOk": true
     },
     {
