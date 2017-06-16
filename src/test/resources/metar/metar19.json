@@ -29,18 +29,30 @@
     {
       "runwayDirectionDesignator": "04R",
       "pastTendency": "NO_CHANGE",
-      "meanRVR": {
+      "varyingRVRMinimum": {
         "value": 1500.0,
         "uom": "m"
-      }
+      },
+      "varyingRVRMinimumOperator": "BELOW",
+      "varyingRVRMaximum": {
+        "value": 2000.0,
+        "uom": "m"
+      },
+      "varyingRVRMaximumOperator": "ABOVE"
     },
     {
       "runwayDirectionDesignator": "15",
       "pastTendency": "UPWARD",
-      "meanRVR": {
+      "varyingRVRMinimum": {
         "value": 1000.0,
         "uom": "m"
-      }
+      },
+      "varyingRVRMinimumOperator": "ABOVE",
+      "varyingRVRMaximum": {
+        "value": 3000.0,
+        "uom": "m"
+      },
+      "varyingRVRMaximumOperator": "BELOW"
     },
     {
       "runwayDirectionDesignator": "22L",
