@@ -12,7 +12,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
 import java.util.List;
 
 import fi.fmi.avi.data.metar.Metar;
@@ -22,7 +21,6 @@ import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.ParsingIssue;
 import fi.fmi.avi.parser.ParsingResult.ParsingStatus;
-import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class Metar17Test extends AbstractAviMessageTest<String, Metar> {
@@ -36,6 +34,12 @@ public class Metar17Test extends AbstractAviMessageTest<String, Metar> {
 	public String getMessage() {
 		return
 				"METAR KORD 201004Z 05008KT 1 1/4SM -DZ BR OVC006 03/03 04/54 A2964=";
+	}
+	
+	@Override
+	public String getCanonicalMessage() {
+		return
+				"METAR KORD 201004Z 05008KT 1 1/4SM -DZ BR OVC006 03/03 A2964=";
 	}
 	
 	@Override
@@ -62,12 +66,6 @@ public class Metar17Test extends AbstractAviMessageTest<String, Metar> {
         assertEquals("More than one of AIR_DEWPOINT_TEMPERATURE in "+getMessage(), issue.getMessage());
 	}
 
-    // Remove this overridden method once the tokenizer is working
-    @Override
-    public void testTokenizer() throws SerializingException, IOException {
-
-    }
-	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
