@@ -121,7 +121,25 @@
   ],
   "trends": [
     {
-      "changeIndicator": "NO_SIGNIFICANT_CHANGES"
+      "changeIndicator": "BECOMING",
+      "timeGroups": {
+        "singleInstance": true,
+        "fromHour": 9,
+        "fromMinute": 27,
+        "toHour": -1,
+        "toMinute": -1
+      },
+      "ceilingAndVisibilityOk": true
+    },
+    {
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "timeGroups": {
+        "singleInstance": false,
+        "fromHour": 10,
+        "fromMinute": 51,
+        "toHour": -1,
+        "toMinute": -1
+      }
     }
   ]
 }
