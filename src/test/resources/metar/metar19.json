@@ -110,6 +110,15 @@
       "uom": "m"
     }
   },
+  "runwayStates": [
+    {
+      "repetition": true,
+      "deposit": "MISSING_OR_NOT_REPORTED",
+      "contamination": "MISSING_OR_NOT_REPORTED",
+      "runwayNotOperational": true,
+      "estimatedSurfaceFrictionUnreliable": true
+    }
+  ],
   "trends": [
     {
       "timeGroups": {
