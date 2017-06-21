@@ -240,6 +240,12 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 		private String createStatuteMilesVisibility(NumericMeasure visibility, RelationalOperator operator) throws SerializingException {
             StringBuilder builder = new StringBuilder();
 			
+            if (operator == RelationalOperator.ABOVE) {
+            	builder.append("P");
+            } else if (operator == RelationalOperator.BELOW) {
+            	builder.append("M");
+            }
+            
 			int integerPart = (int)Math.floor(visibility.getValue());
 			
 			double parts = visibility.getValue() - (double)integerPart;
@@ -293,11 +299,6 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 						currentBestNumerator = numerator;
 						currentBestDenominator = denominator;
 						currentBestDelta = delta;
-						/*
-						if (currentBestDelta < doubleEquivalencyFactor) {
-							break;
-						}
-						*/
 					}
 				}
 			}

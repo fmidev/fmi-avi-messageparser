@@ -23,6 +23,7 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
 
     @Override
     public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
+    	token.identify(HORIZONTAL_VISIBILITY);
         RecognizingAviMessageTokenLexer.RelationalOperator modifier = RecognizingAviMessageTokenLexer.RelationalOperator.forCode(match.group(1));
         if (modifier != null) {
             token.setParsedValue(RELATIONAL_OPERATOR, modifier);
@@ -33,7 +34,6 @@ public class FractionalHorizontalVisibility extends RegexMatchingLexemeVisitor {
             wholePart = Integer.parseInt(s.trim());
         }
         s = match.group(3);
-        token.identify(HORIZONTAL_VISIBILITY);
         if (s != null) {
             if (wholePart == -1) {
                 wholePart = 0;
