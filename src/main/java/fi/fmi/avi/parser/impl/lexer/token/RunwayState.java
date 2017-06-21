@@ -14,7 +14,6 @@ import com.google.common.collect.HashBiMap;
 
 import fi.fmi.avi.data.AviationCodeListUser.RunwayDeposit;
 import fi.fmi.avi.data.AviationCodeListUser;
-import fi.fmi.avi.data.AviationCodeListUser.BreakingAction;
 import fi.fmi.avi.data.AviationCodeListUser.RunwayContamination;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
@@ -24,7 +23,6 @@ import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.lexer.FactoryBasedReconstructor;
 import fi.fmi.avi.parser.impl.lexer.RegexMatchingLexemeVisitor;
-import fi.fmi.avi.parser.impl.lexer.RecognizingAviMessageTokenLexer.RelationalOperator;
 
 /**
  * Created by rinne on 10/02/17.
@@ -177,9 +175,28 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
     
     
     public RunwayState(final Priority prio) {
-        super("^R?([0-9]{2})((([0-9/])([1259/])([0-9]{2}|//))|(CLRD))([0-9]{2}|//)$", prio);
+    	// 16th ed: 99421594 or 14CLRD//
+    	// 19th ed: R99/421594 or R14L/CLRD//
+    	// (snow closures are handled by a different lexer token)
+    	
+        super("^(?:R?(?<RunwayDesignator19th>[0-9]{2}[LCR]?)/|(?<RunwayDesignator16th>[0-9]{2}[LCR]?))((([0-9/])([1259/])([0-9]{2}|//))|(CLRD))([0-9]{2}|//)$", prio);
     }
 
+    protected String getRunwayDesignationMatch(Matcher match) {
+    	String ret = match.group("RunwayDesignator19th");
+        if (ret == null) {
+        	ret = match.group("RunwayDesignator16th");
+        }
+        return ret;
+    }
+    
+    protected static final int MATCH_DEPOSIT_CODE = 5;
+    protected static final int MATCH_CONTAMINATION_CODE = 6;
+    protected static final int MATCH_DEPTH_CODE = 7;
+    protected static final int MATCH_CLEARED = 8;
+    protected static final int MATCH_FRICTION_OR_BREAKING_CODE = 9;
+    
+    
     @Override
     public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
 
@@ -187,18 +204,19 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
         Lexeme.Status status = Lexeme.Status.OK;
         String msg = null;
 
-        Object runwayDesignation = getRunwayDesignation(Integer.parseInt(match.group(1)));
+        
+        Object runwayDesignation = getRunwayDesignation(getRunwayDesignationMatch(match));
         if (runwayDesignation == RunwayStateReportType.REPETITION) {
             values.put(RunwayStateReportType.REPETITION, Boolean.TRUE);
         } else if (runwayDesignation == RunwayStateReportType.ALL_RUNWAYS) {
             values.put(RunwayStateReportType.ALL_RUNWAYS, Boolean.TRUE);
         }
 
-        if (match.group(4) != null && match.group(5) != null && match.group(6) != null) {
-            values.put(RunwayStateReportType.DEPOSITS, RunwayStateDeposit.forCode(match.group(4).charAt(0)));
-            values.put(RunwayStateReportType.CONTAMINATION, RunwayStateContamination.forCode(match.group(5).charAt(0)));
+        if (match.group(MATCH_DEPOSIT_CODE) != null && match.group(MATCH_CONTAMINATION_CODE) != null && match.group(MATCH_DEPTH_CODE) != null) {
+            values.put(RunwayStateReportType.DEPOSITS, RunwayStateDeposit.forCode(match.group(MATCH_DEPOSIT_CODE).charAt(0)));
+            values.put(RunwayStateReportType.CONTAMINATION, RunwayStateContamination.forCode(match.group(MATCH_CONTAMINATION_CODE).charAt(0)));
 
-            String depthCode = match.group(6);
+            String depthCode = match.group(MATCH_DEPTH_CODE);
             if ("00".equals(depthCode)) {
                 values.put(RunwayStateReportType.DEPTH_OF_DEPOSIT, Integer.valueOf(1));
                 values.put(RunwayStateReportType.UNIT_OF_DEPOSIT, "mm");
@@ -244,11 +262,11 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
                 }
             }
         }
-        if (match.group(7) != null) {
+        if (match.group(MATCH_CLEARED) != null) {
             values.put(RunwayStateReportType.CLEARED, Boolean.TRUE);
         }
         try {
-            appendFrictionCoeffOrBreakingAction(match.group(8), values);
+            appendFrictionCoeffOrBreakingAction(match.group(MATCH_FRICTION_OR_BREAKING_CODE), values);
         } catch (IllegalArgumentException iae) {
             status = Lexeme.Status.SYNTAX_ERROR;
             msg = iae.getMessage();
@@ -260,17 +278,24 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
         }
     }
 
-    private static Object getRunwayDesignation(final int coded) {
-        Object retval = null;
-        if (coded == 99) {
-            retval = RunwayStateReportType.REPETITION;
-        } else if (coded == 88) {
-            retval = RunwayStateReportType.ALL_RUNWAYS;
-        } else if (coded > 50) {
-            retval = String.format("%02dR", coded - 50);
-        } else {
-        	retval = String.format("%02d", coded);
-        }
+    private static Object getRunwayDesignation(String str) {
+		Object retval = null;
+
+		try {
+    		int coded = Integer.parseInt(str);
+            if (coded == 99) {
+                retval = RunwayStateReportType.REPETITION;
+            } else if (coded == 88) {
+                retval = RunwayStateReportType.ALL_RUNWAYS;
+            } else if (coded > 50) {
+                retval = String.format("%02dR", coded - 50);
+            } else {
+            	retval = String.format("%02d", coded);
+            }
+    	} catch(NumberFormatException nfe) {
+    		retval = str;
+    	}
+        
         return retval;
     }
 
@@ -331,8 +356,10 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
                 state = getAs(specifier, fi.fmi.avi.data.metar.RunwayState.class);
             }
             
+            
             if (state != null) {
-            	String str = buildRunwayStateToken(state);
+            	boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
+            	String str = buildRunwayStateToken(state, annex3_16th);
             	
             	retval = this.createLexeme(str, RUNWAY_STATE);
             }
@@ -340,7 +367,7 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             return retval;
     	}
 
-		private String buildRunwayStateToken(fi.fmi.avi.data.metar.RunwayState state)
+		private String buildRunwayStateToken(fi.fmi.avi.data.metar.RunwayState state, boolean annex3_16th)
 				throws SerializingException {
 			StringBuilder builder = new StringBuilder();
 			
@@ -349,7 +376,7 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 			} else {
 				
 				// Runway designator
-				builder.append(getRunwayDesignator(state));
+				builder.append(getRunwayDesignator(state, annex3_16th));
 				
 				if (state.isCleared()) {
 					builder.append("CLRD");
@@ -475,31 +502,36 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 			}
 		}
 
-		private String getRunwayDesignator(fi.fmi.avi.data.metar.RunwayState state) throws SerializingException {
+		private String getRunwayDesignator(fi.fmi.avi.data.metar.RunwayState state, boolean annex3_16th) throws SerializingException {
 			String runwayDesignator;
 			if (state.isRepetition()) {
 				runwayDesignator = "99";
 			} else if (state.isAllRunways()) {
 				runwayDesignator = "88";
 			} else {
-				String designator = state.getRunwayDirectionDesignator();
-				if (designator == null || !designator.matches("[0-9][0-9]R?")) {
-					throw new SerializingException("Illegal runway designator in RunwayState "+designator);
-				}
-				boolean rightSide = designator.endsWith("R");
-				if (rightSide) {
-					designator = designator.substring(0, designator.length()-1);
-				}
 				
-				int code = Integer.parseInt(designator);
-				if (code >= 50 || code < 0) {
-					throw new SerializingException("Illegal runway designator code "+code+" in RunwayState");
+				if (annex3_16th) {
+					String designator = state.getRunwayDirectionDesignator();
+					if (designator == null || !designator.matches("[0-9][0-9]R?")) {
+						throw new SerializingException("Illegal runway designator in RunwayState "+designator);
+					}
+					boolean rightSide = designator.endsWith("R");
+					if (rightSide) {
+						designator = designator.substring(0, designator.length()-1);
+					}
+					
+					int code = Integer.parseInt(designator);
+					if (code >= 50 || code < 0) {
+						throw new SerializingException("Illegal runway designator code "+code+" in RunwayState");
+					}
+					
+					if (rightSide) {
+						code += 50;
+					}
+					runwayDesignator = String.format("%02d", code);
+				} else {
+					runwayDesignator = "R"+state.getRunwayDirectionDesignator()+"/";
 				}
-				
-				if (rightSide) {
-					code += 50;
-				}
-				runwayDesignator = String.format("%02d", code);
 			}
 			return runwayDesignator;
 		}

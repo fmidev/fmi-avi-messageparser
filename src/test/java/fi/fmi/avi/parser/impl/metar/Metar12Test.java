@@ -14,6 +14,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import fi.fmi.avi.data.metar.Metar;
 import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
@@ -36,6 +37,12 @@ public class Metar12Test extends AbstractAviMessageTest<String, Metar> {
 		return "";
 	}
 
+	@Override
+	public ConversionHints getTokenizerParsingHints() {
+		ConversionHints ret = new ConversionHints(ConversionHints.KEY_SERIALIZATION_POLICY, ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
+		return ret;
+	}
+	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
