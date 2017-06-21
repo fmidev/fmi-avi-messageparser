@@ -28,7 +28,7 @@ public class Metar22Test extends AbstractAviMessageTest<String, Metar> {
 	@Override
 	public String getMessage() {
 		return
-				"METAR EFTU 011350Z VRB02KT 4000 " +
+				"METAR EFTU 011350Z VRB02KT 0000 " +
 				"22/12 Q1008 " +
 				"R15L/410038 R64R/418338 "+
 				"TEMPO TL1530 NSW=";

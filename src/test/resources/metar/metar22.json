@@ -14,9 +14,10 @@
   },
   "visibility": {
   	"prevailingVisibility": {
-    	"value": 4000.0,
+    	"value": 50.0,
     	"uom": "m"
-    }
+    },
+    "prevailingVisibilityOperator": "BELOW"
   },
   "airTemperature": {
     "value": 22.0,
