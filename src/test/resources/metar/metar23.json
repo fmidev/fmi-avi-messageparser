@@ -108,9 +108,10 @@
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
       "prevailingVisibility": {
-        "value": 900.0,
+        "value": 10000.0,
         "uom": "m"
-      }
+      },
+      "prevailingVisibilityOperator": "ABOVE"
     }
   ]
   
