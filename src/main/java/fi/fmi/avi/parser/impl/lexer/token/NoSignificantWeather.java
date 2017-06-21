@@ -3,6 +3,8 @@ package fi.fmi.avi.parser.impl.lexer.token;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
 import fi.fmi.avi.parser.ConversionHints;
@@ -40,6 +42,13 @@ public class NoSignificantWeather extends PrioritizedLexemeVisitor {
 					if (forecast.isNoSignificantWeather()) {
 						retval = this.createLexeme("NSW", NO_SIGNIFICANT_WEATHER);
 					}
+				}
+			}
+			
+			if (Metar.class.isAssignableFrom(clz)) {
+				TrendForecast trend = getAs(specifier, TrendForecast.class);
+				if (trend != null && trend.isNoSignificantWeather()) {
+					retval = this.createLexeme("NSW", NO_SIGNIFICANT_WEATHER);
 				}
 			}
 			

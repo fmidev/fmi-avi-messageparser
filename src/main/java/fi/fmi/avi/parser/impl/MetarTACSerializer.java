@@ -115,6 +115,7 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
                 appendToken(retval, CHANGE_FORECAST_TIME_GROUP, input, Metar.class, hints, trend);
                 appendToken(retval, SURFACE_WIND, input, Metar.class, hints, trend);
                 appendToken(retval, CAVOK, input, Metar.class, hints, trend);
+                appendToken(retval, NO_SIGNIFICANT_WEATHER, input, Metar.class, hints, trend);
                 appendToken(retval, HORIZONTAL_VISIBILITY, input, Metar.class, hints, trend);
                 if (trend.getForecastWeather() != null) {
                     for (Weather weather : trend.getForecastWeather()) {

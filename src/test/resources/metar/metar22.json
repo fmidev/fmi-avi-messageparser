@@ -12,7 +12,12 @@
       "uom": "kt"
     }
   },
-  "ceilingAndVisibilityOk": true,
+  "visibility": {
+  	"prevailingVisibility": {
+    	"value": 4000.0,
+    	"uom": "m"
+    }
+  },
   "airTemperature": {
     "value": 22.0,
     "uom": "degC"
@@ -46,6 +51,19 @@
         "uom": "mm"
       },
       "estimatedSurfaceFriction": 38
+    }
+  ],
+  "trends": [
+    {
+      "timeGroups": {
+        "fromHour": -1,
+        "fromMinute": -1,
+        "toHour": 15,
+        "toMinute": 30,
+        "singleInstance": false
+      },
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "noSignificantWeather": true
     }
   ]
 }
