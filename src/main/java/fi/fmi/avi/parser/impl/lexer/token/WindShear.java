@@ -52,12 +52,8 @@ public class WindShear extends RegexMatchingLexemeVisitor {
             	if (windShear.isAllRunways()) {
             		str.append(" ALL RWY");
             	} else {
-
-            	    //FIXME!!! as soon as Sampo pushes this change
-            		//boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-                    boolean annex3_16th = false;
-            		
-            		for (String rwy : windShear.getRunwayDirectionDesignators()) {
+                    boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
+                    for (String rwy : windShear.getRunwayDirectionDesignators()) {
             			if (annex3_16th) {
             				str.append(" RWY");
             			} else {

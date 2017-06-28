@@ -12,9 +12,9 @@ import java.util.regex.Matcher;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import fi.fmi.avi.data.AviationCodeListUser.RunwayDeposit;
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationCodeListUser.RunwayContamination;
+import fi.fmi.avi.data.AviationCodeListUser.RunwayDeposit;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.METAR;
@@ -358,10 +358,8 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
             
             
             if (state != null) {
-                //FIXME!!! as soon as Sampo pushes this change
-                //boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-                boolean annex3_16th = false;
-            	String str = buildRunwayStateToken(state, annex3_16th);
+                boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
+                String str = buildRunwayStateToken(state, annex3_16th);
             	
             	retval = this.createLexeme(str, RUNWAY_STATE);
             }

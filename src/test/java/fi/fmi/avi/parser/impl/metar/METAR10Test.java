@@ -42,9 +42,7 @@ public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
 	
 	@Override
 	public ConversionHints getTokenizerParsingHints() {
-		//FIXME!!! as soon as Sampo pushes this change
-		//ConversionHints ret = new ConversionHints(ConversionHints.KEY_SERIALIZATION_POLICY, ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-		ConversionHints ret = null;
+		ConversionHints ret = new ConversionHints(ConversionHints.KEY_SERIALIZATION_POLICY, ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
 		return ret;
 	}
 	
