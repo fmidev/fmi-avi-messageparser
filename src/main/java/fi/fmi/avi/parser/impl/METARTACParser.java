@@ -15,7 +15,6 @@ import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CHANGES;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
@@ -530,13 +529,13 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                     }
                 }
             }
-            if (values[2] instanceof Integer) {
+            if (values[2] instanceof Number) {
             	if (values[1] != null) {
                     result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR,
                             "Sea state cannot contain both sea surface state and significant wave height:" + match.getTACToken()));
                 } else {
                     String heightUnit = match.getParsedValue(Lexeme.ParsedValueName.UNIT2, String.class);
-                    ss.setSignificantWaveHeight(new NumericMeasureImpl((Integer) values[2], heightUnit));
+                    ss.setSignificantWaveHeight(new NumericMeasureImpl( ((Number) values[2]).doubleValue(), heightUnit));
                 }
             }
             msg.setSeaState(ss);
@@ -580,60 +579,16 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                     result.addIssue(new ParsingIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }
 	        	if (deposit != null) {
-		        	switch(deposit) {
-					case CLEAR_AND_DRY:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.CLEAR_AND_DRY);
-						break;
-					case COMPACTED_OR_ROLLED_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.COMPACT_OR_ROLLED_SNOW);
-						break;
-					case DAMP:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DAMP);
-						break;
-					case DRY_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.DRY_SNOW);
-						break;
-					case FROZEN_RUTS_OR_RIDGES:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.FROZEN_RUTS_OR_RIDGES);
-						break;
-					case ICE:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.ICE);
-						break;
-					case NOT_REPORTED:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.MISSING_OR_NOT_REPORTED);
-						break;
-					case RIME_OR_FROST_COVERED:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.RIME_AND_FROST_COVERED);
-						break;
-					case SLUSH:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.SLUSH);
-						break;
-					case WET:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_WITH_WATER_PATCHES);
-						break;
-					case WET_SNOW:
-						rws.setDeposit(AviationCodeListUser.RunwayDeposit.WET_SNOW);
-						break;
-		        	}
+	        		AviationCodeListUser.RunwayDeposit value = fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertRunwayStateDepositToAPI(deposit);
+	        		if (value != null) {
+	        			rws.setDeposit(value);
+	        		}
 	        	}
 	        	
 	        	if (contamination != null) {
-	        		switch(contamination) {
-	        		case LESS_OR_EQUAL_TO_10PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_LESS_THAN_10);
-						break;
-					case FROM_11_TO_25PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_11_25);
-						break;
-					case FROM_26_TO_50PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_26_50);
-						break;
-					case FROM_51_TO_100PCT:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.PCT_COVERED_51_100);
-						break;
-					case NOT_REPORTED:
-						rws.setContamination(AviationCodeListUser.RunwayContamination.MISSING_OR_NOT_REPORTED);
-						break;
+	        		AviationCodeListUser.RunwayContamination value = fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertRunwayStateContaminationToAPI(contamination);
+	        		if (value != null) {
+	        			rws.setContamination(value);
 	        		}
 	        	}
 	        	
@@ -681,26 +636,10 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                 }
 		        	
 				if (breakingAction instanceof fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction) {
-					BreakingAction action;
-					switch((fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction)breakingAction) {
-					case POOR:
-						action = BreakingAction.POOR;
-						break;
-					case MEDIUM_POOR:
-						action = BreakingAction.MEDIUM_POOR;
-						break;
-					case MEDIUM:
-						action = BreakingAction.MEDIUM;
-						break;
-					case MEDIUM_GOOD:
-						action = BreakingAction.MEDIUM_GOOD;
-						break;
-					case GOOD:
-						action = BreakingAction.GOOD;
-						break;
-					default:
-						action = null;
-					}
+					BreakingAction action = 
+							fi.fmi.avi.parser.impl.lexer.token.RunwayState.convertBreakingActionToAPI(
+									(fi.fmi.avi.parser.impl.lexer.token.RunwayState.BreakingAction)breakingAction);
+
 					rws.setBreakingAction(action);
 				} else if (breakingAction instanceof RunwayStateReportSpecialValue) {
 					switch((RunwayStateReportSpecialValue)breakingAction) {
@@ -720,6 +659,8 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
 				
 				if (frictionCoefficient != null && frictionCoefficient instanceof Number) {
 					rws.setEstimatedSurfaceFriction(((Number)frictionCoefficient).doubleValue());
+				} else if (frictionCoefficient == RunwayStateReportSpecialValue.MEASUREMENT_UNRELIABLE) {
+					rws.setEstimatedSurfaceFrictionUnreliable(true);
 				}
 				
 	        	states.add(rws);
@@ -751,12 +692,6 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
         final METAR msg = result.getParsedMessage();
         Lexeme.Identity[] before = { REMARKS_START, END_TOKEN };
         final List<TrendForecast> trends = new ArrayList<>();
-        //Handle NOSIG:
-        findNext(NO_SIGNIFICANT_CHANGES, lexed.getFirstLexeme(), before, (nosigToken) -> {
-            TrendForecast fct = new TrendForecastImpl();
-            fct.setChangeIndicator(AviationCodeListUser.TrendForecastChangeIndicator.NO_SIGNIFICANT_CHANGES);
-            trends.add(fct);
-        });
         findNext(FORECAST_CHANGE_INDICATOR, lexed.getFirstLexeme(), before, (changeFct) -> {
             //loop over change forecasts:
             Lexeme.Identity[] stopWithingGroup = { FORECAST_CHANGE_INDICATOR, REMARKS_START, END_TOKEN };
@@ -998,6 +933,7 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                         }
                     }
 
+                    fct.setSurfaceWind(wind);
                     if (fct.isCeilingAndVisibilityOk()) {
                         if (cloud != null || prevailingVisibility != null || forecastWeather != null || fct.isNoSignificantWeather()
                                 || fct.isNoSignificantCloud()) {
@@ -1010,7 +946,6 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                         if (visibilityOperator != null) {
                             fct.setPrevailingVisibilityOperator(visibilityOperator);
                         }
-                        fct.setSurfaceWind(wind);
                         if (fct.isNoSignificantWeather() && forecastWeather != null && !forecastWeather.isEmpty()) {
                             result.addIssue(new ParsingIssue(Type.LOGICAL_ERROR, "Forecast weather cannot co-exist with NSW in trend"));
                         }

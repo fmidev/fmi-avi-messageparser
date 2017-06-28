@@ -13,14 +13,11 @@ import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
-import java.io.IOException;
-
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class METAR7Test extends AbstractAviMessageTest<String, METAR> {
@@ -30,7 +27,7 @@ public class METAR7Test extends AbstractAviMessageTest<String, METAR> {
 		return "metar/metar7.json";
 	}
 
-	// Equivalent to Metar8 but with different colors
+	// Equivalent to METAR8 but with different colors
 	@Override
 	public String getMessage() {
 		return "EGXE 061150Z 03010KT 9999 FEW020 17/11 Q1014 BLU TEMPO 6000 SHRA SCT020 WHT=";
@@ -50,12 +47,6 @@ public class METAR7Test extends AbstractAviMessageTest<String, METAR> {
 	public ConversionHints getParserParsingHints() {
 		return ConversionHints.METAR;
 	}
-
-	// Remove this overridden method once the tokenizer is working
-	@Override
-	public void testTokenizer() throws SerializingException, IOException {
-        // NOTE: the message contains color codes that are currently not stored in METAR POJOs
-    }
 
     @Override
 	public Identity[] getLexerTokenSequenceIdentity() {

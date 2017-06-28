@@ -6,6 +6,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
 import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
+import static fi.fmi.avi.parser.Lexeme.Identity.COLOR_CODE;
 import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
@@ -20,6 +21,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SEA_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
@@ -36,6 +38,7 @@ import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.LexemeSequence;
 import fi.fmi.avi.parser.LexemeSequenceBuilder;
 import fi.fmi.avi.parser.SerializingException;
+import fi.fmi.avi.parser.Lexeme.Identity;
 
 /**
  * Created by rinne on 07/06/17.
@@ -65,6 +68,7 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
         appendToken(retval, ISSUE_TIME, input, METAR.class, hints);
         appendToken(retval, AUTOMATED, input, METAR.class, hints);
         appendToken(retval, SURFACE_WIND, input, METAR.class, hints);
+        appendToken(retval, VARIABLE_WIND_DIRECTION, input, METAR.class, hints);
         appendToken(retval, CAVOK, input, METAR.class, hints);
         appendToken(retval, HORIZONTAL_VISIBILITY, input, METAR.class, hints);
         if (input.getRunwayVisualRanges() != null) {
@@ -102,18 +106,21 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
             }
         }
         appendToken(retval, NO_SIGNIFICANT_WEATHER, input, METAR.class, hints);
+        appendToken(retval, COLOR_CODE, input, METAR.class, hints);
         if (input.getTrends() != null) {
             for (TrendForecast trend : input.getTrends()) {
                 appendToken(retval, FORECAST_CHANGE_INDICATOR, input, METAR.class, hints, trend);
                 appendToken(retval, CHANGE_FORECAST_TIME_GROUP, input, METAR.class, hints, trend);
                 appendToken(retval, SURFACE_WIND, input, METAR.class, hints, trend);
                 appendToken(retval, CAVOK, input, METAR.class, hints, trend);
+                appendToken(retval, NO_SIGNIFICANT_WEATHER, input, METAR.class, hints, trend);
                 appendToken(retval, HORIZONTAL_VISIBILITY, input, METAR.class, hints, trend);
                 if (trend.getForecastWeather() != null) {
                     for (Weather weather : trend.getForecastWeather()) {
                         appendToken(retval, WEATHER, input, METAR.class, hints, trend, weather);
                     }
                 }
+                appendToken(retval, Identity.NO_SIGNIFICANT_CLOUD, input, METAR.class, hints, trend);
                 CloudForecast clouds = trend.getCloud();
                 if (clouds != null) {
                     if (clouds.getVerticalVisibility() != null) {
@@ -122,6 +129,7 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
                         this.appendCloudLayers(retval, input, METAR.class, clouds.getLayers(), hints, trend);
                     }
                 }
+                appendToken(retval, COLOR_CODE, input, METAR.class, hints, trend);
             }
         }
         if (input.getRemarks() != null && !input.getRemarks().isEmpty()) {

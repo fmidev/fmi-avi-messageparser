@@ -17,35 +17,27 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.impl.METARImpl;
-import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
+public class METAR18Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar10.json";
+		return "metar/metar18.json";
 	}
-
-    // Almost exactly the same as METAR 9 except WS RWY04R
-    @Override
+	
+	// Almost exactly the same as METAR 10 except wind shear is presented as described in the 19th ed. of Annex 3
+	@Override
 	public String getMessage() {
-		return "METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS RWY04R TEMPO 0900=";
+		return
+				"METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS R04R TEMPO 0900=";
 	}
 	
 	@Override
 	public String getTokenizedMessagePrefix() {
 		return "";
-	}
-	
-	@Override
-	public ConversionHints getTokenizerParsingHints() {
-		//FIXME!!! as soon as Sampo pushes this change
-		//ConversionHints ret = new ConversionHints(ConversionHints.KEY_SERIALIZATION_POLICY, ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-		ConversionHints ret = null;
-		return ret;
 	}
 	
 	@Override
@@ -63,7 +55,7 @@ public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
         return ConversionSpecification.TAC_TO_METAR_POJO;
     }
 
-	@Override
+    @Override
     public Class<? extends METAR> getTokenizerImplmentationClass() {
         return METARImpl.class;
     }

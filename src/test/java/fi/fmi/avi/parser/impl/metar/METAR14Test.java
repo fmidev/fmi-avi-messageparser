@@ -12,13 +12,10 @@ import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
 
-import java.io.IOException;
-
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
 public class METAR14Test extends AbstractAviMessageTest<String, METAR> {
@@ -38,12 +35,6 @@ public class METAR14Test extends AbstractAviMessageTest<String, METAR> {
 	public String getTokenizedMessagePrefix() {
 		return "";
 	}
-	
-	// Remove this overridden method once the tokenizer is working
-	@Override
-    public void testTokenizer() throws SerializingException, IOException {
-
-    }
 
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {

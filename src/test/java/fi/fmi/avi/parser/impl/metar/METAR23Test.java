@@ -4,6 +4,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
 import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
+import static fi.fmi.avi.parser.Lexeme.Identity.CORRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
@@ -12,27 +13,26 @@ import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
-import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.impl.METARImpl;
-import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
+public class METAR23Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar10.json";
+		return "metar/metar23.json";
 	}
-
-    // Almost exactly the same as METAR 9 except WS RWY04R
-    @Override
+	
+	@Override
 	public String getMessage() {
-		return "METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS RWY04R TEMPO 0900=";
+		return
+				"METAR COR EFUT 111115Z 18004KT 150V240 1500 0500SW R04R/1500N R15/M0050D R22L/1200N R04L/P1000U SN VV006 M08/M10 " + "Q1023 RESN TEMPO 9999=";
 	}
 	
 	@Override
@@ -41,29 +41,21 @@ public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
 	}
 	
 	@Override
-	public ConversionHints getTokenizerParsingHints() {
-		//FIXME!!! as soon as Sampo pushes this change
-		//ConversionHints ret = new ConversionHints(ConversionHints.KEY_SERIALIZATION_POLICY, ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-		ConversionHints ret = null;
-		return ret;
-	}
-	
-	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
-				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
-                RECENT_WEATHER, WIND_SHEAR, FORECAST_CHANGE_INDICATOR, HORIZONTAL_VISIBILITY, END_TOKEN
+				METAR_START, CORRECTION, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, VARIABLE_WIND_DIRECTION,
+                HORIZONTAL_VISIBILITY, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER,
+                CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, FORECAST_CHANGE_INDICATOR,
+                HORIZONTAL_VISIBILITY, END_TOKEN
 		};
 	}
 
-	
 	@Override
     public ConversionSpecification<String, METAR> getParserSpecification() {
         return ConversionSpecification.TAC_TO_METAR_POJO;
     }
 
-	@Override
+    @Override
     public Class<? extends METAR> getTokenizerImplmentationClass() {
         return METARImpl.class;
     }

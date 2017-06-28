@@ -120,11 +120,15 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                 }
             } else if (msg instanceof METAR) {
                 TrendForecast trend = getAs(specifier, TrendForecast.class);
+                
+                String tokenStr = null;
                 if (trend != null) {
                     TrendForecastSurfaceWind wind = trend.getSurfaceWind();
                     if (wind != null) {
                         StringBuilder builder = new StringBuilder();
+                        builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                         this.appendCommonWindParameters(builder, wind.getMeanWindSpeed(), wind.getMeanWindDirection(), wind.getWindGust());
+                        tokenStr = builder.toString();
                     }
                 } else {
                     METAR m = (METAR) msg;
@@ -138,8 +142,11 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                         builder.append(String.format("%03d", wind.getMeanWindDirection().getValue().intValue()));
                     }
                     this.appendCommonWindParameters(builder, wind.getMeanWindSpeed(), wind.getMeanWindDirection(), wind.getWindGust());
-                    retval = this.createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
-                    //Note: the extreme wind directions token is created by the VariableSurfaceWind.Reconstructor
+                    tokenStr = builder.toString();
+                }
+                
+                if (tokenStr != null) {
+                	retval = this.createLexeme(tokenStr, Lexeme.Identity.SURFACE_WIND);
                 }
             }
 

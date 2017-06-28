@@ -115,10 +115,10 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.ISSUE_TIME, new IssueTime.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AUTOMATED, new AutoMetar.Reconstructor());
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
-        //Lexeme.Identity.VARIABLE_WIND_DIRECTION
+        s.addReconstructor(Lexeme.Identity.VARIABLE_WIND_DIRECTION, new VariableSurfaceWind.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
@@ -127,11 +127,11 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE, new AirDewpointTemperature.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_PRESSURE_QNH, new AtmosphericPressureQNH.Reconstructor());
-        //Lexeme.Identity.RECENT_WEATHER
-        //Lexeme.Identity.WIND_SHEAR
-        //Lexeme.Identity.SEA_STATE
-        //Lexeme.Identity.RUNWAY_STATE
-        //Lexeme.Identity.COLOR_CODE
+        s.addReconstructor(Lexeme.Identity.RECENT_WEATHER, new Weather.Reconstructor(true));
+        s.addReconstructor(Lexeme.Identity.WIND_SHEAR, new WindShear.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.SEA_STATE, new SeaState.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.RUNWAY_STATE, new RunwayState.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.COLOR_CODE, new ColorCode.Reconstructor());
         s.addReconstructor(Lexeme.Identity.REMARKS_START, new RemarkStart.Reconstructor());
         s.addReconstructor(Lexeme.Identity.END_TOKEN, new EndToken.Reconstructor());
         return s;
@@ -151,7 +151,7 @@ public class AviMessageParserConfig {
         s.addReconstructor(Lexeme.Identity.SURFACE_WIND, new SurfaceWind.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CAVOK, new CAVOK.Reconstructor());
         s.addReconstructor(Lexeme.Identity.HORIZONTAL_VISIBILITY, new MetricHorizontalVisibility.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor());
+        s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
@@ -172,6 +172,7 @@ public class AviMessageParserConfig {
         l.teach(new ICAOCode(Priority.LOW));
         l.teach(new IssueTime(Priority.LOW));
         l.teach(new CloudLayer(Priority.HIGH));
+        l.teach(new NoSignificantCloud(Priority.LOW));
         l.teach(new Weather(Priority.NORMAL));
         l.teach(new SurfaceWind(Priority.LOW));
         l.teach(new VariableSurfaceWind(Priority.LOW));

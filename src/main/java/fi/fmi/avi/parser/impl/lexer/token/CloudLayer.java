@@ -12,6 +12,7 @@ import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -127,20 +128,32 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             				verVis = changeFct.getCloud().getVerticalVisibility();
             			}
             		}
-
-                }
+				}
             } else if (METAR.class.isAssignableFrom(clz)) {
-                // No need to care about vertical visibility, it's done in METARTACSerializer.tokenizeMessage()
-                verVis = null;
+            	METAR metar = (METAR)msg;
+            	if ("VV".equals(specialValue)) {
+            		TrendForecast trend = getAs(specifier, TrendForecast.class);
+            		
+            		if (trend == null) {
+            			verVis = metar.getClouds().getVerticalVisibility();
+            		} else {
+            			verVis = trend.getCloud().getVerticalVisibility();
+            		}
+            	}
+            }
+            
+            String str = getCloudLayerOrVerticalVisibilityToken(layer, verVis);
+            if (str != null) {
+            	retval = this.createLexeme(str, Identity.CLOUD);
             }
 
-            retval = this.createLexeme(getCloudLayerOrVerticalVisibilityToken(layer, verVis), Identity.CLOUD);
             return retval;
         }
 
         private String getCloudLayerOrVerticalVisibilityToken(final fi.fmi.avi.data.CloudLayer layer, final NumericMeasure verVis) throws SerializingException {
-            StringBuilder sb = new StringBuilder();
+            String ret = null;
     		if (layer != null) {
+    			StringBuilder sb = new StringBuilder();
     			NumericMeasure base = layer.getBase();
 
                 CloudAmount amount = layer.getAmount();
@@ -154,11 +167,15 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
                 if (type != null) {
         			sb.append(type.name());
         		}
+        		ret = sb.toString();
+        		
     		} else if (verVis != null) {
+    			StringBuilder sb = new StringBuilder();
     			sb.append("VV");
     			sb.append(String.format("%03d", getAsHectoFeet(verVis)));
+    			ret = sb.toString();
     		}
-    		return sb.toString();
+    		return ret;
         }
 
         private long getAsHectoFeet(final NumericMeasure value) throws SerializingException {

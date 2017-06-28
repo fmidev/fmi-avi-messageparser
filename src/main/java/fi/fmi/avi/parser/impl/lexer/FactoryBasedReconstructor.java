@@ -15,7 +15,14 @@ import fi.fmi.avi.parser.SerializingException;
 public abstract class FactoryBasedReconstructor implements TACTokenReconstructor {
 	
 	protected static <T> T getAs(Object[] specifiers, Class<T> clz) {
-		return getAs(specifiers, 0, clz);
+		T ret = null;
+		for (int i = 0; i < specifiers.length; i++) {
+			ret = getAs(specifiers, i, clz);
+			if (ret != null) {
+				break;
+			}
+		}
+		return ret;
 	}
 	
 	@SuppressWarnings("unchecked")

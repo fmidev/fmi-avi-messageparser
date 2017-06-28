@@ -27,7 +27,7 @@
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
         "value": 1500.0,
-        "uom": "m"
+        "uom": "ft"
       }
     },
     {
@@ -66,6 +66,12 @@
       "description": "Precipitation of snow"
     }
   ],
+  "clouds": {
+    "verticalVisibility": {
+      "value": 600.0,
+      "uom": "ft"
+    }
+  },
   "altimeterSettingQNH": {
     "value": 1023.0,
     "uom": "hPa"
@@ -78,13 +84,25 @@
     "value": -10.0,
     "uom": "degC"
   },
-  "runwayStates": [
+  "recentWeather": [
     {
-      "runwayDirectionDesignator": "15",
-      "deposit": "MISSING_OR_NOT_REPORTED",
-      "contamination": "MISSING_OR_NOT_REPORTED",
-      "runwayNotOperational": true,
-      "estimatedSurfaceFrictionUnreliable": true
+      "code": "SN",
+      "description": "Precipitation of snow"
+    }
+  ],
+  "windShear": {
+    "allRunways": false,
+    "runwayDirectionDesignators": [
+      "04R"
+    ]
+  },
+  "trends": [
+    {
+      "changeIndicator": "TEMPORARY_FLUCTUATIONS",
+      "prevailingVisibility": {
+        "value": 900.0,
+        "uom": "m"
+      }
     }
   ]
 }
