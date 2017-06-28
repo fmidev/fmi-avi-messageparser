@@ -3,35 +3,38 @@ package fi.fmi.avi.parser.impl.metar;
 import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
 import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.parser.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.parser.Lexeme.Identity.VARIABLE_WIND_DIRECTION;
 import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.metar.Metar;
-import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar12Test extends AbstractAviMessageTest<String, Metar> {
+public class METAR3Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar12.json";
+		return "metar/metar3.json";
 	}
 	
 	@Override
 	public String getMessage() {
 		return
-				"METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN M08/M10 Q1023 15CLRD95 " + "54419338=";
+				"METAR LBBG 041600Z 12012MPS 090V150 1400 R04/P1500N R22/P1500U +SN BKN022 OVC050 M04/M07 Q1020 8849//91 NOSIG=";
 	}
 	
 	@Override
@@ -39,30 +42,29 @@ public class Metar12Test extends AbstractAviMessageTest<String, Metar> {
 		return "";
 	}
 
-	
 	// Remove this overridden method once the tokenizer is working
 	@Override
     public void testTokenizer() throws SerializingException, IOException {
 
     }
-
+	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
-				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE,
-                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RUNWAY_STATE,
-                RUNWAY_STATE, END_TOKEN
+				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, VARIABLE_WIND_DIRECTION, HORIZONTAL_VISIBILITY,
+                RUNWAY_VISUAL_RANGE, RUNWAY_VISUAL_RANGE, WEATHER, CLOUD, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RUNWAY_STATE,
+                FORECAST_CHANGE_INDICATOR, END_TOKEN
 		};
 	}
 
 	@Override
-	public ConversionSpecification<String, Metar> getParserSpecification() {
-		return ConversionSpecification.TAC_TO_METAR;
-	}
+    public ConversionSpecification<String, METAR> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_METAR_POJO;
+    }
 
 	@Override
-	public Class<? extends Metar> getTokenizerImplmentationClass() {
-		return MetarImpl.class;
-	}
+    public Class<? extends METAR> getTokenizerImplmentationClass() {
+        return METARImpl.class;
+    }
 
 }

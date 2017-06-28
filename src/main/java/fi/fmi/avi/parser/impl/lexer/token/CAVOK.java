@@ -3,7 +3,7 @@ package fi.fmi.avi.parser.impl.lexer.token;
 import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -32,8 +32,8 @@ public class CAVOK extends PrioritizedLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             Lexeme retval = null;
-            if (Metar.class.isAssignableFrom(clz)) {
-                Metar m = (Metar) msg;
+            if (METAR.class.isAssignableFrom(clz)) {
+                METAR m = (METAR) msg;
                 if (specifier == null) {
                     if (m.isCeilingAndVisibilityOk()) {
                         retval = this.createLexeme("CAVOK", CAVOK);

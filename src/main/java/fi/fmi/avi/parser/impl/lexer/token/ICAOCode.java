@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
@@ -277,8 +277,8 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             Lexeme retval = null;
-            if (Metar.class.isAssignableFrom(clz)) {
-                Metar m = (Metar) msg;
+            if (METAR.class.isAssignableFrom(clz)) {
+                METAR m = (METAR) msg;
                 if (m.getAerodromeDesignator() != null) {
                     retval = this.createLexeme(m.getAerodromeDesignator(), AERODROME_DESIGNATOR);
                 }

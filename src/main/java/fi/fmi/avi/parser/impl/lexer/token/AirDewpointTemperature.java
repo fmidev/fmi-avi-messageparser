@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
@@ -73,9 +73,9 @@ public class AirDewpointTemperature extends RegexMatchingLexemeVisitor {
             NumericMeasure air = null;
             NumericMeasure dew = null;
 
-            if (clz.isAssignableFrom(Metar.class)) {
+            if (clz.isAssignableFrom(METAR.class)) {
 
-                Metar metar = (Metar) msg;
+                METAR metar = (METAR) msg;
 
                 air = metar.getAirTemperature();
                 dew = metar.getDewpointTemperature();

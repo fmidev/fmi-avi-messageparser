@@ -17,24 +17,24 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.metar.Metar;
-import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar9Test extends AbstractAviMessageTest<String, Metar> {
+public class METAR10Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar9.json";
+		return "metar/metar10.json";
 	}
 
-	// Almost exactly the same as Metar 10 except WS ALL RWY
-	@Override
+    // Almost exactly the same as METAR 9 except WS RWY04R
+    @Override
 	public String getMessage() {
-		return "METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + "" + " WS ALL RWY TEMPO 0900=";
+		return "METAR EFHK 111111Z 15008KT 0700 R04R/1500N R15/1000U R22L/1200N R04L/1000VP1500U SN VV006 M08/M10 Q1023 RESN" + " WS RWY04R TEMPO 0900=";
 	}
 	
 	@Override
@@ -57,14 +57,15 @@ public class Metar9Test extends AbstractAviMessageTest<String, Metar> {
 		};
 	}
 
+	
 	@Override
-	public ConversionSpecification<String, Metar> getParserSpecification() {
-		return ConversionSpecification.TAC_TO_METAR;
-	}
+    public ConversionSpecification<String, METAR> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_METAR_POJO;
+    }
 
 	@Override
-	public Class<? extends Metar> getTokenizerImplmentationClass() {
-		return MetarImpl.class;
-	}
+    public Class<? extends METAR> getTokenizerImplmentationClass() {
+        return METARImpl.class;
+    }
 
 }

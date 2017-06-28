@@ -5,7 +5,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
 
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
@@ -33,8 +33,8 @@ public class Nil extends PrioritizedLexemeVisitor {
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(final T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
             Lexeme retval = null;
-            if (Metar.class.isAssignableFrom(clz)) {
-                if (AviationCodeListUser.MetarStatus.MISSING == ((Metar) msg).getStatus()) {
+            if (METAR.class.isAssignableFrom(clz)) {
+                if (AviationCodeListUser.MetarStatus.MISSING == ((METAR) msg).getStatus()) {
                     retval = this.createLexeme("NIL", NIL);
                 }
             } else if (TAF.class.isAssignableFrom(clz)) {

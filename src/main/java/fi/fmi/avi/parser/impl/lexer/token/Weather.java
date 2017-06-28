@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -490,8 +490,8 @@ public class Weather extends RegexMatchingLexemeVisitor {
             	if (baseFct != null || changeFct != null) {
                     retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
                 }
-            } else if (Metar.class.isAssignableFrom(clz)) {
-            	fi.fmi.avi.data.Weather weather = getAs(specifier, fi.fmi.avi.data.Weather.class);
+            } else if (METAR.class.isAssignableFrom(clz)) {
+                fi.fmi.avi.data.Weather weather = getAs(specifier, fi.fmi.avi.data.Weather.class);
                 retval = this.createLexeme(weather.getCode(), Lexeme.Identity.WEATHER);
             }
             return retval;

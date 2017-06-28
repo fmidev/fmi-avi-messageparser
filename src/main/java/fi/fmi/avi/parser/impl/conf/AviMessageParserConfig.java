@@ -3,7 +3,7 @@ package fi.fmi.avi.parser.impl.conf;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageLexer;
 import fi.fmi.avi.parser.AviMessageParser;
@@ -15,8 +15,8 @@ import fi.fmi.avi.parser.LexingFactory;
 import fi.fmi.avi.parser.impl.AviMessageParserImpl;
 import fi.fmi.avi.parser.impl.AviMessageSerializerImpl;
 import fi.fmi.avi.parser.impl.AviMessageSpecificParser;
-import fi.fmi.avi.parser.impl.MetarTACParser;
-import fi.fmi.avi.parser.impl.MetarTACSerializer;
+import fi.fmi.avi.parser.impl.METARTACParser;
+import fi.fmi.avi.parser.impl.METARTACSerializer;
 import fi.fmi.avi.parser.impl.TACParser;
 import fi.fmi.avi.parser.impl.TAFTACParser;
 import fi.fmi.avi.parser.impl.TAFTACSerializer;
@@ -76,13 +76,13 @@ public class AviMessageParserConfig {
     @Bean
     public AviMessageParser aviMessageParser() {
         AviMessageParserImpl p = new AviMessageParserImpl();
-        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_METAR, metarTACParser());
-        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_TAF, tafTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_METAR_POJO, metarTACParser());
+        p.addMessageSpecificParser(ConversionSpecification.TAC_TO_TAF_POJO, tafTACParser());
         return p;
     }
 
-    AviMessageSpecificParser<String, Metar> metarTACParser() {
-        TACParser<String, Metar> p = new MetarTACParser();
+    AviMessageSpecificParser<String, METAR> metarTACParser() {
+        TACParser<String, METAR> p = new METARTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
     }
@@ -96,8 +96,8 @@ public class AviMessageParserConfig {
     @Bean
     public AviMessageSerializer aviMessageSerializer() {
         AviMessageSerializerImpl s = new AviMessageSerializerImpl();
-        s.addMessageSpecificSerializer(ConversionSpecification.METAR_TO_TAC, metarTACSerializer());
-        s.addMessageSpecificSerializer(ConversionSpecification.TAF_TO_TAC, tafTACSerializer());
+        s.addMessageSpecificSerializer(ConversionSpecification.METAR_POJO_TO_TAC, metarTACSerializer());
+        s.addMessageSpecificSerializer(ConversionSpecification.TAF_POJO_TO_TAC, tafTACSerializer());
         return s;
     }
 
@@ -106,8 +106,8 @@ public class AviMessageParserConfig {
         return (AviMessageTACTokenizer) aviMessageSerializer();
     }
 
-    MetarTACSerializer metarTACSerializer() {
-        MetarTACSerializer s = new MetarTACSerializer();
+    METARTACSerializer metarTACSerializer() {
+        METARTACSerializer s = new METARTACSerializer();
         s.setLexingFactory(lexingFactory());
         s.addReconstructor(Lexeme.Identity.METAR_START, new MetarStart.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CORRECTION, new Correction.Reconstructor());

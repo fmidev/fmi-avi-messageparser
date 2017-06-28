@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.ObservedSurfaceWind;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
@@ -118,7 +118,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                     retval = this.createLexeme(builder.toString(), Lexeme.Identity.SURFACE_WIND);
 
                 }
-            } else if (msg instanceof Metar) {
+            } else if (msg instanceof METAR) {
                 TrendForecast trend = getAs(specifier, TrendForecast.class);
                 if (trend != null) {
                     TrendForecastSurfaceWind wind = trend.getSurfaceWind();
@@ -127,7 +127,7 @@ public class SurfaceWind extends RegexMatchingLexemeVisitor {
                         this.appendCommonWindParameters(builder, wind.getMeanWindSpeed(), wind.getMeanWindDirection(), wind.getWindGust());
                     }
                 } else {
-                    Metar m = (Metar) msg;
+                    METAR m = (METAR) msg;
                     ObservedSurfaceWind wind = m.getSurfaceWind();
                     StringBuilder builder = new StringBuilder();
                     if (wind.isVariableDirection()) {

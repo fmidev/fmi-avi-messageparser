@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.parser.ConversionHints;
@@ -122,8 +122,8 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 				operator = metarTrend.getPrevailingVisibilityOperator();
 			}
 
-			if (!identified && clz.isAssignableFrom(Metar.class)) {
-				Metar metar = (Metar) msg;
+            if (!identified && clz.isAssignableFrom(METAR.class)) {
+                METAR metar = (METAR) msg;
 
 				// TODO: metar.getVisibility().getMinimumVisibility() 
 				if (metar.getVisibility() != null) {

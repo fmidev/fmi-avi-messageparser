@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
 import fi.fmi.avi.data.taf.TAFChangeForecast;
@@ -129,8 +129,8 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             		}
 
                 }
-            } else if (Metar.class.isAssignableFrom(clz)) {
-                // No need to care about vertical visibility, it's done in MetarTACSerializer.tokenizeMessage()
+            } else if (METAR.class.isAssignableFrom(clz)) {
+                // No need to care about vertical visibility, it's done in METARTACSerializer.tokenizeMessage()
                 verVis = null;
             }
 

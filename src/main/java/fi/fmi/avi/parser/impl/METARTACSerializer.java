@@ -26,7 +26,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WIND_SHEAR;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.Weather;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.ObservedClouds;
 import fi.fmi.avi.data.metar.RunwayState;
 import fi.fmi.avi.data.metar.RunwayVisualRange;
@@ -40,10 +40,10 @@ import fi.fmi.avi.parser.SerializingException;
 /**
  * Created by rinne on 07/06/17.
  */
-public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
+public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
 
     @Override
-    public String serializeMessage(final Metar input, final ConversionHints hints) throws SerializingException {
+    public String serializeMessage(final METAR input, final ConversionHints hints) throws SerializingException {
         return tokenizeMessage(input, hints).getTAC();
     }
 
@@ -54,83 +54,83 @@ public class MetarTACSerializer extends AbstractTACSerializer<Metar, String> {
 
     @Override
     public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg, final ConversionHints hints) throws SerializingException {
-        if (!(msg instanceof Metar)) {
+        if (!(msg instanceof METAR)) {
             throw new SerializingException("I can only tokenize METARs!");
         }
-        Metar input = (Metar) msg;
+        METAR input = (METAR) msg;
         LexemeSequenceBuilder retval = this.getLexingFactory().createLexemeSequenceBuilder();
-        appendToken(retval, METAR_START, input, Metar.class, hints);
-        appendToken(retval, CORRECTION, input, Metar.class, hints);
-        appendToken(retval, AERODROME_DESIGNATOR, input, Metar.class, hints);
-        appendToken(retval, ISSUE_TIME, input, Metar.class, hints);
-        appendToken(retval, AUTOMATED, input, Metar.class, hints);
-        appendToken(retval, SURFACE_WIND, input, Metar.class, hints);
-        appendToken(retval, CAVOK, input, Metar.class, hints);
-        appendToken(retval, HORIZONTAL_VISIBILITY, input, Metar.class, hints);
+        appendToken(retval, METAR_START, input, METAR.class, hints);
+        appendToken(retval, CORRECTION, input, METAR.class, hints);
+        appendToken(retval, AERODROME_DESIGNATOR, input, METAR.class, hints);
+        appendToken(retval, ISSUE_TIME, input, METAR.class, hints);
+        appendToken(retval, AUTOMATED, input, METAR.class, hints);
+        appendToken(retval, SURFACE_WIND, input, METAR.class, hints);
+        appendToken(retval, CAVOK, input, METAR.class, hints);
+        appendToken(retval, HORIZONTAL_VISIBILITY, input, METAR.class, hints);
         if (input.getRunwayVisualRanges() != null) {
             for (RunwayVisualRange range : input.getRunwayVisualRanges()) {
-                appendToken(retval, RUNWAY_VISUAL_RANGE, input, Metar.class, hints, range);
+                appendToken(retval, RUNWAY_VISUAL_RANGE, input, METAR.class, hints, range);
             }
         }
         if (input.getPresentWeather() != null) {
             for (Weather weather : input.getPresentWeather()) {
-                appendToken(retval, WEATHER, input, Metar.class, hints, weather);
+                appendToken(retval, WEATHER, input, METAR.class, hints, weather);
             }
         }
         ObservedClouds obsClouds = input.getClouds();
         if (obsClouds != null) {
             if (obsClouds.getVerticalVisibility() != null) {
-                this.appendToken(retval, Lexeme.Identity.CLOUD, input, Metar.class, hints, "VV");
+                this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "VV");
             } else if (obsClouds.isAmountAndHeightUnobservableByAutoSystem()) {
-                this.appendToken(retval, Lexeme.Identity.CLOUD, input, Metar.class, hints, "//////");
+                this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "//////");
             } else {
-                this.appendCloudLayers(retval, input, Metar.class, obsClouds.getLayers(), hints);
+                this.appendCloudLayers(retval, input, METAR.class, obsClouds.getLayers(), hints);
             }
         }
-        appendToken(retval, AIR_DEWPOINT_TEMPERATURE, input, Metar.class, hints);
-        appendToken(retval, AIR_PRESSURE_QNH, input, Metar.class, hints);
+        appendToken(retval, AIR_DEWPOINT_TEMPERATURE, input, METAR.class, hints);
+        appendToken(retval, AIR_PRESSURE_QNH, input, METAR.class, hints);
         if (input.getRecentWeather() != null) {
             for (Weather weather : input.getRecentWeather()) {
-                appendToken(retval, RECENT_WEATHER, input, Metar.class, hints, weather);
+                appendToken(retval, RECENT_WEATHER, input, METAR.class, hints, weather);
             }
         }
-        appendToken(retval, WIND_SHEAR, input, Metar.class, hints);
-        appendToken(retval, SEA_STATE, input, Metar.class, hints);
+        appendToken(retval, WIND_SHEAR, input, METAR.class, hints);
+        appendToken(retval, SEA_STATE, input, METAR.class, hints);
         if (input.getRunwayStates() != null) {
             for (RunwayState state : input.getRunwayStates()) {
-                appendToken(retval, RUNWAY_STATE, input, Metar.class, hints, state);
+                appendToken(retval, RUNWAY_STATE, input, METAR.class, hints, state);
             }
         }
-        appendToken(retval, NO_SIGNIFICANT_WEATHER, input, Metar.class, hints);
+        appendToken(retval, NO_SIGNIFICANT_WEATHER, input, METAR.class, hints);
         if (input.getTrends() != null) {
             for (TrendForecast trend : input.getTrends()) {
-                appendToken(retval, FORECAST_CHANGE_INDICATOR, input, Metar.class, hints, trend);
-                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, input, Metar.class, hints, trend);
-                appendToken(retval, SURFACE_WIND, input, Metar.class, hints, trend);
-                appendToken(retval, CAVOK, input, Metar.class, hints, trend);
-                appendToken(retval, HORIZONTAL_VISIBILITY, input, Metar.class, hints, trend);
+                appendToken(retval, FORECAST_CHANGE_INDICATOR, input, METAR.class, hints, trend);
+                appendToken(retval, CHANGE_FORECAST_TIME_GROUP, input, METAR.class, hints, trend);
+                appendToken(retval, SURFACE_WIND, input, METAR.class, hints, trend);
+                appendToken(retval, CAVOK, input, METAR.class, hints, trend);
+                appendToken(retval, HORIZONTAL_VISIBILITY, input, METAR.class, hints, trend);
                 if (trend.getForecastWeather() != null) {
                     for (Weather weather : trend.getForecastWeather()) {
-                        appendToken(retval, WEATHER, input, Metar.class, hints, trend, weather);
+                        appendToken(retval, WEATHER, input, METAR.class, hints, trend, weather);
                     }
                 }
                 CloudForecast clouds = trend.getCloud();
                 if (clouds != null) {
                     if (clouds.getVerticalVisibility() != null) {
-                        this.appendToken(retval, Lexeme.Identity.CLOUD, input, Metar.class, hints, "VV", trend);
+                        this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "VV", trend);
                     } else {
-                        this.appendCloudLayers(retval, input, Metar.class, clouds.getLayers(), hints, trend);
+                        this.appendCloudLayers(retval, input, METAR.class, clouds.getLayers(), hints, trend);
                     }
                 }
             }
         }
         if (input.getRemarks() != null && !input.getRemarks().isEmpty()) {
-            appendToken(retval, REMARKS_START, input, Metar.class, hints);
+            appendToken(retval, REMARKS_START, input, METAR.class, hints);
             for (String remark : input.getRemarks()) {
-                this.appendToken(retval, REMARK, input, Metar.class, hints, remark);
+                this.appendToken(retval, REMARK, input, METAR.class, hints, remark);
             }
         }
-        appendToken(retval, END_TOKEN, input, Metar.class, hints);
+        appendToken(retval, END_TOKEN, input, METAR.class, hints);
         return retval.build();
     }
 }

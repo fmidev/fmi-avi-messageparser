@@ -14,14 +14,14 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.metar.Metar;
-import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar6Test extends AbstractAviMessageTest<String, Metar> {
+public class METAR6Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
@@ -55,13 +55,13 @@ public class Metar6Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-	public ConversionSpecification<String, Metar> getParserSpecification() {
-		return ConversionSpecification.TAC_TO_METAR;
-	}
+    public ConversionSpecification<String, METAR> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_METAR_POJO;
+    }
 
 	@Override
-	public Class<? extends Metar> getTokenizerImplmentationClass() {
-		return MetarImpl.class;
-	}
+    public Class<? extends METAR> getTokenizerImplmentationClass() {
+        return METARImpl.class;
+    }
 
 }

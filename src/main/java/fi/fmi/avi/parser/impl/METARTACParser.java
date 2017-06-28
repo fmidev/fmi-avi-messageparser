@@ -41,7 +41,7 @@ import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.impl.WeatherImpl;
 import fi.fmi.avi.data.metar.HorizontalVisibility;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.ObservedClouds;
 import fi.fmi.avi.data.metar.ObservedSurfaceWind;
 import fi.fmi.avi.data.metar.RunwayState;
@@ -52,7 +52,7 @@ import fi.fmi.avi.data.metar.TrendForecastSurfaceWind;
 import fi.fmi.avi.data.metar.TrendTimeGroups;
 import fi.fmi.avi.data.metar.WindShear;
 import fi.fmi.avi.data.metar.impl.HorizontalVisibilityImpl;
-import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.data.metar.impl.ObservedCloudsImpl;
 import fi.fmi.avi.data.metar.impl.ObservedSurfaceWindImpl;
 import fi.fmi.avi.data.metar.impl.RunwayStateImpl;
@@ -87,9 +87,9 @@ import fi.fmi.avi.parser.impl.lexer.token.Weather;
  *
  * @author Ilkka Rinne / Spatineo Oy 2017
  */
-public class MetarTACParser extends AbstractAviMessageParser implements TACParser<String, Metar> {
+public class METARTACParser extends AbstractAviMessageParser implements TACParser<String, METAR> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MetarTACParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(METARTACParser.class);
 
     private static Identity[] zeroOrOneAllowed = { AERODROME_DESIGNATOR, ISSUE_TIME, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, WIND_SHEAR, SEA_STATE,
             REMARKS_START };
@@ -100,8 +100,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         this.lexer = lexer;
     }
 
-    public ParsingResult<Metar> parseMessage(final String input, final ConversionHints hints) {
-        ParsingResult<Metar> result = new ParsingResultImpl<>();
+    public ParsingResult<METAR> parseMessage(final String input, final ConversionHints hints) {
+        ParsingResult<METAR> result = new ParsingResultImpl<>();
         LexemeSequence lexed = null;
         if (this.lexer == null) {
             throw new IllegalStateException("TAC lexer not set");
@@ -119,7 +119,7 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
             if (!issues.isEmpty()) {
                 result.addIssue(issues);
             }
-            result.setParsedMessage(new MetarImpl());
+            result.setParsedMessage(new METARImpl());
 
             Identity[] stopAt = { AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE,
                     AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
@@ -163,15 +163,15 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         return result;
     }
 
-    private static void updateMetarIssueTime(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateMetarIssueTime(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH,
                 RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         result.addIssue(updateIssueTime(msg, lexed, before, hints));
     }
 
-    private static void updateObservedSurfaceWind(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateObservedSurfaceWind(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { CAVOK, HORIZONTAL_VISIBILITY, RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR,
                 SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SURFACE_WIND, lexed.getFirstLexeme(), before, (match) -> {
@@ -218,8 +218,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateHorizontalVisibility(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateHorizontalVisibility(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { RUNWAY_VISUAL_RANGE, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE,
                 COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
 
@@ -262,8 +262,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateRVR(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateRVR(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RUNWAY_VISUAL_RANGE, lexed.getFirstLexeme(), before, (match) -> {
@@ -324,8 +324,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updatePresentWeather(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updatePresentWeather(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(WEATHER, lexed.getFirstLexeme(), before, (match) -> {
@@ -337,8 +337,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateClouds(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateClouds(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE,
                 FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(CLOUD, lexed.getFirstLexeme(), before, (match) -> {
@@ -382,8 +382,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
 
     }
 
-    private static void updateTemperatures(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateTemperatures(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { AIR_PRESSURE_QNH, RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(AIR_DEWPOINT_TEMPERATURE, lexed.getFirstLexeme(), before, (match) -> {
             String unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT, String.class);
@@ -408,8 +408,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
 
     }
 
-    private static void updateQNH(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateQNH(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { RECENT_WEATHER, WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(AIR_PRESSURE_QNH, lexed.getFirstLexeme(), before, (match) -> {
             AtmosphericPressureQNH.PressureMeasurementUnit unit = match.getParsedValue(Lexeme.ParsedValueName.UNIT,
@@ -434,8 +434,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateRecentWeather(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateRecentWeather(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RECENT_WEATHER, lexed.getFirstLexeme(), before, (match) -> {
             List<fi.fmi.avi.data.Weather> weather = new ArrayList<>();
@@ -446,8 +446,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateWindShear(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateWindShear(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Identity[] before = { SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(WIND_SHEAR, lexed.getFirstLexeme(), before, (match) -> {
             final WindShear ws = new WindShearImpl();
@@ -478,8 +478,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateSeaState(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateSeaState(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Lexeme.Identity[] before = { RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(SEA_STATE, lexed.getFirstLexeme(), before, (match) -> {
             SeaState ss = new SeaStateImpl();
@@ -543,8 +543,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateRunwayStates(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateRunwayStates(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Lexeme.Identity[] before = { COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(RUNWAY_STATE, lexed.getFirstLexeme(), before, (match) -> {
         	List<RunwayState> states = new ArrayList<>();
@@ -731,8 +731,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateColorState(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateColorState(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Lexeme.Identity[] before = { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(COLOR_CODE, lexed.getFirstLexeme(), before, (colorToken) -> {
             ColorCode.ColorState code = colorToken.getParsedValue(ParsedValueName.VALUE, ColorCode.ColorState.class);
@@ -747,8 +747,8 @@ public class MetarTACParser extends AbstractAviMessageParser implements TACParse
         });
     }
 
-    private static void updateTrends(final ParsingResult<Metar> result, final LexemeSequence lexed, final ConversionHints hints) {
-        final Metar msg = result.getParsedMessage();
+    private static void updateTrends(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {
+        final METAR msg = result.getParsedMessage();
         Lexeme.Identity[] before = { REMARKS_START, END_TOKEN };
         final List<TrendForecast> trends = new ArrayList<>();
         //Handle NOSIG:

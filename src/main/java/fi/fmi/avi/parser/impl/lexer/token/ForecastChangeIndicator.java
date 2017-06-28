@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.metar.TrendTimeGroups;
 import fi.fmi.avi.data.taf.TAF;
@@ -125,7 +125,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
                             break;
                     }
                 }
-            } else if (msg instanceof Metar) {
+            } else if (msg instanceof METAR) {
                 TrendForecast trend = getAs(specifier, TrendForecast.class);
                 if (trend != null) {
                     switch (trend.getChangeIndicator()) {

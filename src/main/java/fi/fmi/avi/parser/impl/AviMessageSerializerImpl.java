@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.parser.AviMessageSerializer;
 import fi.fmi.avi.parser.AviMessageTACTokenizer;
@@ -43,9 +43,9 @@ public class AviMessageSerializerImpl implements AviMessageSerializer, AviMessag
 
     @Override
     public LexemeSequence tokenizeMessage(final AviationWeatherMessage msg, final ConversionHints hints) throws SerializingException {
-        if (msg instanceof Metar) {
+        if (msg instanceof METAR) {
             for (ConversionSpecification<?, ?> toMatch : serializers.keySet()) {
-                if (toMatch.getInputClass().equals(Metar.class) && toMatch.getOutputClass().equals(String.class)) {
+                if (toMatch.getInputClass().equals(METAR.class) && toMatch.getOutputClass().equals(String.class)) {
                     AviMessageSpecificSerializer<?, ?> serializer = serializers.get(toMatch);
                     if (serializer instanceof AbstractTACSerializer<?, ?>) {
                         return ((AbstractTACSerializer<?, ?>) serializer).tokenizeMessage(msg, hints);

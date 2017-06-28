@@ -15,25 +15,25 @@ import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
 
 import java.io.IOException;
 
-import fi.fmi.avi.data.metar.Metar;
-import fi.fmi.avi.data.metar.impl.MetarImpl;
+import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.impl.METARImpl;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.ConversionSpecification;
 import fi.fmi.avi.parser.Lexeme.Identity;
 import fi.fmi.avi.parser.SerializingException;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
 
-public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
+public class METAR7Test extends AbstractAviMessageTest<String, METAR> {
 
 	@Override
 	public String getJsonFilename() {
-		return "metar/metar8.json";
+		return "metar/metar7.json";
 	}
 
-	// Equivalent to Metar7 but with different colors
+	// Equivalent to Metar8 but with different colors
 	@Override
 	public String getMessage() {
-		return "EGXE 061150Z 03010KT 9999 FEW020 17/11 Q1014 BLACKBLU TEMPO 6000 SHRA SCT020 BLACKWHT=";
+		return "EGXE 061150Z 03010KT 9999 FEW020 17/11 Q1014 BLU TEMPO 6000 SHRA SCT020 WHT=";
 	}
 	
 	@Override
@@ -54,10 +54,10 @@ public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
 	// Remove this overridden method once the tokenizer is working
 	@Override
 	public void testTokenizer() throws SerializingException, IOException {
-		// NOTE: the message contains color codes that are currently not stored in Metar POJOs
-	}
-	
-	@Override
+        // NOTE: the message contains color codes that are currently not stored in METAR POJOs
+    }
+
+    @Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
 				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, CLOUD,
@@ -67,13 +67,13 @@ public class Metar8Test extends AbstractAviMessageTest<String, Metar> {
 	}
 
 	@Override
-	public ConversionSpecification<String, Metar> getParserSpecification() {
-		return ConversionSpecification.TAC_TO_METAR;
-	}
+    public ConversionSpecification<String, METAR> getParserSpecification() {
+        return ConversionSpecification.TAC_TO_METAR_POJO;
+    }
 
 	@Override
-	public Class<? extends Metar> getTokenizerImplmentationClass() {
-		return MetarImpl.class;
-	}
+    public Class<? extends METAR> getTokenizerImplmentationClass() {
+        return METARImpl.class;
+    }
 
 }

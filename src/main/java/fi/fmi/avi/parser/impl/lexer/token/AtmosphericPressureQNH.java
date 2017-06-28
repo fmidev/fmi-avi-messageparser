@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
-import fi.fmi.avi.data.metar.Metar;
+import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.parser.ConversionHints;
 import fi.fmi.avi.parser.Lexeme;
 import fi.fmi.avi.parser.Lexeme.Identity;
@@ -69,8 +69,8 @@ public class AtmosphericPressureQNH extends RegexMatchingLexemeVisitor {
 
             NumericMeasure altimeter = null;
 
-            if (clz.isAssignableFrom(Metar.class)) {
-                Metar metar = (Metar) msg;
+            if (clz.isAssignableFrom(METAR.class)) {
+                METAR metar = (METAR) msg;
 
                 altimeter = metar.getAltimeterSettingQNH();
             }
