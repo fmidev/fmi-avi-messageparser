@@ -24,6 +24,7 @@ public class AviMessageParserImpl implements AviMessageParser {
      * {@link AviMessageSpecificParser} implementation with the matching {@link ConversionSpecification}.
      *
      * @param input
+     *          the input message
      * @param spec
      *         {@link ConversionSpecification} to use
      * @param <S>

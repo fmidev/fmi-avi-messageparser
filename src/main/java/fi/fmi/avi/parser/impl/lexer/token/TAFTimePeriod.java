@@ -68,12 +68,12 @@ public abstract class TAFTimePeriod extends TimeHandlingRegex {
 	 * startDay + 1 unless startDay < 28. If startDay < 28 => throw an exception as we cannot
 	 * make assumptions on the length of month.
 	 * 
-	 * @param startDay
-	 * @param startHour
-	 * @param endDay
-	 * @param endHour
-	 * @return
-	 * @throws SerializingException
+	 * @param startDay the day-of-month of the period start
+	 * @param startHour the 24h hour of the period start
+	 * @param endDay the day-of-month of the period end
+	 * @param endHour the 24h hour of the period end
+	 * @return the time span as number of hours
+	 * @throws IllegalArgumentException if the endDay smaller than startDay and startDay is less than 28
 	 */
 	static int calculateNumberOfHours(int startDay, int startHour, int endDay, int endHour)
 	{

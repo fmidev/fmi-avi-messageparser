@@ -73,13 +73,13 @@ public abstract class FactoryBasedReconstructor implements TACTokenReconstructor
     
     /**
      * Override this unless the class overrides getAsLexemes()
-     * 
-     * @param msg
-     * @param clz
-     * @param hints
-     * @param specifier
-     * @return
-	 * @throws SerializingException
+     *
+	 * @param msg the source message
+	 * @param clz the class of the source message
+	 * @param hints conversion hints to guide the reconstructor implementation
+	 * @param specifier additional specifiers for selecting the Lexeme to produce
+	 * @param <T> the type of the source message
+	 * @throws SerializingException when the Lexeme cannot be constructed
 	 */
 	public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, ConversionHints hints, Object... specifier) throws SerializingException {
 		return null;
