@@ -83,11 +83,11 @@ public abstract class AbstractAviMessageParser {
      *
      * As {@link LexemeParsingConsumer} is a functional interface, it can be implemented as a lambda expression:
      * <pre>
-     *     findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -> taf.setStatus(AviationCodeListUser.TAFStatus.CORRECTION));
+     *     findNext(CORRECTION, lexed.getFirstLexeme(), stopAt, (match) -&gt; taf.setStatus(AviationCodeListUser.TAFStatus.CORRECTION));
      * </pre>
      * or, if the expression is not easily inlined:
      * <pre>
-     *     findNext(AMENDMENT, lexed.getFirstLexeme(), stopAt, (match) -> {
+     *     findNext(AMENDMENT, lexed.getFirstLexeme(), stopAt, (match) -&gt; {
      *       TAF.TAFStatus status = taf.getStatus();
      *         if (status != null) {
      *           retval.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR,
