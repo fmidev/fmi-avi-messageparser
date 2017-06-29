@@ -13,6 +13,7 @@ import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 import static fi.fmi.avi.parser.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.parser.Lexeme.Identity.REMARK;
@@ -91,6 +92,7 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
                 this.appendCloudLayers(retval, input, METAR.class, obsClouds.getLayers(), hints);
             }
         }
+        appendToken(retval, NO_SIGNIFICANT_CLOUD, input, METAR.class, hints);
         appendToken(retval, AIR_DEWPOINT_TEMPERATURE, input, METAR.class, hints);
         appendToken(retval, AIR_PRESSURE_QNH, input, METAR.class, hints);
         if (input.getRecentWeather() != null) {

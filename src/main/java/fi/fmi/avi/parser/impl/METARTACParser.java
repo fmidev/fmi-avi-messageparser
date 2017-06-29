@@ -378,7 +378,15 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
             }
             msg.setClouds(clouds);
         });
+        
+        // NSC
+        findNext(Identity.NO_SIGNIFICANT_CLOUD, lexed.getFirstLexeme(), before, (match) -> {
+        	msg.setNoSignificantCloud(true);
+        });
 
+        if (msg.getClouds() != null && msg.isNoSignificantCloud()) {
+        	result.addIssue(new ParsingIssue(ParsingIssue.Type.SYNTAX_ERROR, "Message contains both clouds as well as NSC"));
+        }
     }
 
     private static void updateTemperatures(final ParsingResult<METAR> result, final LexemeSequence lexed, final ConversionHints hints) {

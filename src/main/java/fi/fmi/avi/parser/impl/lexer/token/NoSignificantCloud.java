@@ -45,8 +45,13 @@ public class NoSignificantCloud extends RegexMatchingLexemeVisitor {
             }
             
             if (METAR.class.isAssignableFrom(clz)) {
+            	METAR metar = (METAR)msg;
             	TrendForecast forecast = getAs(specifier, TrendForecast.class);
-            	if (forecast != null && forecast.isNoSignificantCloud()) {
+            	if (forecast != null) {
+            		if (forecast.isNoSignificantCloud()) {
+            			nsc = true;
+            		}
+            	} else if (metar.isNoSignificantCloud()) {
             		nsc = true;
             	}
             }
