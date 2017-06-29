@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,23 +29,23 @@ import org.unitils.reflectionassert.report.impl.DefaultDifferenceReport;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.fmi.avi.converter.AviMessageConverter;
+import fi.fmi.avi.converter.ConversionIssue;
+import fi.fmi.avi.converter.ConversionResult;
+import fi.fmi.avi.converter.impl.conf.AviMessageParserConfig;
 import fi.fmi.avi.data.AviationWeatherMessage;
-import fi.fmi.avi.parser.AviMessageLexer;
-import fi.fmi.avi.parser.AviMessageParser;
-import fi.fmi.avi.parser.AviMessageTACTokenizer;
-import fi.fmi.avi.parser.ConversionHints;
-import fi.fmi.avi.parser.ConversionSpecification;
-import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.Lexeme.Identity;
-import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.ParsingIssue;
-import fi.fmi.avi.parser.ParsingResult;
-import fi.fmi.avi.parser.SerializingException;
-import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
+import fi.fmi.avi.converter.ConversionHints;
+import fi.fmi.avi.converter.ConversionSpecification;
+import fi.fmi.avi.tac.lexer.SerializingException;
+import fi.fmi.avi.tac.lexer.AviMessageLexer;
+import fi.fmi.avi.tac.lexer.AviMessageTACTokenizer;
+import fi.fmi.avi.tac.lexer.Lexeme;
+import fi.fmi.avi.tac.lexer.LexemeSequence;
+import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = AviMessageParserConfig.class, loader = AnnotationConfigContextLoader.class)
-public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage> {
+public abstract class AbstractAviMessageTest<S, T> {
 
 	private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;
 	
@@ -56,7 +57,7 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 	private AviMessageTACTokenizer tokenizer;
 
     @Autowired
-    private AviMessageParser parser;
+    private AviMessageConverter converter;
 
 	public abstract S getMessage();
 
@@ -64,9 +65,11 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 
 	public abstract String getJsonFilename();
 
-	public abstract ConversionSpecification<S, T> getParserSpecification();
+	public abstract ConversionSpecification<S, T> getParsingSpecification();
+	
+	public abstract ConversionSpecification<T, S> getSerializationSpecification();
 
-	public abstract Class<? extends T> getTokenizerImplmentationClass();
+	public abstract Class<? extends AviationWeatherMessage> getTokenizerImplmentationClass();
 
 	/**
 	 * The tokenized POJO needs to be equal to this message. By default it returns what getMessage() returns.
@@ -83,7 +86,7 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 		return new ConversionHints();
 	}
 
-	public ConversionHints getParserParsingHints() {
+	public ConversionHints getParserConversionHints() {
 		return new ConversionHints();
 	}
     
@@ -96,34 +99,59 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
     
 	@Test
 	public void testLexer() {
-		Object input = getMessage();
-		if (input instanceof String) {
-			LexemeSequence result = lexer.lexMessage((String) getMessage(), getLexerParsingHints());
-			assertTokenSequenceIdentityMatch(result, getLexerTokenSequenceIdentity());
-		}
+		Assume.assumeTrue(String.class.isAssignableFrom(getParsingSpecification().getInputClass()));
+		
+		LexemeSequence result = lexer.lexMessage((String) getMessage(), getLexerParsingHints());
+		assertTokenSequenceIdentityMatch(result, getLexerTokenSequenceIdentity());
 	}
 	
 	@Test
 	public void testTokenizer() throws SerializingException, IOException {
+		Assume.assumeTrue(String.class.isAssignableFrom(getSerializationSpecification().getOutputClass()));
+		
 		String expectedMessage = getTokenizedMessagePrefix() + getCanonicalMessage();
         assertTokenSequenceMatch(expectedMessage, getJsonFilename(), getTokenizerParsingHints());
 	}
 
-	public ParsingResult.ParsingStatus getExpectedParsingStatus() {
-		return ParsingResult.ParsingStatus.SUCCESS;
+	public ConversionResult.Status getExpectedParsingStatus() {
+		return ConversionResult.Status.SUCCESS;
+	}
+	
+	public ConversionResult.Status getExpectedSerializationStatus() {
+		return ConversionResult.Status.SUCCESS;
 	}
 
 	// Override when necessary
-	public void assertParsingIssues(List<ParsingIssue> parsingIssues) {
-		assertEquals("No parsing issues expected", 0, parsingIssues.size());
+	public void assertParsingIssues(List<ConversionIssue> conversionIssues) {
+		assertEquals("No parsing issues expected", 0, conversionIssues.size());
 	}
-
+	
+	// Override when necessary
+	public void assertSerializationIssues(List<ConversionIssue> conversionIssues) {
+		assertEquals("No serilaization issues expected", 0, conversionIssues.size());
+	}
+	
 	@Test
-	public void testParser() throws IOException {
-		ParsingResult<? extends AviationWeatherMessage> result = parser.parseMessage(getMessage(), getParserSpecification(), getParserParsingHints());
-		assertEquals("Parsing was not successful: " + result.getParsingIssues(), getExpectedParsingStatus(), result.getStatus());
-		assertParsingIssues(result.getParsingIssues());
-		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename()), result.getParsedMessage());
+	public void testStringToPOJOParser() throws IOException {
+		ConversionSpecification<S, T> spec = getParsingSpecification();
+		Assume.assumeTrue(String.class.isAssignableFrom(spec.getInputClass()) && AviationWeatherMessage.class.isAssignableFrom(spec.getOutputClass()));
+
+		ConversionResult<? extends AviationWeatherMessage> result = (ConversionResult<? extends AviationWeatherMessage>) converter.convertMessage(getMessage(), spec, getParserConversionHints());
+		assertEquals("Parsing was not successful: " + result.getConversionIssues(), getExpectedParsingStatus(), result.getStatus());
+		assertParsingIssues(result.getConversionIssues());
+		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename()), result.getConvertedMessage());
+	}
+	
+	@Test
+	public void testPOJOToStringSerialiazer() throws IOException {
+		ConversionSpecification<T, S> spec = getSerializationSpecification();
+		Assume.assumeTrue(AviationWeatherMessage.class.isAssignableFrom(spec.getInputClass()) && String.class.isAssignableFrom(spec.getOutputClass()));
+		T input = (T)readFromJSON(getJsonFilename());
+		ConversionResult<String> result = (ConversionResult<String>) converter.convertMessage(input, spec, getTokenizerParsingHints());
+		assertEquals("Serialization was not successful: " + result.getConversionIssues(), getExpectedSerializationStatus(), result.getStatus());
+		assertSerializationIssues(result.getConversionIssues());		
+		String expectedMessage = getTokenizedMessagePrefix() + getCanonicalMessage();
+		assertEquals(expectedMessage, result.getConvertedMessage());
 	}
 	
 
@@ -142,8 +170,8 @@ public abstract class AbstractAviMessageTest<S, T extends AviationWeatherMessage
 		assertEquals(expected, seq.getTAC());
 	}
 
-	protected T readFromJSON(String fileName) throws IOException {
-		T retval = null;
+	protected AviationWeatherMessage readFromJSON(String fileName) throws IOException {
+		AviationWeatherMessage retval = null;
 		ObjectMapper om = new ObjectMapper();
 		InputStream is = AbstractAviMessageTest.class.getClassLoader().getResourceAsStream(fileName);
 		if (is != null) {

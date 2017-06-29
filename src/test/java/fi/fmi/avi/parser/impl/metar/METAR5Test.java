@@ -1,21 +1,21 @@
 package fi.fmi.avi.parser.impl.metar;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
-import static fi.fmi.avi.parser.Lexeme.Identity.AIR_PRESSURE_QNH;
-import static fi.fmi.avi.parser.Lexeme.Identity.AUTOMATED;
-import static fi.fmi.avi.parser.Lexeme.Identity.CAVOK;
-import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
-import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AIR_PRESSURE_QNH;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AUTOMATED;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.CAVOK;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.METAR_START;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.SURFACE_WIND;
 
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.metar.impl.METARImpl;
 
-import fi.fmi.avi.parser.ConversionSpecification;
-import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.converter.ConversionSpecification;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
+import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 
 public class METAR5Test extends AbstractAviMessageTest<String, METAR> {
 
@@ -44,8 +44,13 @@ public class METAR5Test extends AbstractAviMessageTest<String, METAR> {
 	}
 
 	@Override
-    public ConversionSpecification<String, METAR> getParserSpecification() {
+    public ConversionSpecification<String, METAR> getParsingSpecification() {
         return ConversionSpecification.TAC_TO_METAR_POJO;
+    }
+	
+	@Override
+    public ConversionSpecification<METAR, String> getSerializationSpecification() {
+        return ConversionSpecification.METAR_POJO_TO_TAC;
     }
 
 	@Override

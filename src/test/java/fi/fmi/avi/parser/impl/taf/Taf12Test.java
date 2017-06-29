@@ -1,25 +1,25 @@
 package fi.fmi.avi.parser.impl.taf;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
-import static fi.fmi.avi.parser.Lexeme.Identity.CLOUD;
-import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
-import static fi.fmi.avi.parser.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.HORIZONTAL_VISIBILITY;
-import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.MAX_TEMPERATURE;
-import static fi.fmi.avi.parser.Lexeme.Identity.MIN_TEMPERATURE;
-import static fi.fmi.avi.parser.Lexeme.Identity.SURFACE_WIND;
-import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
-import static fi.fmi.avi.parser.Lexeme.Identity.VALID_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.WEATHER;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.CLOUD;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.HORIZONTAL_VISIBILITY;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.MAX_TEMPERATURE;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.MIN_TEMPERATURE;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.SURFACE_WIND;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.TAF_START;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.VALID_TIME;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.WEATHER;
 
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
-import fi.fmi.avi.parser.ConversionHints;
-import fi.fmi.avi.parser.ConversionSpecification;
-import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.converter.ConversionHints;
+import fi.fmi.avi.converter.ConversionSpecification;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
+import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 
 public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 
@@ -39,7 +39,7 @@ public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	@Override
-	public ConversionHints getParserParsingHints() {
+	public ConversionHints getParserConversionHints() {
 		ConversionHints hints = new ConversionHints();
 		hints.put(ConversionHints.KEY_MESSAGE_TYPE, ConversionHints.VALUE_MESSAGE_TYPE_TAF);
 		hints.put(ConversionHints.KEY_TIMEZONE_ID_POLICY, ConversionHints.VALUE_TIMEZONE_ID_POLICY_STRICT);
@@ -68,9 +68,15 @@ public class Taf12Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	@Override
-	public ConversionSpecification<String, TAF> getParserSpecification() {
+    public ConversionSpecification<String, TAF> getParsingSpecification() {
         return ConversionSpecification.TAC_TO_TAF_POJO;
     }
+    
+    @Override
+    public ConversionSpecification<TAF, String> getSerializationSpecification() {
+        return ConversionSpecification.TAF_POJO_TO_TAC;
+    }
+
 
 	@Override
 	public Class<? extends TAF> getTokenizerImplmentationClass() {

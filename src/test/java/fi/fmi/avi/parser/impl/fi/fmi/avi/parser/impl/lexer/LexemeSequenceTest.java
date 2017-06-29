@@ -12,10 +12,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import fi.fmi.avi.parser.AviMessageLexer;
-import fi.fmi.avi.parser.Lexeme;
-import fi.fmi.avi.parser.LexemeSequence;
-import fi.fmi.avi.parser.impl.conf.AviMessageParserConfig;
+import fi.fmi.avi.converter.impl.conf.AviMessageParserConfig;
+import fi.fmi.avi.tac.lexer.AviMessageLexer;
+import fi.fmi.avi.tac.lexer.Lexeme;
+import fi.fmi.avi.tac.lexer.LexemeSequence;
 
 /**
  * Created by rinne on 30/05/17.

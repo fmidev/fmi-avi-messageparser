@@ -1,16 +1,16 @@
 package fi.fmi.avi.parser.impl.taf;
 
-import static fi.fmi.avi.parser.Lexeme.Identity.AERODROME_DESIGNATOR;
-import static fi.fmi.avi.parser.Lexeme.Identity.END_TOKEN;
-import static fi.fmi.avi.parser.Lexeme.Identity.ISSUE_TIME;
-import static fi.fmi.avi.parser.Lexeme.Identity.NIL;
-import static fi.fmi.avi.parser.Lexeme.Identity.TAF_START;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.AERODROME_DESIGNATOR;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.END_TOKEN;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NIL;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.TAF_START;
 
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.impl.TAFImpl;
-import fi.fmi.avi.parser.ConversionSpecification;
-import fi.fmi.avi.parser.Lexeme.Identity;
+import fi.fmi.avi.converter.ConversionSpecification;
 import fi.fmi.avi.parser.impl.AbstractAviMessageTest;
+import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 
 public class Taf7Test extends AbstractAviMessageTest<String, TAF> {
 
@@ -38,8 +38,13 @@ public class Taf7Test extends AbstractAviMessageTest<String, TAF> {
 	}
 
 	@Override
-    public ConversionSpecification<String, TAF> getParserSpecification() {
+    public ConversionSpecification<String, TAF> getParsingSpecification() {
         return ConversionSpecification.TAC_TO_TAF_POJO;
+    }
+    
+    @Override
+    public ConversionSpecification<TAF, String> getSerializationSpecification() {
+        return ConversionSpecification.TAF_POJO_TO_TAC;
     }
 
 	@Override
