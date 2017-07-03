@@ -12,7 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import fi.fmi.avi.converter.impl.conf.AviMessageParserConfig;
+import fi.fmi.avi.converter.impl.conf.AviMessageConverterConfig;
 import fi.fmi.avi.tac.lexer.AviMessageLexer;
 import fi.fmi.avi.tac.lexer.Lexeme;
 import fi.fmi.avi.tac.lexer.LexemeSequence;
@@ -22,7 +22,7 @@ import fi.fmi.avi.tac.lexer.LexemeSequence;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = AviMessageParserConfig.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = AviMessageConverterConfig.class, loader = AnnotationConfigContextLoader.class)
 public class LexemeSequenceTest {
 
     @Autowired

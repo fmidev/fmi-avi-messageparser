@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fi.fmi.avi.converter.AviMessageConverter;
 import fi.fmi.avi.converter.ConversionIssue;
 import fi.fmi.avi.converter.ConversionResult;
-import fi.fmi.avi.converter.impl.conf.AviMessageParserConfig;
+import fi.fmi.avi.converter.impl.conf.AviMessageConverterConfig;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.converter.ConversionHints;
 import fi.fmi.avi.converter.ConversionSpecification;
@@ -44,7 +44,7 @@ import fi.fmi.avi.tac.lexer.LexemeSequence;
 import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = AviMessageParserConfig.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = AviMessageConverterConfig.class, loader = AnnotationConfigContextLoader.class)
 public abstract class AbstractAviMessageTest<S, T> {
 
 	private static final double FLOAT_EQUIVALENCE_THRESHOLD = 0.0000000001d;

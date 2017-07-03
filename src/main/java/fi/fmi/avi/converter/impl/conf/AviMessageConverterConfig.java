@@ -61,7 +61,7 @@ import fi.fmi.avi.tac.lexer.impl.token.WindShear;
  * Created by rinne on 10/02/17.
  */
 @Configuration
-public class AviMessageParserConfig {
+public class AviMessageConverterConfig {
 
     @Bean
     public AviMessageLexer aviMessageLexer() {
@@ -82,6 +82,20 @@ public class AviMessageParserConfig {
         return p;
     }
 
+    @Bean
+    public AviMessageTACTokenizer tacTokenizer() {
+        AviMessageTACTokenizerImpl tokenizer = new AviMessageTACTokenizerImpl();
+        tokenizer.setMETARSerializer(metarTACSerializer());
+        tokenizer.setTAFSerializer(tafTACSerializer());
+        return tokenizer;
+    }
+    
+    @Bean
+    public LexingFactory lexingFactory() {
+        return new LexingFactoryImpl();
+    }
+    
+    
     AviMessageSpecificConverter<String, METAR> metarTACParser() {
         TACParser<String, METAR> p = new METARTACParser();
         p.setTACLexer(aviMessageLexer());
@@ -92,14 +106,6 @@ public class AviMessageParserConfig {
         TACParser<String, TAF> p = new TAFTACParser();
         p.setTACLexer(aviMessageLexer());
         return p;
-    }
-
-    @Bean
-    public AviMessageTACTokenizer tacTokenizer() {
-        AviMessageTACTokenizerImpl tokenizer = new AviMessageTACTokenizerImpl();
-        tokenizer.setMETARSerializer(metarTACSerializer());
-        tokenizer.setTAFSerializer(tafTACSerializer());
-        return tokenizer;
     }
 
     METARTACSerializer metarTACSerializer() {
@@ -221,9 +227,6 @@ public class AviMessageParserConfig {
         return l;
     }
 
-    @Bean
-    public LexingFactory lexingFactory() {
-        return new LexingFactoryImpl();
-    }
+    
 
 }
