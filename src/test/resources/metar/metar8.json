@@ -4,7 +4,9 @@
   "issueHour": 11,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EGXE",
+  "aerodrome": {
+    "designator": "EGXE"
+  },
   "surfaceWind": {
     "meanWindDirection": {
       "value": 30.0,

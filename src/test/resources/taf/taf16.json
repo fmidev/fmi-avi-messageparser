@@ -4,7 +4,9 @@
   "issueHour": 8,
   "issueMinute": 40,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFKU",
+  "aerodrome": {
+     "designator": "EFKU"
+  },
   "validityStartDayOfMonth": 19,
   "validityStartHour": 16,
   "validityEndDayOfMonth": 19,

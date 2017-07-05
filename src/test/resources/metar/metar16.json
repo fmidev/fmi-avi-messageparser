@@ -4,7 +4,9 @@
   "issueHour": 13,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFTU",
+  "aerodrome": {
+    "designator": "EFTU"
+  },
   "automatedStation": true,
   "surfaceWind": {
     "variableDirection": true,

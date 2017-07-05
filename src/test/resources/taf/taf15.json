@@ -4,7 +4,9 @@
   "issueHour": 23,
   "issueMinute": 31,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFRO",
+  "aerodrome": {
+     "designator": "EFRO"
+  },
   "validityStartDayOfMonth": 7,
   "validityStartHour": 0,
   "validityEndDayOfMonth": 7,

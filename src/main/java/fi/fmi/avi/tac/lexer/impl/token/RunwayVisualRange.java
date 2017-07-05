@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import fi.fmi.avi.data.AviationCodeListUser.RelationalOperator;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.RunwayDirection;
 import fi.fmi.avi.converter.ConversionHints;
 import fi.fmi.avi.tac.lexer.SerializingException;
 import fi.fmi.avi.tac.lexer.Lexeme;
@@ -74,9 +75,12 @@ public class RunwayVisualRange extends RegexMatchingLexemeVisitor {
 			fi.fmi.avi.data.metar.RunwayVisualRange rvr = getAs(specifier, fi.fmi.avi.data.metar.RunwayVisualRange.class);
 			if (rvr != null) {
 				StringBuilder builder = new StringBuilder();
-
+				RunwayDirection rwd = rvr.getRunwayDirection();
+				if (rwd == null) {
+					throw new SerializingException("Runway direction cannot be null for RunwayVisualRange");
+				}
 				builder.append("R");
-				builder.append(rvr.getRunwayDirectionDesignator());
+				builder.append(rwd.getDesignator());
 				builder.append("/");
 
 				NumericMeasure meanRvr = rvr.getMeanRVR();

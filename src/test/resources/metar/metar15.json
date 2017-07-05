@@ -4,7 +4,9 @@
   "issueHour": 10,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFKK",
+  "aerodrome": {
+    "designator": "EFKK"
+  },
   "automatedStation": true,
   "surfaceWind": {
     "meanWindDirection": {

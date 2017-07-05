@@ -4,7 +4,9 @@
   "issueHour": 9,
   "issueMinute": 30,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFVA",
+  "aerodrome": {
+     "designator": "EFVA"
+  },
   "validityStartDayOfMonth": 27,
   "validityStartHour": 12,
   "validityEndDayOfMonth": 28,

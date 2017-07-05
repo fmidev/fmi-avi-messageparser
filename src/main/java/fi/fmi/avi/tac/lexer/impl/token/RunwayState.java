@@ -17,6 +17,7 @@ import fi.fmi.avi.data.AviationCodeListUser.RunwayContamination;
 import fi.fmi.avi.data.AviationCodeListUser.RunwayDeposit;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.RunwayDirection;
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.converter.ConversionHints;
 import fi.fmi.avi.tac.lexer.SerializingException;
@@ -511,11 +512,13 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 			} else {
 				
 				if (annex3_16th) {
-					String designator = state.getRunwayDirectionDesignator();
-					if (designator == null || !designator.matches("[0-9][0-9]R?")) {
-						throw new SerializingException("Illegal runway designator in RunwayState "+designator);
+					RunwayDirection rwd = state.getRunwayDirection();
+					if (rwd == null || !rwd.getDesignator().matches("[0-9][0-9]R?")) {
+						throw new SerializingException("Illegal runway designator in RunwayState: "+rwd);
 					}
+					String designator = rwd.getDesignator();
 					boolean rightSide = designator.endsWith("R");
+					
 					if (rightSide) {
 						designator = designator.substring(0, designator.length()-1);
 					}
@@ -530,7 +533,7 @@ public class RunwayState extends RegexMatchingLexemeVisitor {
 					}
 					runwayDesignator = String.format("%02d", code);
 				} else {
-					runwayDesignator = "R"+state.getRunwayDirectionDesignator()+"/";
+					runwayDesignator = "R"+state.getRunwayDirection().getDesignator()+"/";
 				}
 			}
 			return runwayDesignator;

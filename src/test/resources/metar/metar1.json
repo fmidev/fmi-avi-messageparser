@@ -4,7 +4,9 @@
   "issueHour": 24,
   "issueMinute": 0,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFHK",
+  "aerodrome": {
+    "designator":"EFHK"
+  },
   "presentWeather": [
   	{
       "code": "BR",
@@ -41,7 +43,12 @@
   },
   "runwayVisualRanges": [
     {
-      "runwayDirectionDesignator": "04R",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+            "designator":"EFHK"
+        },
+        "designator": "04R"
+      },
       "pastTendency": "DOWNWARD",
       "meanRVR": {
         "value": 500.0,
@@ -49,7 +56,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "15",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+            "designator":"EFHK"
+        },
+        "designator": "15"
+      },
       "pastTendency": "DOWNWARD",
       "varyingRVRMinimum": {
         "value": 600.0,
@@ -62,7 +74,12 @@
       "varyingRVRMaximumOperator": "ABOVE"
     },
     {
-      "runwayDirectionDesignator": "22L",
+     "runwayDirection": {
+        "associatedAirportHeliport": {
+            "designator":"EFHK"
+        },
+        "designator": "22L"
+      },
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
         "value": 275.0,
@@ -70,7 +87,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "04L",
+     "runwayDirection": {
+        "associatedAirportHeliport": {
+            "designator":"EFHK"
+        },
+        "designator": "04L"
+      },
       "meanRVROperator": "ABOVE",
       "pastTendency": "DOWNWARD",
       "meanRVR": {

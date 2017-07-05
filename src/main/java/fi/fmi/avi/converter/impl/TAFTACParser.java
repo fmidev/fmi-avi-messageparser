@@ -27,6 +27,7 @@ import java.util.List;
 
 import fi.fmi.avi.converter.ConversionIssue;
 import fi.fmi.avi.converter.ConversionResult;
+import fi.fmi.avi.data.Aerodrome;
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
@@ -108,7 +109,11 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                     MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
 
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                    (match) -> taf.setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+                    (match) -> {
+            			Aerodrome ad = new Aerodrome(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class));
+                    	taf.setAerodrome(ad);
+                    }, 
+                    () -> {
                         retval.addIssue(new ConversionIssue(ConversionIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + input));
                     });
 

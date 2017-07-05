@@ -279,14 +279,14 @@ public class ICAOCode extends RegexMatchingLexemeVisitor {
             Lexeme retval = null;
             if (METAR.class.isAssignableFrom(clz)) {
                 METAR m = (METAR) msg;
-                if (m.getAerodromeDesignator() != null) {
-                    retval = this.createLexeme(m.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                if (m.getAerodrome() != null) {
+                    retval = this.createLexeme(m.getAerodrome().getDesignator(), AERODROME_DESIGNATOR);
                 }
 
             } else if (TAF.class.isAssignableFrom(clz)) {
                 TAF t = (TAF) msg;
-                if (t.getAerodromeDesignator() != null) {
-                    retval = this.createLexeme(t.getAerodromeDesignator(), AERODROME_DESIGNATOR);
+                if (t.getAerodrome() != null) {
+                    retval = this.createLexeme(t.getAerodrome().getDesignator(), AERODROME_DESIGNATOR);
                 }
             }
             return retval;

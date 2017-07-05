@@ -1,5 +1,6 @@
 package fi.fmi.avi.converter.impl;
 
+import fi.fmi.avi.converter.AviMessageSpecificConverter;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.tac.lexer.AviMessageLexer;
 

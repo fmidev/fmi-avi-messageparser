@@ -4,7 +4,9 @@
   "issueHour": 23,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFHK",
+  "aerodrome": {
+     "designator": "EFHK"
+  },
   "validityStartDayOfMonth": -1,
   "validityStartHour": -1,
   "validityEndDayOfMonth": -1,

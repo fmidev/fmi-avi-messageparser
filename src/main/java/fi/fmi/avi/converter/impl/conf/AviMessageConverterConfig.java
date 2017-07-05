@@ -4,11 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import fi.fmi.avi.converter.AviMessageConverter;
+import fi.fmi.avi.converter.AviMessageSpecificConverter;
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.converter.ConversionSpecification;
 import fi.fmi.avi.converter.impl.AviMessageConverterImpl;
-import fi.fmi.avi.converter.impl.AviMessageSpecificConverter;
 import fi.fmi.avi.converter.impl.METARTACParser;
 import fi.fmi.avi.converter.impl.METARTACSerializer;
 import fi.fmi.avi.converter.impl.TACParser;
@@ -75,10 +75,10 @@ public class AviMessageConverterConfig {
     @Bean
     public AviMessageConverter aviMessageConverter() {
         AviMessageConverterImpl p = new AviMessageConverterImpl();
-        p.addMessageSpecificConverter(ConversionSpecification.TAC_TO_METAR_POJO, metarTACParser());
-        p.addMessageSpecificConverter(ConversionSpecification.TAC_TO_TAF_POJO, tafTACParser());
-        p.addMessageSpecificConverter(ConversionSpecification.METAR_POJO_TO_TAC, metarTACSerializer());
-        p.addMessageSpecificConverter(ConversionSpecification.TAF_POJO_TO_TAC, tafTACSerializer());
+        p.setMessageSpecificConverter(ConversionSpecification.TAC_TO_METAR_POJO, metarTACParser());
+        p.setMessageSpecificConverter(ConversionSpecification.TAC_TO_TAF_POJO, tafTACParser());
+        p.setMessageSpecificConverter(ConversionSpecification.METAR_POJO_TO_TAC, metarTACSerializer());
+        p.setMessageSpecificConverter(ConversionSpecification.TAF_POJO_TO_TAC, tafTACSerializer());
         return p;
     }
 

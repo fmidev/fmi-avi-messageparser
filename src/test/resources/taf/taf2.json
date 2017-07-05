@@ -4,7 +4,9 @@
 	"issueHour": 8,
 	"issueMinute": 15,
 	"issueTimeZone": "UTC",
-	"aerodromeDesignator": "EFAB",
+	"aerodrome": {
+	    "designator": "EFAB"
+	},
 	"validityStartDayOfMonth": 19,
 	"validityStartHour": 9,
 	"validityEndDayOfMonth": 19,

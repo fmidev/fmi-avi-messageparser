@@ -4,7 +4,9 @@
   "issueHour": 11,
   "issueMinute": 11,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFHK",
+  "aerodrome": {
+    "designator": "EFHK"
+  },
   "surfaceWind": {
     "meanWindDirection": {
       "value": 150.0,
@@ -27,7 +29,12 @@
   },
   "runwayVisualRanges": [
     {
-      "runwayDirectionDesignator": "04R",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFHK"
+        },
+        "designator": "04R"
+      },
       "pastTendency": "NO_CHANGE",
       "varyingRVRMinimum": {
         "value": 1500.0,
@@ -41,7 +48,12 @@
       "varyingRVRMaximumOperator": "ABOVE"
     },
     {
-      "runwayDirectionDesignator": "15",
+    "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFHK"
+        },
+        "designator": "15"
+      },
       "pastTendency": "UPWARD",
       "varyingRVRMinimum": {
         "value": 1000.0,
@@ -55,7 +67,12 @@
       "varyingRVRMaximumOperator": "BELOW"
     },
     {
-      "runwayDirectionDesignator": "22L",
+    "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFHK"
+        },
+        "designator": "22L"
+      },
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
         "value": 1200.0,
@@ -63,7 +80,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "04L",
+    "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFHK"
+        },
+        "designator": "04L"
+      },
       "pastTendency": "UPWARD",
       "varyingRVRMaximumOperator": "ABOVE",
       "varyingRVRMinimum": {
@@ -112,6 +134,7 @@
   },
   "runwayStates": [
     {
+      "runwayDirection": null,
       "repetition": true,
       "deposit": "MISSING_OR_NOT_REPORTED",
       "contamination": "MISSING_OR_NOT_REPORTED",

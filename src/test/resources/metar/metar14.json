@@ -4,7 +4,9 @@
   "issueHour": 17,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFOU",
+  "aerodrome": {
+    "designator": "EFOU"
+  },
   "automatedStation": true,
   "surfaceWind": {
     "meanWindDirection": {

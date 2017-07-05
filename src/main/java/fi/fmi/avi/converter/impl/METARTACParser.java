@@ -35,10 +35,12 @@ import org.slf4j.LoggerFactory;
 import fi.fmi.avi.converter.ConversionIssue;
 import fi.fmi.avi.converter.ConversionResult;
 import fi.fmi.avi.converter.ConversionIssue.Type;
+import fi.fmi.avi.data.Aerodrome;
 import fi.fmi.avi.data.AviationCodeListUser;
 import fi.fmi.avi.data.AviationCodeListUser.BreakingAction;
 import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
+import fi.fmi.avi.data.RunwayDirection;
 import fi.fmi.avi.data.impl.CloudForecastImpl;
 import fi.fmi.avi.data.impl.NumericMeasureImpl;
 import fi.fmi.avi.data.impl.WeatherImpl;
@@ -132,7 +134,11 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
             stopAt = new Identity[] { ISSUE_TIME, SURFACE_WIND, CAVOK, HORIZONTAL_VISIBILITY, CLOUD, AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, RECENT_WEATHER,
                     WIND_SHEAR, SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
             findNext(AERODROME_DESIGNATOR, lexed.getFirstLexeme(), stopAt,
-                    (match) -> result.getConvertedMessage().setAerodromeDesignator(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class)), () -> {
+                    (match) -> {
+                    	Aerodrome ad = new Aerodrome(match.getParsedValue(Lexeme.ParsedValueName.VALUE, String.class));
+                    	result.getConvertedMessage().setAerodrome(ad);
+                    }, 
+                    () -> {
                         result.addIssue(new ConversionIssue(ConversionIssue.Type.SYNTAX_ERROR, "Aerodrome designator not given in " + input));
                     });
 
@@ -268,7 +274,8 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
         findNext(RUNWAY_VISUAL_RANGE, lexed.getFirstLexeme(), before, (match) -> {
             List<RunwayVisualRange> rvrs = new ArrayList<>();
             while (match != null) {
-                String runway = match.getParsedValue(Lexeme.ParsedValueName.RUNWAY, String.class);
+                RunwayDirection runway = new RunwayDirection(match.getParsedValue(Lexeme.ParsedValueName.RUNWAY, String.class));
+                runway.setAssociatedAirportHeliport(msg.getAerodrome());
                 Integer minValue = match.getParsedValue(Lexeme.ParsedValueName.MIN_VALUE, Integer.class);
                 RecognizingAviMessageTokenLexer.RelationalOperator minValueOperator = match.getParsedValue(Lexeme.ParsedValueName.RELATIONAL_OPERATOR,
                         RecognizingAviMessageTokenLexer.RelationalOperator.class);
@@ -286,7 +293,7 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                     result.addIssue(new ConversionIssue(ConversionIssue.Type.SYNTAX_ERROR, "Missing visibility value for RVR in " + match.getTACToken()));
                 }
                 RunwayVisualRange rvr = new RunwayVisualRangeImpl();
-                rvr.setRunwayDirectionDesignator(runway);
+                rvr.setRunwayDirection(runway);
                 if (maxValue != null && minValue != null) {
                     rvr.setVaryingRVRMinimum(new NumericMeasureImpl(minValue, unit));
                     if (RecognizingAviMessageTokenLexer.RelationalOperator.LESS_THAN == minValueOperator) {
@@ -458,7 +465,7 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
         Identity[] before = { SEA_STATE, RUNWAY_STATE, COLOR_CODE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         findNext(WIND_SHEAR, lexed.getFirstLexeme(), before, (match) -> {
             final WindShear ws = new WindShearImpl();
-            List<String> runways = new ArrayList<>();
+            List<RunwayDirection> runways = new ArrayList<>();
             while (match != null) {
                 String rw = match.getParsedValue(Lexeme.ParsedValueName.RUNWAY, String.class);
                 if ("ALL".equals(rw)) {
@@ -473,13 +480,15 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
                         result.addIssue(new ConversionIssue(Type.LOGICAL_ERROR,
                                 "Wind shear reported both to all runways and at least one specific runway:" + match.getTACToken()));
                     } else {
-                        runways.add(rw);
+                    	RunwayDirection rwd = new RunwayDirection(rw);
+                    	rwd.setAssociatedAirportHeliport(msg.getAerodrome());
+                        runways.add(rwd);
                     }
                 }
                 match = findNext(WIND_SHEAR, match, before);
             }
             if (!runways.isEmpty()) {
-                ws.setRunwayDirectionDesignators(runways);
+                ws.setRunwayDirections(runways);
             }
             msg.setWindShear(ws);
         });
@@ -561,7 +570,8 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
 				Map<RunwayStateReportType, Object> values = match.getParsedValue(ParsedValueName.VALUE, Map.class);
 	        	Boolean repetition = (Boolean)values.get(RunwayStateReportType.REPETITION);
 	        	Boolean allRunways = (Boolean)values.get(RunwayStateReportType.ALL_RUNWAYS);
-	        	String runway = match.getParsedValue(ParsedValueName.RUNWAY, String.class);
+	        	RunwayDirection runway = new RunwayDirection(match.getParsedValue(ParsedValueName.RUNWAY, String.class));
+	        	runway.setAssociatedAirportHeliport(msg.getAerodrome());
 	        	RunwayStateDeposit deposit = (RunwayStateDeposit)values.get(RunwayStateReportType.DEPOSITS);
 	        	RunwayStateContamination contamination = (RunwayStateContamination)values.get(RunwayStateReportType.CONTAMINATION);
 	        	Integer depthOfDeposit = (Integer)values.get(RunwayStateReportType.DEPTH_OF_DEPOSIT);
@@ -574,15 +584,16 @@ public class METARTACParser extends AbstractAviMessageParser implements TACParse
 
                 Boolean snowClosure = (Boolean) values.get(RunwayStateReportType.SNOW_CLOSURE);
 
+                // Runway direction is missing if repetition, allRunways or SnoClo:
                 if (repetition != null && repetition) {
                     rws.setRepetition(true);
 	        	} else if (allRunways != null && allRunways) {
 	        		rws.setAllRunways(true);
-                } else if (runway != null) {
-                    rws.setRunwayDirectionDesignator(runway);
                 } else if (snowClosure != null && snowClosure.booleanValue()) {
                     rws.setAllRunways(true);
                     rws.setSnowClosure(true);
+                } else if (runway.getDesignator() != null) {
+                    rws.setRunwayDirection(runway);
                 } else {
                     result.addIssue(new ConversionIssue(Type.SYNTAX_ERROR, "No runway specified for runway state report: " + match.getTACToken()));
                 }

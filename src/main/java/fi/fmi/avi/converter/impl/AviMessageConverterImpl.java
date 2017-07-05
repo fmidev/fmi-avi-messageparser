@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fi.fmi.avi.converter.AviMessageConverter;
+import fi.fmi.avi.converter.AviMessageSpecificConverter;
 import fi.fmi.avi.converter.ConversionResult;
 import fi.fmi.avi.data.AviationWeatherMessage;
 import fi.fmi.avi.converter.ConversionHints;
@@ -74,7 +75,7 @@ public class AviMessageConverterImpl implements AviMessageConverter {
     }
 
     /**
-     * Adds converting capability for the given {@link ConversionSpecification} to this converter instance.
+     * Adds conversion capability for the given {@link ConversionSpecification} to this converter instance.
      *
      * @param spec
      *         the parsing capability specification including input and output formats
@@ -85,7 +86,8 @@ public class AviMessageConverterImpl implements AviMessageConverter {
      * @param <T>
      *         the type of the message to return
      */
-    public <S, T> void addMessageSpecificConverter(ConversionSpecification<S, T> spec, AviMessageSpecificConverter<S, T> converter) {
+    @Override
+    public <S, T> void setMessageSpecificConverter(ConversionSpecification<S, T> spec, AviMessageSpecificConverter<S, T> converter) {
         this.parsers.put(spec, converter);
     }
     

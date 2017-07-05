@@ -4,7 +4,9 @@
   "issueHour": 11,
   "issueMinute": 15,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFUT",
+  "aerodrome": {
+    "designator": "EFUT"
+  },
   "surfaceWind": {
     "meanWindDirection": {
       "value": 180.0,
@@ -39,7 +41,12 @@
   },
   "runwayVisualRanges": [
     {
-      "runwayDirectionDesignator": "04R",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFUT"
+        },
+        "designator": "04R"
+      },
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
         "value": 1500.0,
@@ -47,7 +54,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "15",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFUT"
+        },
+        "designator": "15"
+      },
       "pastTendency": "DOWNWARD",
       "meanRVROperator": "BELOW",
       "meanRVR": {
@@ -56,7 +68,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "22L",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFUT"
+        },
+        "designator": "22L"
+      },
       "pastTendency": "NO_CHANGE",
       "meanRVR": {
         "value": 1200.0,
@@ -64,7 +81,12 @@
       }
     },
     {
-      "runwayDirectionDesignator": "04L",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFUT"
+        },
+        "designator": "04L"
+      },
       "pastTendency": "UPWARD",
       "meanRVROperator": "ABOVE",
       "meanRVR": {

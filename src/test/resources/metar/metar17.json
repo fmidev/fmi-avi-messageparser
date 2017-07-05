@@ -4,7 +4,9 @@
   "issueHour": 10,
   "issueMinute": 4,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "KORD",
+  "aerodrome": {
+    "designator": "KORD"
+  },
   "automatedStation": false,
   "surfaceWind": {
     "meanWindDirection": {

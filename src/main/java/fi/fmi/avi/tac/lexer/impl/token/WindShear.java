@@ -3,9 +3,11 @@ package fi.fmi.avi.tac.lexer.impl.token;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.WIND_SHEAR;
 import static fi.fmi.avi.tac.lexer.Lexeme.ParsedValueName.RUNWAY;
 
+import java.util.List;
 import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.RunwayDirection;
 import fi.fmi.avi.data.metar.METAR;
 import fi.fmi.avi.converter.ConversionHints;
 import fi.fmi.avi.tac.lexer.Lexeme;
@@ -53,13 +55,13 @@ public class WindShear extends RegexMatchingLexemeVisitor {
             		str.append(" ALL RWY");
             	} else {
                     boolean annex3_16th = hints.containsValue(ConversionHints.VALUE_SERIALIZATION_POLICY_ANNEX3_16TH);
-                    for (String rwy : windShear.getRunwayDirectionDesignators()) {
+                    for (RunwayDirection rwd :  windShear.getRunwayDirections()) {
             			if (annex3_16th) {
             				str.append(" RWY");
             			} else {
             				str.append(" R");
             			}
-            			str.append(rwy);
+            			str.append(rwd.getDesignator());
             		}
             	}
             	

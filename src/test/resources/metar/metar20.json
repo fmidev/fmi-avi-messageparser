@@ -4,7 +4,9 @@
   "issueHour": 13,
   "issueMinute": 50,
   "issueTimeZone": "UTC",
-  "aerodromeDesignator": "EFTU",
+  "aerodrome": {
+    "designator": "EFTU"
+  },
   "surfaceWind": {
     "variableDirection": true,
     "meanWindSpeed": {
@@ -27,7 +29,12 @@
   },
   "runwayStates": [
     {
-      "runwayDirectionDesignator": "15R",
+      "runwayDirection": {
+        "associatedAirportHeliport": {
+          "designator": "EFTU"
+        },
+        "designator": "15R"
+      },
       "runwayNotOperational": true,
       "depthNotMeasurable": true,
       "deposit": "MISSING_OR_NOT_REPORTED",
