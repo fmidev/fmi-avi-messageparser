@@ -1,17 +1,10 @@
 {
 	"status": "NORMAL",
-	"issueDayOfMonth": 19,
-	"issueHour": 8,
-	"issueMinute": 15,
-	"issueTimeZone": "UTC",
+	"partialIssueTime": "190815Z",
 	"aerodrome": {
 	    "designator": "EFAB"
 	},
-	"validityStartDayOfMonth": 19,
-	"validityStartHour": 9,
-	"validityEndDayOfMonth": 19,
-	"validityEndHour": 15,
-	
+	"partialValidityTimePeriod": "1909/1915",
 	"baseForecast": {
 	  "surfaceWind": {
 	  	"variableDirection": false,

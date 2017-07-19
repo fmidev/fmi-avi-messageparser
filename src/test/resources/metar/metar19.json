@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 11,
-  "issueHour": 11,
-  "issueMinute": 11,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "111111Z",
   "aerodrome": {
     "designator": "EFHK"
   },
@@ -146,11 +143,8 @@
     {
       "changeIndicator": "BECOMING",
       "timeGroups": {
-        "singleInstance": true,
-        "fromHour": 9,
-        "fromMinute": 27,
-        "toHour": -1,
-        "toMinute": -1
+        "partialStartTime": "0927",
+        "singleInstance": true
       },
       "surfaceWind": {
         "meanWindDirection": {
@@ -171,11 +165,8 @@
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
       "timeGroups": {
-        "singleInstance": false,
-        "fromHour": 10,
-        "fromMinute": 51,
-        "toHour": -1,
-        "toMinute": -1
+        "partialStartTime": "1051",
+        "singleInstance": false
       },
       "cloud": {
         "verticalVisibility": {
@@ -187,13 +178,12 @@
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
       "timeGroups": {
-        "singleInstance": false,
-        "fromHour": 11,
-        "fromMinute": 30,
-        "toHour": -1,
-        "toMinute": -1
+        "partialStartTime": "1130",
+        "singleInstance": false
       },
-      "noSignificantCloud": true
+      "cloud": {
+        "noSignificantCloud": true
+      }
     }
   ]
 }

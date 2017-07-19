@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 1,
-  "issueHour": 5,
-  "issueMinute": 50,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "010550Z",
   "aerodrome": {
     "designator": "EFHK"
   },

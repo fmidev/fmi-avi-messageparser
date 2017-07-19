@@ -28,7 +28,7 @@ public class IssueTime extends TimeHandlingRegex {
             int date = Integer.parseInt(match.group(1));
             int hour = Integer.parseInt(match.group(2));
             int minute = Integer.parseInt(match.group(3));
-            if (timeOk(date, hour, minute)) {
+            if (timeOkDayHourMinute(date, hour, minute)) {
             	token.identify(ISSUE_TIME);
             	token.setParsedValue(DAY1, Integer.valueOf(date));
                 token.setParsedValue(HOUR1, Integer.valueOf(hour));
@@ -43,21 +43,7 @@ public class IssueTime extends TimeHandlingRegex {
 
         @Override
         public <T extends AviationWeatherMessage> Lexeme getAsLexeme(T msg, Class<T> clz, final ConversionHints hints, final Object... specifier) {
-            StringBuilder retval = new StringBuilder();
-            int date = msg.getIssueDayOfMonth();
-            int hour = msg.getIssueHour();
-            int minute = msg.getIssueMinute();
-            if (timeOk(date, hour, minute)) {
-                retval.append(String.format("%02d", date));
-                retval.append(String.format("%02d", hour));
-                retval.append(String.format("%02d", minute));
-                if ("UTC".equals(msg.getIssueTimeZone())) {
-                    retval.append('Z');
-                } else {
-                    retval.append(msg.getIssueTimeZone());
-                }
-            }
-            return this.createLexeme(retval.toString(), Lexeme.Identity.ISSUE_TIME);
+            return this.createLexeme(msg.getPartialIssueTime(), Lexeme.Identity.ISSUE_TIME);
         }
     }
 

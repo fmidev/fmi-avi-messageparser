@@ -56,11 +56,11 @@ public class AviMessageLexerImpl implements AviMessageLexer {
                 lexemesChanged = false;
                 iterationCount++;
                 int oldHashCode;
-                List<Lexeme> unrecognizedlexemes = result.getLexemes()
+                List<Lexeme> lexemes = result.getLexemes()
                         .stream()
-                        .filter(l -> Lexeme.Status.UNRECOGNIZED == l.getStatus())
+                        .filter(l -> l.getIdentificationCertainty() < 1.0)
                         .collect(Collectors.toList());
-                for (Lexeme lexeme : unrecognizedlexemes) {
+                for (Lexeme lexeme : lexemes) {
                     oldHashCode = lexeme.hashCode();
                     lexeme.accept(tokenLexer, hints);
                     lexemesChanged = lexemesChanged || oldHashCode != lexeme.hashCode();

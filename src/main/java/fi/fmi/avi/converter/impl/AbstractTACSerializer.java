@@ -50,7 +50,7 @@ public abstract class AbstractTACSerializer<S extends AviationWeatherMessage, T>
         return this.reconstructors.get(id);
     }
 
-    protected <T extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final T msg, final Class<T> clz,
+    protected <V extends AviationWeatherMessage> int appendCloudLayers(final LexemeSequenceBuilder builder, final V msg, final Class<V> clz,
             final List<CloudLayer> layers, final ConversionHints hints, final Object... specifier) throws SerializingException {
         int retval = 0;
         if (layers != null) {
@@ -67,7 +67,7 @@ public abstract class AbstractTACSerializer<S extends AviationWeatherMessage, T>
         return retval;
     }
 
-    protected <T extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Lexeme.Identity id, final T msg, final Class<T> clz,
+    protected <V extends AviationWeatherMessage> int appendToken(final LexemeSequenceBuilder builder, final Lexeme.Identity id, final V msg, final Class<V> clz,
             final ConversionHints hints, final Object... specifier) throws SerializingException {
         TACTokenReconstructor rec = this.reconstructors.get(id);
         int retval = 0;

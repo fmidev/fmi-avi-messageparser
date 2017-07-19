@@ -19,6 +19,7 @@ import fi.fmi.avi.data.taf.TAFForecast;
 import fi.fmi.avi.converter.ConversionHints;
 import fi.fmi.avi.tac.lexer.SerializingException;
 import fi.fmi.avi.tac.lexer.Lexeme;
+import fi.fmi.avi.tac.lexer.Lexeme.Identity;
 import fi.fmi.avi.tac.lexer.Lexeme.Status;
 import fi.fmi.avi.tac.lexer.impl.FactoryBasedReconstructor;
 import fi.fmi.avi.tac.lexer.impl.RecognizingAviMessageTokenLexer;
@@ -71,18 +72,69 @@ public class MetricHorizontalVisibility extends RegexMatchingLexemeVisitor {
 
     @Override
 	public void visitIfMatched(final Lexeme token, final Matcher match, final ConversionHints hints) {
-		int visibility = Integer.parseInt(match.group(1));
 		String direction = match.group(2);
+		double certainty = 0.5;
+    	//This is a tricky one, we need to separate the nnnn visibility from a nnnn change group validity time
+    	Lexeme l = token.getPrevious();
+    	if (l == null) {
+    		//Horizontal visibility cannot be the first token:
+    		return;
+    	}
+    	boolean inChangeGroup = false;
+    	while (l != null) {
+    		if (Identity.FORECAST_CHANGE_INDICATOR == l.getIdentity()) {
+        		inChangeGroup = true;
+        		break;
+        	}
+    		l = l.getPrevious();
+    	}
+    	if (!inChangeGroup) {
+    		Lexeme prev = token.getPrevious();
+    		if (Identity.SURFACE_WIND == prev.getIdentity() || Identity.VARIABLE_WIND_DIRECTION == prev.getIdentity() || Identity.HORIZONTAL_VISIBILITY == prev.getIdentity()) {
+    			certainty = 1.0;
+    		}
+    	} 
+    	else {
+    		if (Lexeme.Identity.TAF_START == token.getFirst().getIdentity()) {
+	    		if (direction == null) {
+	    			int startHour = Integer.parseInt(match.group(1).substring(0, 2));
+	    			int endHour = Integer.parseInt(match.group(1).substring(3, 4));
+	    			if ((startHour <= 24) && (endHour <= 24)) {
+	    				boolean hasAnotherVisibility = false;
+	    				//we start with the FORECAST_CHANGE_INDICATOR, so skip it:
+	    				l = l.getNext();
+	    				while (l != null && Identity.END_TOKEN != l.getIdentity() && Identity.FORECAST_CHANGE_INDICATOR != l.getIdentity()) {
+	    					if (Identity.HORIZONTAL_VISIBILITY == l.getIdentity() && l != token) {
+	    						hasAnotherVisibility = true;
+	    						break;
+	    					}
+	    					l = l.getNext();
+	    				}
+	    				if (hasAnotherVisibility) {
+	    					if (Identity.HORIZONTAL_VISIBILITY == token.getIdentity()) {
+	    	    				token.identify(null, Status.UNRECOGNIZED);
+	    	    			}
+	    					return;
+	    				}
+	    			} else {
+	    				certainty = 1.0;
+	    			}
+	    		}
+    		}
+    	}
+    	
+    	int visibility = Integer.parseInt(match.group(1));
 		if (direction != null) {
         	DirectionValue dv = DirectionValue.forCode(direction);
+        	certainty = 1.0;
         	if (dv == null) {
-        		token.identify(HORIZONTAL_VISIBILITY, Status.SYNTAX_ERROR, "Invalid visibility direction value '" + direction + "'");
+        		token.identify(HORIZONTAL_VISIBILITY, Status.SYNTAX_ERROR, "Invalid visibility direction value '" + direction + "'", certainty);
         	} else {
-        		token.identify(HORIZONTAL_VISIBILITY);
+        		token.identify(HORIZONTAL_VISIBILITY, certainty); 
         		token.setParsedValue(DIRECTION, dv);
         	}
         } else {
-        	token.identify(HORIZONTAL_VISIBILITY);
+        	token.identify(HORIZONTAL_VISIBILITY, certainty);
         }
 
         token.setParsedValue(UNIT, "m");

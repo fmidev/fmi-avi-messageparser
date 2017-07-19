@@ -1,17 +1,10 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 30,
-  "issueHour": 11,
-  "issueMinute": 3,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "301103Z",
   "aerodrome": {
      "designator": "EVRA"
   },
-  "validityStartDayOfMonth": 30,
-  "validityStartHour": 12,
-  "validityEndDayOfMonth": 31,
-  "validityEndHour": 12,
-  
+  "partialValidityTimePeriod": "3012/3112",
   "baseForecast": {
     "surfaceWind": {
 	  "variableDirection": false,
@@ -46,12 +39,7 @@
   "changeForecasts": [
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "validityStartDayOfMonth": 30,
-      "validityStartHour": 12,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 30,
-      "validityEndHour": 15,
-      
+      "partialValidityTimePeriod": "3012/3015",
       "surfaceWind": {
 	    "variableDirection": false,
 	    "meanWindDirection": {
@@ -94,12 +82,7 @@
     },
     {
       "changeIndicator": "FROM",
-      "validityStartDayOfMonth": 30,
-      "validityStartHour": 15,
-      "validityStartMinute": 0,
-      "validityEndDayOfMonth": -1,
-      "validityEndHour": -1,
-      
+      "partialValidityStartTime": "301500",
       "surfaceWind": {
 	    "variableDirection": false,
 	    "meanWindDirection": {
@@ -138,12 +121,7 @@
     },
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "validityStartDayOfMonth": 30,
-      "validityStartHour": 17,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 31,
-      "validityEndHour": 3,
-      
+      "partialValidityTimePeriod": "3017/3103",
       "surfaceWind": {
 	    "variableDirection": false,
 	    "meanWindDirection": {

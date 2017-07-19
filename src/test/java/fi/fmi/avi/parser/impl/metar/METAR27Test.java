@@ -7,7 +7,7 @@ import static fi.fmi.avi.tac.lexer.Lexeme.Identity.END_TOKEN;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
+import static fi.fmi.avi.tac.lexer.Lexeme.Identity.CLOUD;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.REMARK;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.SURFACE_WIND;
@@ -40,7 +40,7 @@ public class METAR27Test extends AbstractAviMessageTest<String, METAR> {
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {
 		return new Identity[] {
-				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, WEATHER, NO_SIGNIFICANT_CLOUD,
+				METAR_START, AERODROME_DESIGNATOR, ISSUE_TIME, SURFACE_WIND, HORIZONTAL_VISIBILITY, WEATHER, WEATHER, CLOUD,
                 AIR_DEWPOINT_TEMPERATURE, AIR_PRESSURE_QNH, REMARKS_START, REMARK, REMARK, REMARK, REMARK, END_TOKEN
 		};
 	}

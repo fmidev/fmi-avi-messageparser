@@ -93,6 +93,7 @@ public class ValidTimeReconstructorTest {
 		
 		when(msg.getValidityEndDayOfMonth()).thenReturn(endDay);
 		when(msg.getValidityEndHour()).thenReturn(endHour);
+		when(msg.getPartialValidityTimePeriod()).thenReturn(String.format("%02d%02d/%02d%02d", startDay, startHour, endDay, endHour));
 	}
 
 	private void assertOneLexeme(List<Lexeme> lexemes, Identity identity, String token) {

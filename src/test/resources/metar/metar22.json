@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 1,
-  "issueHour": 13,
-  "issueMinute": 50,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "011350Z",
   "aerodrome": {
     "designator":"EFTU"
   },
@@ -69,10 +66,7 @@
   "trends": [
     {
       "timeGroups": {
-        "fromHour": -1,
-        "fromMinute": -1,
-        "toHour": 15,
-        "toMinute": 30,
+        "partialEndTime": "1530",
         "singleInstance": false
       },
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",

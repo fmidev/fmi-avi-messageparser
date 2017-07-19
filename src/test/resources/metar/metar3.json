@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 4,
-  "issueHour": 16,
-  "issueMinute": 0,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "041600Z",
   "aerodrome": {
     "designator": "LBBG"
   },

@@ -10,8 +10,10 @@ import java.util.regex.Matcher;
 
 import fi.fmi.avi.data.AviationCodeListUser.CloudAmount;
 import fi.fmi.avi.data.AviationWeatherMessage;
+import fi.fmi.avi.data.CloudForecast;
 import fi.fmi.avi.data.NumericMeasure;
 import fi.fmi.avi.data.metar.METAR;
+import fi.fmi.avi.data.metar.ObservedClouds;
 import fi.fmi.avi.data.metar.TrendForecast;
 import fi.fmi.avi.data.taf.TAF;
 import fi.fmi.avi.data.taf.TAFBaseForecast;
@@ -74,7 +76,7 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
     }
 
     public CloudLayer(final Priority prio) {
-        super("^(([A-Z]{3}|VV)([0-9]{3}|/{3})(CB|TCU)?)|(/{6})$", prio);
+        super("^(([A-Z]{3}|VV)([0-9]{3}|/{3})(CB|TCU)?)|(/{6})|(SKC|NSC)$", prio);
     }
 
     @Override
@@ -84,24 +86,30 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
         	//Amount And Height Unobservable By Auto System
         	token.setParsedValue(ParsedValueName.VALUE, SpecialValue.AMOUNT_AND_HEIGHT_UNOBSERVABLE_BY_AUTO_SYSTEM);
         
-        } else {
-	    	CloudCover cloudCover = CloudCover.forCode(match.group(2));
+        } else { 
+	    	CloudCover cloudCover;
+	    	if (match.group(6) != null) {
+	    		cloudCover = CloudCover.forCode(match.group(6));
+	    	} else {
+	    		cloudCover = CloudCover.forCode(match.group(2));
+	    	}
 	        if (cloudCover != null) {
 	            token.identify(Lexeme.Identity.CLOUD);
 	            token.setParsedValue(COVER, cloudCover);
 	        } else {
 	            token.identify(CLOUD, Lexeme.Status.SYNTAX_ERROR, "Unknown cloud cover " + match.group(2));
 	        }
-            if ("///".equals(match.group(3))) {
-                token.setParsedValue(VALUE, SpecialValue.CLOUD_BASE_BELOW_AERODROME);
-            } else {
-                token.setParsedValue(VALUE, Integer.parseInt(match.group(3)));
-            }
+	        if (match.group(3) != null) {
+	            if ("///".equals(match.group(3))) {
+	                token.setParsedValue(VALUE, SpecialValue.CLOUD_BASE_BELOW_AERODROME);
+	            } else {
+	                token.setParsedValue(VALUE, Integer.parseInt(match.group(3)));
+	                token.setParsedValue(UNIT, "hft");
+	            }
+	        }
             if (match.group(4) != null) {
 	            token.setParsedValue(TYPE, CloudType.forCode(match.group(4)));
-	        }
-
-	        token.setParsedValue(UNIT, "hft");
+            }
         }
     }
     
@@ -115,37 +123,51 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
             String specialValue = getAs(specifier, 0, String.class);
 
             NumericMeasure verVis = null;
-
+            boolean nsc = false;
+            
             if (TAF.class.isAssignableFrom(clz)) {
                 TAFBaseForecast baseFct = getAs(specifier, 1, TAFBaseForecast.class);
                 TAFChangeForecast changeFct = getAs(specifier, 1, TAFChangeForecast.class);
-            	if (baseFct != null || changeFct != null){
-
+            	if (baseFct != null || changeFct != null) {
+            		CloudForecast cFct;
+            		if (baseFct != null) {
+            			cFct = baseFct.getCloud();
+            		} else {
+            			cFct = changeFct.getCloud();
+            		}
                     if ("VV".equals(specialValue)) {
-                        if (baseFct != null) {
-            				verVis = baseFct.getCloud().getVerticalVisibility();
-            			} else {
-            				verVis = changeFct.getCloud().getVerticalVisibility();
-            			}
+                        verVis = cFct.getVerticalVisibility();
+            		} else if (cFct.isNoSignificantCloud()) {
+            			nsc = true;
             		}
 				}
             } else if (METAR.class.isAssignableFrom(clz)) {
             	METAR metar = (METAR)msg;
-            	if ("VV".equals(specialValue)) {
-            		TrendForecast trend = getAs(specifier, TrendForecast.class);
-            		
-            		if (trend == null) {
-            			verVis = metar.getClouds().getVerticalVisibility();
-            		} else {
+            	ObservedClouds obsClouds = metar.getClouds();
+            	if (obsClouds.isNoSignificantCloud()) {
+            		nsc = true;
+            	}
+            	TrendForecast trend = getAs(specifier, TrendForecast.class);
+            	if (trend != null) {
+            		if ("VV".equals(specialValue)) {
             			verVis = trend.getCloud().getVerticalVisibility();
+            		} else if (trend.getCloud() != null && trend.getCloud().isNoSignificantCloud()) {
+            			nsc = true;
+            		}
+            	} else {
+            		if ("VV".equals(specialValue)) {
+            			verVis = metar.getClouds().getVerticalVisibility();
             		}
             	}
             }
-            
-            String str = getCloudLayerOrVerticalVisibilityToken(layer, verVis);
-            if (str != null) {
-            	retval = this.createLexeme(str, Identity.CLOUD);
-            }
+            if (nsc) {
+            	retval = this.createLexeme("NSC", Identity.CLOUD);
+            } else {
+            	String str = getCloudLayerOrVerticalVisibilityToken(layer, verVis);
+            	if (str != null) {
+            		retval = this.createLexeme(str, Identity.CLOUD);
+            	}
+        	}
 
             return retval;
         }
@@ -159,13 +181,15 @@ public class CloudLayer extends RegexMatchingLexemeVisitor {
                 CloudAmount amount = layer.getAmount();
     			fi.fmi.avi.data.AviationCodeListUser.CloudType type = layer.getCloudType();
         		sb.append(amount.name());
-                if (base == null || base.getValue() == null) {
-                    sb.append("///");
-                } else {
-                    sb.append(String.format("%03d", getAsHectoFeet(base)));
-                }
-                if (type != null) {
-        			sb.append(type.name());
+        		if (CloudAmount.SKC != amount) {
+	                if (base == null || base.getValue() == null) {
+	                    sb.append("///");
+	                } else {
+	                    sb.append(String.format("%03d", getAsHectoFeet(base)));
+	                }
+	                if (type != null) {
+	        			sb.append(type.name());
+	        		}
         		}
         		ret = sb.toString();
         		

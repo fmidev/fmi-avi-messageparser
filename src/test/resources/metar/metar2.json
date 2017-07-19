@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 20,
-  "issueHour": 10,
-  "issueMinute": 4,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "201004Z",
   "aerodrome": {
     "designator": "KORD"
   },

@@ -1,14 +1,8 @@
 {
   "status": "CANCELLATION",
-  "issueDayOfMonth": 19,
-  "issueHour": 11,
-  "issueMinute": 0,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "191100Z",
   "aerodrome": {
      "designator": "EFAB"
   },
-  "validityStartDayOfMonth": 19,
-  "validityStartHour": 9,
-  "validityEndDayOfMonth": 19,
-  "validityEndHour": 15
+  "partialValidityTimePeriod": "1909/1915"
 }

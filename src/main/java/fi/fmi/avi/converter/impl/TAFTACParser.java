@@ -15,7 +15,6 @@ import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.MAX_TEMPERATURE;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.MIN_TEMPERATURE;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NIL;
-import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.REMARKS_START;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.SURFACE_WIND;
@@ -52,6 +51,7 @@ import fi.fmi.avi.tac.lexer.impl.token.CloudLayer;
 import fi.fmi.avi.tac.lexer.impl.token.ForecastChangeIndicator;
 import fi.fmi.avi.tac.lexer.impl.token.MetricHorizontalVisibility;
 import fi.fmi.avi.tac.lexer.impl.token.SurfaceWind;
+import fi.fmi.avi.tac.lexer.impl.token.CloudLayer.CloudCover;
 
 /**
  *
@@ -181,28 +181,14 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
             Integer endDay = match.getParsedValue(Lexeme.ParsedValueName.DAY2, Integer.class);
             Integer startHour = match.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
             Integer endHour = match.getParsedValue(Lexeme.ParsedValueName.HOUR2, Integer.class);
-            if (startDay != null) {
-                fct.setValidityStartDayOfMonth(startDay);
+            if (startDay != null && startHour != null && endHour != null) {
+            	if (endDay != null) {
+            		fct.setPartialValidityTimePeriod(startDay, endDay, startHour, endHour);
+            	} else {
+            		fct.setPartialValidityTimePeriod(startDay, startHour, endHour);
+            	}
             } else {
-                retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing start day of validity" + match.getTACToken()));
-            }
-
-            if (endDay != null) {
-                fct.setValidityEndDayOfMonth(endDay);
-            } else if (startDay != null) {
-                fct.setValidityEndDayOfMonth(startDay);
-            }
-
-            if (startHour != null) {
-                fct.setValidityStartHour(startHour);
-            } else {
-                retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing start hour of validity: " + match.getTACToken()));
-            }
-
-            if (endHour != null) {
-                fct.setValidityEndHour(endHour);
-            } else {
-                retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing end hour of validity: " + match.getTACToken()));
+                retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Must have at least startDay, startHour and endHour of validity " + match.getTACToken()));
             }
         }, () -> {
             retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing validity"));
@@ -225,15 +211,6 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
 
         before = new Identity[] { CLOUD, MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateWeather(baseFct, lexed.getFirstLexeme(), before, hints));
-
-        findNext(NO_SIGNIFICANT_CLOUD, lexed.getFirstLexeme(), before, (match) -> {
-            CloudForecast cfct = baseFct.getCloud();
-            if (cfct != null && (cfct.getVerticalVisibility() != null || (cfct.getLayers() != null && cfct.getLayers().size() > 0))) {
-                retval.add(new ConversionIssue(ConversionIssue.Type.LOGICAL_ERROR, "Cannot have both NSC and clouds in the same change forecast"));
-            } else {
-                baseFct.setNoSignificantCloud(true);
-            }
-        });
 
         before = new Identity[] { MIN_TEMPERATURE, MAX_TEMPERATURE, FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateClouds(baseFct, lexed.getFirstLexeme(), before, hints));
@@ -268,18 +245,11 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                 Integer hour = minTempToken.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
                 Integer value = minTempToken.getParsedValue(Lexeme.ParsedValueName.VALUE, Integer.class);
 
-                if (day != null) {
-                    airTemperatureForecast.setMinTemperatureDayOfMonth(day);
+                if (day != null && hour != null) {
+                    airTemperatureForecast.setPartialMinTemperatureTime(day, hour);
                 } else {
                     retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
-                            "Missing day of month for min forecast temperature: " + minTempToken.getTACToken()));
-                }
-
-                if (hour != null) {
-                    airTemperatureForecast.setMinTemperatureHour(hour);
-                } else {
-                    retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
-                            "Missing hour of day for min forecast temperature: " + minTempToken.getTACToken()));
+                            "Missing day of month and/or hour of day for min forecast temperature: " + minTempToken.getTACToken()));
                 }
 
                 if (value != null) {
@@ -292,18 +262,11 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                 hour = maxTempToken.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
                 value = maxTempToken.getParsedValue(Lexeme.ParsedValueName.VALUE, Integer.class);
 
-                if (day != null) {
-                    airTemperatureForecast.setMaxTemperatureDayOfMonth(day);
+                if (day != null && hour != null) {
+                    airTemperatureForecast.setPartialMaxTemperatureTime(day, hour);
                 } else {
                     retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
-                            "Missing day of month for max forecast temperature: " + maxTempToken.getTACToken()));
-                }
-
-                if (hour != null) {
-                    airTemperatureForecast.setMaxTemperatureHour(hour);
-                } else {
-                    retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
-                            "Missing hour of day for max forecast temperature: " + maxTempToken.getTACToken()));
+                            "Missing day of month and/or hour of day for max forecast temperature: " + maxTempToken.getTACToken()));
                 }
 
                 if (value != null) {
@@ -351,12 +314,12 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                                 Integer day = match.getParsedValue(Lexeme.ParsedValueName.DAY1, Integer.class);
                                 Integer hour = match.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
                                 Integer minute = match.getParsedValue(Lexeme.ParsedValueName.MINUTE1, Integer.class);
-                                if (day != null) {
-                                    changeFct.setValidityStartDayOfMonth(day);
-                                }
                                 if (hour != null && minute != null) {
-                                    changeFct.setValidityStartHour(hour);
-                                    changeFct.setValidityStartMinute(minute);
+                                	if (day != null) {
+                                		changeFct.setPartialValidityStartTime(day, hour, minute);
+                                	} else {
+                                		changeFct.setPartialValidityStartTime(-1, hour, minute);
+                                	}
                                 } else {
                                     retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
                                             "Missing validity start hour or minute in " + match.getTACToken()));
@@ -414,13 +377,12 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                 Integer endDay = timeGroup.getParsedValue(Lexeme.ParsedValueName.DAY2, Integer.class);
                 Integer startHour = timeGroup.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
                 Integer endHour = timeGroup.getParsedValue(Lexeme.ParsedValueName.HOUR2, Integer.class);
-                if (endDay != null) {
-                    fct.setValidityEndDayOfMonth(endDay);
-                }
-                if (startDay != null && startHour != null && endHour != null) {
-                    fct.setValidityStartDayOfMonth(startDay);
-                    fct.setValidityStartHour(startHour);
-                    fct.setValidityEndHour(endHour);
+                if (startHour != null && endHour != null) {
+                	if (startDay != null && endDay != null) {
+                		fct.setPartialValidityTimePeriod(startDay, endDay, startHour, endHour);
+                	} else {
+                		fct.setPartialValidityTimePeriod(startHour, endHour);
+                	}
                 } else {
                     retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA,
                             "Missing validity day, hour or minute for change group in " + timeGroup.getTACToken()));
@@ -452,15 +414,6 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
 
         before = new Identity[] { FORECAST_CHANGE_INDICATOR, REMARKS_START };
         retval.addAll(updateClouds(fct, from, before, hints));
-
-        findNext(NO_SIGNIFICANT_CLOUD, from, before, (match) -> {
-            CloudForecast cfct = fct.getCloud();
-            if (cfct != null && (cfct.getVerticalVisibility() != null || (cfct.getLayers() != null && cfct.getLayers().size() > 0))) {
-                retval.add(new ConversionIssue(ConversionIssue.Type.LOGICAL_ERROR, "Cannot have both NSC and clouds in the same change forecast"));
-            } else {
-                fct.setNoSignificantCloud(true);
-            }
-        });
 
         return retval;
     }
@@ -570,6 +523,8 @@ public class TAFTACParser extends AbstractAviMessageParser implements TACParser<
                         height = null;
                     }
                     cloud.setVerticalVisibility(new NumericMeasureImpl(height, unit));
+                } else if (CloudCover.NO_SIG_CLOUDS == cover) {
+                	cloud.setNoSignificantCloud(true);
                 } else {
                     fi.fmi.avi.data.CloudLayer layer = getCloudLayer(match);
                     if (layer != null) {

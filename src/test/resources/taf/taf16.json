@@ -1,17 +1,10 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 19,
-  "issueHour": 8,
-  "issueMinute": 40,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "190840Z",
   "aerodrome": {
      "designator": "EFKU"
   },
-  "validityStartDayOfMonth": 19,
-  "validityStartHour": 16,
-  "validityEndDayOfMonth": 19,
-  "validityEndHour": 18,
-  
+  "partialValidityTimePeriod": "191618",
   "baseForecast": {
     "ceilingAndVisibilityOk": true,
     "surfaceWind": {

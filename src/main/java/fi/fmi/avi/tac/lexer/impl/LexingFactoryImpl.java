@@ -361,6 +361,7 @@ public class LexingFactoryImpl implements LexingFactory {
         private Map<ParsedValueName, Object> parsedValues;
         private int startIndex = -1;
         private int endIndex = -1;
+        private double certainty = 0.0d;
 
         //Lexing navigation:
         private Lexeme first;
@@ -376,6 +377,7 @@ public class LexingFactoryImpl implements LexingFactory {
             this.parsedValues = new HashMap<ParsedValueName, Object>(lexeme.getParsedValues());
             this.startIndex = lexeme.getStartIndex();
             this.endIndex = lexeme.getEndIndex();
+            this.certainty = lexeme.getIdentificationCertainty();
         }
 
         LexemeImpl(final String token) {
@@ -493,22 +495,43 @@ public class LexingFactoryImpl implements LexingFactory {
         public boolean isRecognized() {
             return !Status.UNRECOGNIZED.equals(this.status);
         }
+        
+        @Override
+        public double getIdentificationCertainty() {
+        	return this.certainty;
+        }
 
         @Override
+        public void identify(final Identity id, final double certainty) {
+            identify(id, Status.OK, null, certainty);
+        }
+
+        @Override
+        public void identify(final Identity id, final Status status, final double certainty) {
+            identify(id, status, null, certainty);
+        }
+
+        @Override
+        public void identify(final Identity id, final Status status, final String note, final double certainty) {
+            this.id = id;
+            this.status = status;
+            this.lexerMessage = note;
+            this.setIdentificationCertainty(certainty);
+        }
+        
+        @Override
         public void identify(final Identity id) {
-            identify(id, Status.OK, null);
+            identify(id, Status.OK, null, 1.0);
         }
 
         @Override
         public void identify(final Identity id, final Status status) {
-            identify(id, status, null);
+            identify(id, status, null, 1.0);
         }
 
         @Override
         public void identify(final Identity id, final Status status, final String note) {
-            this.id = id;
-            this.status = status;
-            this.lexerMessage = note;
+           identify(id, status, note, 1.0);
         }
 
         @Override
@@ -537,7 +560,15 @@ public class LexingFactoryImpl implements LexingFactory {
         public void setLexerMessage(final String msg) {
             this.lexerMessage = msg;
         }
-
+        
+        @Override
+        public void setIdentificationCertainty(final double percentage) {
+        	if (percentage < 0.0 || percentage > 1.0) {
+        		throw new IllegalArgumentException("Certainty must be between 0.0 and 1.0");
+        	}
+        	this.certainty = percentage;
+        }
+        
         void setStartIndex(final int index) {
             this.startIndex = index;
         }
@@ -546,6 +577,7 @@ public class LexingFactoryImpl implements LexingFactory {
             this.endIndex = index;
         }
 
+        
         @Override
         public void accept(final LexemeVisitor visitor, final ConversionHints hints) {
             //Always acccept:
@@ -565,6 +597,8 @@ public class LexingFactoryImpl implements LexingFactory {
         void setPrevious(final Lexeme token) {
             this.prev = token;
         }
+        
+        
 
         public String toString() {
             return new StringBuilder().append(this.tacToken)

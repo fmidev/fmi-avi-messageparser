@@ -1,17 +1,10 @@
 {
 	"status": "AMENDMENT",
-	"issueDayOfMonth": 19,
-	"issueHour": 10,
-	"issueMinute": 0,
-	"issueTimeZone": "UTC",
+	"partialIssueTime": "191000Z",
 	"aerodrome": {
 	    "designator": "EFAB"
 	},
-	"validityStartDayOfMonth": 19,
-	"validityStartHour": 9,
-	"validityEndDayOfMonth": 19,
-	"validityEndHour": 15,
-	
+	"partialValidityTimePeriod": "1909/1915",
 	"baseForecast": {
 	  "surfaceWind": {
 	    "variableDirection": false,

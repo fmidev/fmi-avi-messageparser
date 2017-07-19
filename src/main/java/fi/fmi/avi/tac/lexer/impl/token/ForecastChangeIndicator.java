@@ -73,7 +73,7 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
             }
             int hour = Integer.parseInt(match.group(5));
             int minute = Integer.parseInt(match.group(6));
-            if (timeOk(day, hour, minute)) {
+            if (timeOkDayHourMinute(day, hour, minute)) {
             	token.identify(FORECAST_CHANGE_INDICATOR);
                 if (day > -1) {
                     token.setParsedValue(DAY1, day);
@@ -172,20 +172,20 @@ public class ForecastChangeIndicator extends TimeHandlingRegex {
             List<Lexeme> retval = new ArrayList<>();
             if (timeGroups != null) {
                 if (timeGroups.isSingleInstance()) {
-                    if (timeGroups.getFromHour() > -1 && timeGroups.getFromMinute() > -1) {
+                    if (timeGroups.getPartialStartTime() != null) {
                         StringBuilder ret = new StringBuilder("AT");
-                        ret.append(String.format("%02d%02d", timeGroups.getFromHour(), timeGroups.getFromMinute()));
+                        ret.append(timeGroups.getPartialStartTime());
                         retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
                     }
                 } else {
-                    if (timeGroups.getFromHour() > -1 && timeGroups.getFromMinute() > -1) {
+                    if (timeGroups.getPartialStartTime() != null) {
                         StringBuilder ret = new StringBuilder("FM");
-                        ret.append(String.format("%02d%02d", timeGroups.getFromHour(), timeGroups.getFromMinute()));
+                        ret.append(timeGroups.getPartialStartTime());
                         retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
                     }
-                    if (timeGroups.getToHour() > -1 && timeGroups.getToMinute() > -1) {
+                    if (timeGroups.getPartialEndTime() != null) {
                         StringBuilder ret = new StringBuilder("TL");
-                        ret.append(String.format("%02d%02d", timeGroups.getToHour(), timeGroups.getToMinute()));
+                        ret.append(timeGroups.getPartialEndTime());
                         retval.add(this.createLexeme(ret.toString(), FORECAST_CHANGE_INDICATOR));
                     }
                 }

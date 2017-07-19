@@ -69,7 +69,7 @@ public class ForecastMaxMinTemperature extends TimeHandlingRegex {
             kindLexemeIdentity = MIN_TEMPERATURE;
         }
         
-        if (timeOk(day, hour)) {
+        if (timeOkDayHour(day, hour)) {
             if (ConversionHints.VALUE_TIMEZONE_ID_POLICY_STRICT == hints.get(ConversionHints.KEY_TIMEZONE_ID_POLICY)) {
                 if (match.group(6) == null) {
                 	token.identify(kindLexemeIdentity,Lexeme.Status.WARNING,"Missing time zone ID 'Z'");

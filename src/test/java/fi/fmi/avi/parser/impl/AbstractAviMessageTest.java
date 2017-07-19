@@ -8,6 +8,8 @@ import static org.junit.Assert.fail;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -140,6 +142,10 @@ public abstract class AbstractAviMessageTest<S, T> {
 		assertEquals("Parsing was not successful: " + result.getConversionIssues(), getExpectedParsingStatus(), result.getStatus());
 		assertParsingIssues(result.getConversionIssues());
 		assertAviationWeatherMessageEquals(readFromJSON(getJsonFilename()), result.getConvertedMessage());
+		ObjectMapper om = new ObjectMapper();
+		AviationWeatherMessage msg = result.getConvertedMessage();
+		msg.amendTimeReferences(ZonedDateTime.of(2017, 1, 1, 0, 0, 0, 0, ZoneId.of("Z")));
+		om.writerWithDefaultPrettyPrinter().writeValue(System.out, result.getConvertedMessage());
 	}
 	
 	@Test

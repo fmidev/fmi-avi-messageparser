@@ -1,17 +1,10 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 30,
-  "issueHour": 11,
-  "issueMinute": 30,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "301130Z",
   "aerodrome": {
      "designator": "EETN"
   },
-  "validityStartDayOfMonth": 30,
-  "validityStartHour": 12,
-  "validityEndDayOfMonth": 31,
-  "validityEndHour": 12,
-  
+  "partialValidityTimePeriod": "3012/3112",
   "baseForecast": {
     "surfaceWind": {
 	  "variableDirection": false,
@@ -74,13 +67,8 @@
   "changeForecasts": [
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "validityStartDayOfMonth": 30,
-      "validityStartHour": 12,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 30,
-      "validityEndHour": 18,
-      
-	  "prevailingVisibility": {
+      "partialValidityTimePeriod": "3012/3018",
+      "prevailingVisibility": {
 	    "value": 3000.0,
 	    "uom": "m"
 	  },
@@ -110,12 +98,7 @@
     },
     {
       "changeIndicator": "BECOMING",
-      "validityStartDayOfMonth": 30,
-      "validityStartHour": 18,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 30,
-      "validityEndHour": 20,
-      
+      "partialValidityTimePeriod": "3018/3020",
       "cloud": {
         "layers": [
           {
@@ -138,13 +121,8 @@
     },
     {
       "changeIndicator": "TEMPORARY_FLUCTUATIONS",
-      "validityStartDayOfMonth": 31,
-      "validityStartHour": 2,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 31,
-      "validityEndHour": 12,
-      
-	  "prevailingVisibility": {
+      "partialValidityTimePeriod": "3102/3112",
+      "prevailingVisibility": {
 	    "value": 3000.0,
 	    "uom": "m"
 	  },
@@ -178,12 +156,7 @@
     },
     {
       "changeIndicator": "BECOMING",
-      "validityStartDayOfMonth": 31,
-      "validityStartHour": 4,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 31,
-      "validityEndHour": 6,
-      
+      "partialValidityTimePeriod": "3104/3106",
       "surfaceWind": {
 	    "variableDirection": false,
 	    "meanWindDirection": {

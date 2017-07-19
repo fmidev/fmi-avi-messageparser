@@ -1,17 +1,10 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 19,
-  "issueHour": 8,
-  "issueMinute": 30,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "190830Z",
   "aerodrome": {
      "designator": "EFKU"
   },
-  "validityStartDayOfMonth": 19,
-  "validityStartHour": 9,
-  "validityEndDayOfMonth": 20,
-  "validityEndHour": 9,
-  
+  "partialValidityTimePeriod": "1909/2009",  
   "baseForecast": {
     "surfaceWind": {
 	  "variableDirection": false,
@@ -30,12 +23,7 @@
   "changeForecasts": [
     {
       "changeIndicator": "PROBABILITY_30_TEMPORARY_FLUCTUATIONS",
-      "validityStartDayOfMonth": 19,
-      "validityStartHour": 15,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 19,
-      "validityEndHour": 19,
-      
+      "partialValidityTimePeriod": "1915/1919",
       "prevailingVisibility": {
 	    "value": 7000.0,
 	    "uom": "m"
@@ -70,12 +58,7 @@
 	},
 	{
       "changeIndicator": "BECOMING",
-      "validityStartDayOfMonth": 19,
-      "validityStartHour": 23,
-      "validityStartMinute": -1,
-      "validityEndDayOfMonth": 20,
-      "validityEndHour": 1,
-      
+      "partialValidityTimePeriod": "1923/2001",
       "surfaceWind": {
 	    "variableDirection": false,
 	    "meanWindDirection": {

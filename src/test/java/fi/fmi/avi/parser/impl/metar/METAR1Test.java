@@ -46,12 +46,6 @@ public class METAR1Test extends AbstractAviMessageTest<String, METAR> {
 	public ConversionHints getLexerParsingHints() {
 		return ConversionHints.METAR;
 	}
-
-	// Remove this overridden method once the tokenizer is working
-	@Override
-	public void testTokenizer() throws SerializingException, IOException {
-
-	}
 	
 	@Override
 	public Identity[] getLexerTokenSequenceIdentity() {

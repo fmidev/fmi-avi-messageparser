@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 6,
-  "issueHour": 11,
-  "issueMinute": 50,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "061150Z",
   "aerodrome": {
     "designator": "EGXE"
   },

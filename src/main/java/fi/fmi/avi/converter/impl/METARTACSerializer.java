@@ -13,7 +13,6 @@ import static fi.fmi.avi.tac.lexer.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_WEATHER;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.RECENT_WEATHER;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.REMARK;
@@ -98,11 +97,12 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
                 this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "VV");
             } else if (obsClouds.isAmountAndHeightUnobservableByAutoSystem()) {
                 this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "//////");
+            } else if (obsClouds.isNoSignificantCloud()) {
+            	this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "NSC");
             } else {
                 this.appendCloudLayers(retval, input, METAR.class, obsClouds.getLayers(), hints);
             }
         }
-        appendToken(retval, NO_SIGNIFICANT_CLOUD, input, METAR.class, hints);
         appendToken(retval, AIR_DEWPOINT_TEMPERATURE, input, METAR.class, hints);
         appendToken(retval, AIR_PRESSURE_QNH, input, METAR.class, hints);
         if (input.getRecentWeather() != null) {
@@ -132,11 +132,13 @@ public class METARTACSerializer extends AbstractTACSerializer<METAR, String> {
                         appendToken(retval, WEATHER, input, METAR.class, hints, trend, weather);
                     }
                 }
-                appendToken(retval, Identity.NO_SIGNIFICANT_CLOUD, input, METAR.class, hints, trend);
+                
                 CloudForecast clouds = trend.getCloud();
                 if (clouds != null) {
                     if (clouds.getVerticalVisibility() != null) {
                         this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, "VV", trend);
+                    } else if (clouds.isNoSignificantCloud()) {
+                    	this.appendToken(retval, Lexeme.Identity.CLOUD, input, METAR.class, hints, trend);
                     } else {
                         this.appendCloudLayers(retval, input, METAR.class, clouds.getLayers(), hints, trend);
                     }

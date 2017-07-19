@@ -2,72 +2,96 @@ package fi.fmi.avi.tac.lexer.impl.token;
 
 import static org.junit.Assert.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import org.junit.Test;
 
-import fi.fmi.avi.tac.lexer.impl.token.TAFTimePeriod;
+import fi.fmi.avi.data.taf.TAF;
+import fi.fmi.avi.data.taf.impl.TAFImpl;
 
 public class CalculateNumberOfHoursTest {
 
 	@Test
 	public void testSingleDay() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(1, 0, 1, 6);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("0100/0106");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(6, hours);
 	}
 
 	@Test
 	public void testNoHours() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(1, 0, 1, 0);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("0100/0100");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(0, hours);
 	}
 
 	@Test
 	public void testSpanDaySingleHour() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(8, 23, 9, 0);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("0823/0900");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(1, hours);
 	}
 	
 
 	@Test
 	public void test24HourIllegalButUsedFormat() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(8, 0, 8, 24);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("0800/0824");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(24, hours);
 	}
 
 
 	@Test
 	public void testSpanDayMoreThan24Hours() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(8, 6, 9, 12);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("0806/0912");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(30, hours);
 	}
 	
 	@Test
 	public void testSpanToNextMonthStartHoursMoreThanEndHours() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(31, 22, 1, 8);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("3122/0108");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(10, hours);
 	}
 
 	
 	@Test
 	public void testSpanToNextMonthStartHoursLessThanEndHours_starts31st() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(31, 8, 1, 22);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("3108/0122");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(38, hours);
 	}
 	
 	@Test
 	public void testSpanToNextMonthStartHoursLessThanEndHours_starts30th() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(30, 8, 1, 22);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("3008/0122");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(38, hours);
 	}
 	
 	@Test
 	public void testSpanToNextMonthStartHoursLessThanEndHours_starts29th() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(29, 8, 1, 22);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("2908/0122");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(38, hours);
 	}
 	
 	@Test
 	public void testSpanToNextMonthStartHoursLessThanEndHours_starts28th() {
-		int hours = TAFTimePeriod.calculateNumberOfHours(28, 8, 1, 22);
+		TAF msg = new TAFImpl();
+		msg.setPartialValidityTimePeriod("2808/0122");
+		int hours = ValidTime.calculateNumberOfHours(msg);
 		assertEquals(38, hours);
 	}
 	
@@ -75,7 +99,9 @@ public class CalculateNumberOfHoursTest {
 	@Test
 	public void testSpanToNextMonthStartHoursLessThanEndHours_starts27th_illegal() {
 		try {
-			int hours = TAFTimePeriod.calculateNumberOfHours(27, 8, 1, 22);
+			TAF msg = new TAFImpl();
+			msg.setPartialValidityTimePeriod("2708/0122");
+			int hours = ValidTime.calculateNumberOfHours(msg);
 			fail("hours should not have been calculated "+hours);
 		} catch(Exception e) {
 			assertTrue(e instanceof IllegalArgumentException);
@@ -83,9 +109,22 @@ public class CalculateNumberOfHoursTest {
 	}
 	
 	@Test
+	public void testFullTimeReferencesMakesIllegalOk() {
+		TAF msg = new TAFImpl();
+		msg.setPartialIssueTime("270030Z");
+		msg.setPartialValidityTimePeriod("2708/0122");
+		
+		msg.amendTimeReferences(ZonedDateTime.of(2017, 2, 27, 0, 0, 0, 0, ZoneId.of("Z")));
+		int hours = ValidTime.calculateNumberOfHours(msg);
+		assertEquals(62, hours);
+	}
+	
+	@Test
 	public void testIllegalSpanTooLong() {
 		try {
-			int hours = TAFTimePeriod.calculateNumberOfHours(15, 22, 1, 8);
+			TAF msg = new TAFImpl();
+			msg.setPartialValidityTimePeriod("1522/0108");
+			int hours = ValidTime.calculateNumberOfHours(msg);
 			fail("hours should not have been calculated "+hours);
 		} catch(Exception e) {
 			assertTrue(e instanceof IllegalArgumentException);

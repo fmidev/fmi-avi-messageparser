@@ -10,7 +10,6 @@ import static fi.fmi.avi.tac.lexer.Lexeme.Identity.FORECAST_CHANGE_INDICATOR;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.HORIZONTAL_VISIBILITY;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.ISSUE_TIME;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.METAR_START;
-import static fi.fmi.avi.tac.lexer.Lexeme.Identity.NO_SIGNIFICANT_CLOUD;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.RUNWAY_STATE;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.RUNWAY_VISUAL_RANGE;
 import static fi.fmi.avi.tac.lexer.Lexeme.Identity.SEA_STATE;
@@ -52,7 +51,7 @@ public class METAR19Test extends AbstractAviMessageTest<String, METAR> {
                 SEA_STATE, RUNWAY_STATE,
                 FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, SURFACE_WIND, CAVOK,
                 FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, CLOUD,
-                FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, NO_SIGNIFICANT_CLOUD,
+                FORECAST_CHANGE_INDICATOR, FORECAST_CHANGE_INDICATOR, CLOUD,
                 END_TOKEN
 		};
 	}

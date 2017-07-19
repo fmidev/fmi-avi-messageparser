@@ -1,9 +1,6 @@
 {
   "status": "NORMAL",
-  "issueDayOfMonth": 20,
-  "issueHour": 10,
-  "issueMinute": 4,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "201004Z",
   "aerodrome": {
     "designator": "KORD"
   },
@@ -46,7 +43,9 @@
     },
     "prevailingVisibilityOperator": "ABOVE"
   },
-  "noSignificantCloud": true,
+  "clouds": {
+    "noSignificantCloud": true
+  },
   "remarks": [
   	"AO2", "DZB04", "P0000", "T00330028"
   ]

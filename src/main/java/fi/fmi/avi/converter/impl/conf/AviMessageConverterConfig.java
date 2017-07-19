@@ -42,7 +42,6 @@ import fi.fmi.avi.tac.lexer.impl.token.IssueTime;
 import fi.fmi.avi.tac.lexer.impl.token.MetarStart;
 import fi.fmi.avi.tac.lexer.impl.token.MetricHorizontalVisibility;
 import fi.fmi.avi.tac.lexer.impl.token.Nil;
-import fi.fmi.avi.tac.lexer.impl.token.NoSignificantCloud;
 import fi.fmi.avi.tac.lexer.impl.token.NoSignificantWeather;
 import fi.fmi.avi.tac.lexer.impl.token.Remark;
 import fi.fmi.avi.tac.lexer.impl.token.RemarkStart;
@@ -123,9 +122,8 @@ public class AviMessageConverterConfig {
         s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
+        //s.addReconstructor(Lexeme.Identity.CHANGE_FORECAST_TIME_GROUP, new ChangeForecastTimeGroup.Reconstructor());
         s.addReconstructor(Lexeme.Identity.RUNWAY_VISUAL_RANGE, new RunwayVisualRange.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_DEWPOINT_TEMPERATURE, new AirDewpointTemperature.Reconstructor());
         s.addReconstructor(Lexeme.Identity.AIR_PRESSURE_QNH, new AtmosphericPressureQNH.Reconstructor());
@@ -156,7 +154,6 @@ public class AviMessageConverterConfig {
         s.addReconstructor(Lexeme.Identity.WEATHER, new Weather.Reconstructor(false));
         s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_WEATHER, new NoSignificantWeather.Reconstructor());
         s.addReconstructor(Lexeme.Identity.CLOUD, new CloudLayer.Reconstructor());
-        s.addReconstructor(Lexeme.Identity.NO_SIGNIFICANT_CLOUD, new NoSignificantCloud.Reconstructor());
         s.addReconstructor(Lexeme.Identity.MAX_TEMPERATURE, new ForecastMaxMinTemperature.Reconstructor());
         // No need to register MIN_TEMPERATURE as ForecastMaxMinTemperature.Reconstructor will do both if both set
         s.addReconstructor(Lexeme.Identity.FORECAST_CHANGE_INDICATOR, new ForecastChangeIndicator.Reconstructor());
@@ -169,19 +166,17 @@ public class AviMessageConverterConfig {
     RecognizingAviMessageTokenLexer metarTokenLexer() {
         RecognizingAviMessageTokenLexer l = new RecognizingAviMessageTokenLexer();
 
-        //The METAR token lexer can understand the following tokens (low priority = occurs less often):
-        l.teach(new MetarStart(Priority.LOW));
+        //The METAR token lexer can understand the following tokens (low priority = should be tried sooner):
+        l.teach(new MetarStart(Priority.HIGH));
         l.teach(new ICAOCode(Priority.LOW));
         l.teach(new IssueTime(Priority.LOW));
         l.teach(new CloudLayer(Priority.HIGH));
-        l.teach(new NoSignificantCloud(Priority.LOW));
         l.teach(new Weather(Priority.NORMAL));
         l.teach(new SurfaceWind(Priority.LOW));
         l.teach(new VariableSurfaceWind(Priority.LOW));
         l.teach(new MetricHorizontalVisibility(Priority.NORMAL));
         l.teach(new FractionalHorizontalVisibility(Priority.NORMAL));
         l.teach(new ForecastChangeIndicator(Priority.LOW));
-        l.teach(new ChangeForecastTimeGroup(Priority.LOW));
         l.teach(new ColorCode(Priority.LOW));
         l.teach(new CAVOK(Priority.LOW));
         l.teach(new Correction(Priority.LOW));
@@ -192,8 +187,8 @@ public class AviMessageConverterConfig {
         l.teach(new SnowClosure(Priority.LOW));
         l.teach(new AutoMetar(Priority.LOW));
         l.teach(new NoSignificantWeather(Priority.LOW));
-        l.teach(new RemarkStart(Priority.LOW));
-        l.teach(new Remark(Priority.NORMAL));
+        l.teach(new RemarkStart(Priority.HIGH));
+        l.teach(new Remark(Priority.HIGH));
         l.teach(new WindShear(Priority.LOW));
         l.teach(new SeaState(Priority.LOW));
         l.teach(new EndToken(Priority.LOW));
@@ -202,7 +197,7 @@ public class AviMessageConverterConfig {
 
     RecognizingAviMessageTokenLexer tafTokenLexer() {
         RecognizingAviMessageTokenLexer l = new RecognizingAviMessageTokenLexer();
-        l.teach(new TAFStart(Priority.LOW));
+        l.teach(new TAFStart(Priority.HIGH));
         l.teach(new ICAOCode(Priority.LOW));
         l.teach(new ValidTime(Priority.LOW));
         l.teach(new IssueTime(Priority.LOW));
@@ -216,13 +211,13 @@ public class AviMessageConverterConfig {
         l.teach(new ChangeForecastTimeGroup(Priority.LOW));
         l.teach(new Correction(Priority.LOW));
         l.teach(new Amendment(Priority.LOW));
-        l.teach(new Nil(Priority.LOW));
+        l.teach(new Nil(Priority.HIGH));
         l.teach(new Cancellation(Priority.LOW));
         l.teach(new CAVOK(Priority.LOW));
         l.teach(new NoSignificantWeather(Priority.LOW));
         l.teach(new ForecastMaxMinTemperature(Priority.LOW));
-        l.teach(new RemarkStart(Priority.LOW));
-        l.teach(new Remark(Priority.NORMAL));
+        l.teach(new RemarkStart(Priority.HIGH));
+        l.teach(new Remark(Priority.HIGH));
         l.teach(new EndToken(Priority.LOW));
         return l;
     }

@@ -1,9 +1,6 @@
 {
   "status": "CORRECTION",
-  "issueDayOfMonth": 11,
-  "issueHour": 11,
-  "issueMinute": 15,
-  "issueTimeZone": "UTC",
+  "partialIssueTime": "111115Z",
   "aerodrome": {
     "designator": "EFUT"
   },

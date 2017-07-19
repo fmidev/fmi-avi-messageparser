@@ -60,12 +60,13 @@ public class RecognizingAviMessageTokenLexer implements LexemeVisitor {
 
     @Override
     public void visit(final Lexeme token, final ConversionHints hints) {
-        if (!token.isRecognized() && visitors != null) {
+        if (visitors != null) {
             for (LexemeVisitor v : visitors) {
-                token.accept(v, hints);
-                if (token.isRecognized()) {
-                    break;
-                }
+            	if (token.getIdentificationCertainty() < 1.0) {
+            		token.accept(v, hints);
+            	} else {
+            		break;
+            	}
             }
         }
     }

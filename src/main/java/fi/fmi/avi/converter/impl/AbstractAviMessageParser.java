@@ -200,10 +200,9 @@ public abstract class AbstractAviMessageParser {
             Integer minute = match.getParsedValue(Lexeme.ParsedValueName.MINUTE1, Integer.class);
             Integer hour = match.getParsedValue(Lexeme.ParsedValueName.HOUR1, Integer.class);
             if (day != null && minute != null && hour != null) {
-                msg.setIssueDayOfMonth(day);
-                msg.setIssueHour(hour);
-                msg.setIssueMinute(minute);
-                msg.setIssueTimeZone("UTC");
+                msg.setPartialIssueTime(day, hour, minute);
+            } else {
+            	retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing at least some of the issue time components in " + lexed.getTAC()));
             }
         }, () -> {
             retval.add(new ConversionIssue(ConversionIssue.Type.MISSING_DATA, "Missing at least some of the issue time components in " + lexed.getTAC()));
@@ -249,6 +248,9 @@ public abstract class AbstractAviMessageParser {
                 case OVERCAST:
                     retval.setAmount(AviationCodeListUser.CloudAmount.OVC);
                     break;
+                case SKY_CLEAR:
+                	retval.setAmount(AviationCodeListUser.CloudAmount.SKC);
+                	break;
                 default:
                     //NOOP
                     break;
